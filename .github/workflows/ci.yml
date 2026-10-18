@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (Laravel)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: erudsway_test
+          POSTGRES_USER: erudsway
+          POSTGRES_PASSWORD: erudsway
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U erudsway"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: erudsway_test
+      DB_USERNAME: erudsway
+      DB_PASSWORD: erudsway
+      REDIS_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, pcntl, posix, intl, bcmath, gd, zip
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('apps/api/composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - name: Code style (Pint)
+        run: composer lint
+      - name: Static analysis (Larastan)
+        run: composer analyse
+      - name: Tests (Pest)
+        run: php artisan test
+
+      # Contract check: the committed OpenAPI spec and generated TS types must match the code.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+      - name: OpenAPI contract is up to date
+        working-directory: .
+        run: |
+          pnpm api:openapi
+          pnpm api:client
+          git diff --exit-code -- packages/api-client || (echo "::error::Run 'pnpm api:openapi && pnpm api:client' and commit the result." && exit 1)
+
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm --filter web lint
+      - name: Typecheck
+        run: pnpm -r typecheck
+      - name: Unit tests (Vitest)
+        run: pnpm --filter web test
+      - name: Build
+        run: pnpm build:web

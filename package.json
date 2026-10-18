@@ -1,0 +1,17 @@
+{
+  "name": "erudsway",
+  "private": true,
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "api:openapi": "cd apps/api && composer openapi",
+    "api:client": "pnpm --filter @erudsway/api-client generate"
+  }
+}

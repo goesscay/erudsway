@@ -1,0 +1,21 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Node
+node_modules/
+.pnpm-store/
+*.log
+
+# Env files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Generated
+coverage/
+playwright-report/
+test-results/

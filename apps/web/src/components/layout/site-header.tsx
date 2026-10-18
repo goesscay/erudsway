@@ -1,0 +1,67 @@
+import Link from "next/link";
+import { Search, ShoppingCart } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
+import { buttonVariants } from "@/components/ui/button";
+import { categories } from "@/lib/demo-data";
+import { cn } from "@/lib/utils";
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+      <div className="mx-auto flex h-[72px] max-w-[1340px] items-center gap-6 px-6">
+        <Logo />
+
+        <form action="/search" role="search" className="relative hidden flex-1 md:block">
+          <label htmlFor="q" className="sr-only">
+            Search courses
+          </label>
+          <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-stone-500" />
+          <input
+            id="q"
+            name="q"
+            type="search"
+            placeholder="Search for anything — React, GST, Figma…"
+            className="h-11 w-full rounded-full border border-input bg-paper pr-4 pl-11 text-sm placeholder:text-stone-500 focus:border-navy-900 focus:bg-white focus:outline-none"
+          />
+        </form>
+
+        <nav className="ml-auto flex items-center gap-1 text-sm font-medium md:ml-0">
+          <Link href="/teach" className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block">
+            Teach on Erudsway
+          </Link>
+          <Link href="/my-learning" className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block">
+            My learning
+          </Link>
+          <Link
+            href="/cart"
+            aria-label="Cart, 0 items"
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "text-stone-700")}
+          >
+            <ShoppingCart className="size-5" />
+          </Link>
+          <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "ml-1")}>
+            Log in
+          </Link>
+          <Link href="/register" className={cn(buttonVariants(), "hidden sm:inline-flex")}>
+            Sign up
+          </Link>
+        </nav>
+      </div>
+
+      <nav aria-label="Categories" className="hidden border-t border-line/70 lg:block">
+        <ul className="mx-auto flex max-w-[1340px] items-center justify-center gap-7 px-6 text-[0.8rem] text-stone-700">
+          {categories.map((c) => (
+            <li key={c}>
+              <Link
+                href={`/courses/${c.toLowerCase().replace(/[^a-z]+/g, "-")}`}
+                className="block py-2.5 hover:text-navy-900 hover:underline hover:decoration-gold-500 hover:decoration-2 hover:underline-offset-[10px]"
+              >
+                {c}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  );
+}

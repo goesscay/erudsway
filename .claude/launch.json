@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "web", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-d", "opcache.enable_cli=0", "apps/api/artisan", "serve", "--port=8000"],
+      "port": 8000
+    }
+  ]
+}
