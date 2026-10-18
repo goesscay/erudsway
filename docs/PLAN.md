@@ -1,8 +1,10 @@
 # Erudsway — Online Learning Marketplace: Architecture & Delivery Plan
 
-**Owner:** Erudsway Educorp LLP · **Status:** Approved; Phase 0 built, awaiting design sign-off · **Date:** 2026-10-18
+**Owner:** Erudsway Educorp LLP · **Status:** Approved; Phase 0 and Phase 1 built · **Date:** 2026-10-18
 
 > **Phase 0 notes (2026-10-18):** scaffolded on Laravel 13.37 and Next.js 16.4.2 (newer than the 16.3 line verified earlier; Cache Components + Partial Prefetching enabled by default). Images on design-review screens come from Unsplash with credits. Open follow-ups for Phase 2: sticky buy bar on mobile course pages, mobile search, replacing `demo-data.ts` with API data.
+>
+> **Phase 1 notes (2026-10-19):** identity module live — register/login/logout (Sanctum SPA cookies), email verification (signed link → web app), password reset, profile and password change, roles + fine-grained staff permissions (seeded by migration), instructor applications with admin approve/reject (no self-review), user suspension that ends access immediately, rate limits, and an append-only audit log. Emails are queued. Emails are stored lower-cased instead of using `citext`, so the schema also runs on SQLite for local development. Deferred: branded email templates (Phase 7), Playwright E2E suite (needs both servers in CI), mobile navigation for the admin console.
 **Benchmark:** udemy.com (marketplace model: students buy video courses, approved instructors publish, platform keeps full control and pays commissions)
 
 > Nothing has been built yet. This document is the "before writing code" deliverable from the spec (steps 1–6). Section 14 lists the decisions that need your sign-off before Phase 0 starts.

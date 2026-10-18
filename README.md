@@ -14,7 +14,7 @@ Requirements: PHP 8.3+, Composer, Node 24, pnpm, and Docker (for PostgreSQL, Red
 ```bash
 docker compose -f infra/docker-compose.dev.yml up -d
 pnpm install
-cd apps/api && composer install && cp .env.example .env && php artisan key:generate && php artisan migrate
+cd apps/api && composer install && cp .env.example .env && php artisan key:generate && php artisan migrate --seed
 ```
 
 Run the two apps in separate terminals:
@@ -26,6 +26,7 @@ pnpm dev:web
 
 - Web: http://localhost:3000 — design review screens: `/`, `/course/complete-full-stack-web-development`, `/learn/complete-full-stack-web-development`, `/instructor/courses/demo/curriculum`, `/design-system`
 - API health: http://localhost:8000/api/v1/health
+- Local admin (created by `php artisan db:seed`, local only): `admin@erudsway.test` / `password`
 - API docs (OpenAPI UI): http://localhost:8000/docs/api
 
 > **Windows note:** the local PHP build intermittently crashes (PHPStan, Scramble, Pest) when CLI OPcache JIT is on, so project scripts pass `-d opcache.enable_cli=0`. Without Docker, `apps/api/.env` falls back to SQLite and file drivers.

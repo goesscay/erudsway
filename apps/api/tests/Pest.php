@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\User;
+use App\Modules\Identity\Enums\Permission;
+use App\Modules\Identity\Enums\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +18,7 @@ use Tests\TestCase;
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 /*
@@ -44,7 +47,24 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/** Headers that make Sanctum treat the request as coming from the web app (session + cookies). */
+function spaHeaders(): array
 {
-    // ..
+    return ['Referer' => 'http://localhost:3000/', 'Origin' => 'http://localhost:3000', 'Accept' => 'application/json'];
+}
+
+function makeUser(Role $role = Role::Student, bool $verified = true): User
+{
+    $factory = User::factory()->withRole($role);
+
+    return ($verified ? $factory : $factory->unverified())->create();
+}
+
+/** A staff member holding only the given permissions (no admin role). */
+function makeStaff(Permission ...$permissions): User
+{
+    $user = makeUser();
+    $user->givePermissionTo(array_map(fn (Permission $p) => $p->value, $permissions));
+
+    return $user;
 }

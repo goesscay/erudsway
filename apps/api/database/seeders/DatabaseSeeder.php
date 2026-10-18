@@ -3,23 +3,29 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Modules\Identity\Enums\Role;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Local development data only. Roles and permissions come from migrations;
+     * production admins are created with `php artisan identity:promote-admin`.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        if (! app()->environment('local', 'testing')) {
+            $this->command->warn('DatabaseSeeder only runs in local/testing environments.');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+            return;
+        }
+
+        $admin = User::query()->firstOrCreate(
+            ['email' => 'admin@erudsway.test'],
+            ['name' => 'Local Admin', 'password' => 'password'],
+        );
+        $admin->forceFill(['email_verified_at' => now()])->save();
+        $admin->profile()->firstOrCreate();
+        $admin->syncRoles([Role::Admin->value]);
     }
 }

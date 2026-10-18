@@ -18,6 +18,11 @@ return [
     'version' => env('APP_VERSION', 'dev'),
 
     /*
+    | Public URL of the Next.js web app; used for links in emails and redirects.
+    */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

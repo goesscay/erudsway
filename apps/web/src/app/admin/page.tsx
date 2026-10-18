@@ -1,0 +1,20 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { hasPermission, useMe } from "@/lib/auth/session";
+
+/** Sends staff to the first section they can use. */
+export default function AdminHome() {
+  const { data: me } = useMe();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!me) return;
+    router.replace(
+      hasPermission(me, "review_instructor_applications") ? "/admin/instructor-applications" : "/admin/users",
+    );
+  }, [me, router]);
+
+  return null;
+}
