@@ -165,6 +165,8 @@ NGINX
     echo "  certbot certonly --webroot -w /var/www/html -d ${DOMAIN} && DOMAIN=${DOMAIN} $0"
 fi
 ln -sfn /etc/nginx/sites-available/erudsway /etc/nginx/sites-enabled/erudsway
+fill "$SRC/nginx/internal.conf" > /etc/nginx/sites-available/erudsway-internal
+ln -sfn /etc/nginx/sites-available/erudsway-internal /etc/nginx/sites-enabled/erudsway-internal
 
 say "systemd units"
 for u in erudsway-web.service erudsway-horizon.service erudsway-scheduler.service erudsway-scheduler.timer; do

@@ -38,9 +38,15 @@ php artisan storage:link --quiet >/dev/null 2>&1 || true
 
 echo "--- Web build"
 cd "$REL"
-export NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=3072 COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-corepack pnpm install --frozen-lockfile --reporter=silent
-corepack pnpm --filter web build
+export NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=3072
+# pnpm at exactly the version package.json pins, installed for this user (corepack can't run pnpm 12).
+PNPM_VERSION="$(node -p "require('./package.json').packageManager.split('@')[1]")"
+PNPM="$BASE/.local/node_modules/.bin/pnpm"
+if [ "$("$PNPM" --version 2>/dev/null)" != "$PNPM_VERSION" ]; then
+    npm install --silent --no-audit --no-fund --prefix "$BASE/.local" "pnpm@$PNPM_VERSION"
+fi
+"$PNPM" install --frozen-lockfile --reporter=silent
+"$PNPM" --filter web build
 
 echo "--- Migrate and cache"
 cd "$REL/apps/api"
