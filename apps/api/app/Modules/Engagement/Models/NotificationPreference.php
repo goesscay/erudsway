@@ -13,11 +13,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $qa_replies
  * @property bool $instructor_questions
  * @property bool $instructor_reviews
+ * @property bool $assignment_feedback
+ * @property bool $instructor_submissions
  * @property bool $promotions
  */
 class NotificationPreference extends Model
 {
-    public const TOPICS = ['course_announcements', 'qa_replies', 'instructor_questions', 'instructor_reviews', 'promotions'];
+    public const TOPICS = ['course_announcements', 'qa_replies', 'assignment_feedback', 'instructor_questions', 'instructor_reviews', 'instructor_submissions', 'promotions'];
 
     protected $primaryKey = 'user_id';
 
@@ -31,6 +33,8 @@ class NotificationPreference extends Model
         'qa_replies' => true,
         'instructor_questions' => true,
         'instructor_reviews' => true,
+        'assignment_feedback' => true,
+        'instructor_submissions' => true,
         'promotions' => false,
     ];
 

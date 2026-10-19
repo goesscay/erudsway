@@ -13,6 +13,11 @@ const topics: { key: keyof Prefs; label: string; hint: string; instructor?: bool
   },
   { key: "qa_replies", label: "Replies to my questions", hint: "When someone answers a question you asked in Q&A." },
   {
+    key: "assignment_feedback",
+    label: "Feedback on my assignments",
+    hint: "When an instructor reviews an assignment you handed in.",
+  },
+  {
     key: "instructor_questions",
     label: "New questions in my courses",
     hint: "When a learner asks a question in a course you teach.",
@@ -22,6 +27,12 @@ const topics: { key: keyof Prefs; label: string; hint: string; instructor?: bool
     key: "instructor_reviews",
     label: "New reviews of my courses",
     hint: "When a learner rates a course you teach.",
+    instructor: true,
+  },
+  {
+    key: "instructor_submissions",
+    label: "New assignment submissions",
+    hint: "When a learner hands in an assignment in a course you teach.",
     instructor: true,
   },
   {

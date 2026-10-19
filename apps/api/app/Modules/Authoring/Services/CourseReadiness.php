@@ -2,6 +2,8 @@
 
 namespace App\Modules\Authoring\Services;
 
+use App\Modules\Assessment\Models\Assignment;
+use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Catalog\Enums\LectureKind;
 use App\Modules\Catalog\Models\Course;
 use App\Modules\Catalog\Models\Lecture;
@@ -43,10 +45,35 @@ class CourseReadiness
             ['curriculum', 'video_minutes', 'At least 30 minutes of processed video', $videoSeconds >= self::MIN_VIDEO_SECONDS],
             ['curriculum', 'videos_ready', 'Every video lecture has a processed video', $videos->every(fn (Lecture $l) => $l->videoAsset?->status === VideoStatus::Ready)],
             ['curriculum', 'articles', 'Every article lecture has content', $lectures->where('kind', LectureKind::Article)->every(fn (Lecture $l) => HtmlSanitizer::textLength($l->article_html) >= 50)],
+            ['curriculum', 'quizzes', 'Every quiz has at least one question', $this->quizzesReady($lectures->where('kind', LectureKind::Quiz)->pluck('id')->all())],
+            ['curriculum', 'assignments', 'Every assignment has instructions', $this->assignmentsReady($lectures->where('kind', LectureKind::Assignment)->pluck('id')->all())],
             ['pricing', 'pricing', 'A price (or free) chosen', $course->pricing_confirmed_at !== null],
         ];
 
         return array_map(fn (array $i) => ['group' => $i[0], 'key' => $i[1], 'label' => $i[2], 'ok' => $i[3]], $items);
+    }
+
+    /** @param list<int> $lectureIds */
+    private function quizzesReady(array $lectureIds): bool
+    {
+        if ($lectureIds === []) {
+            return true;
+        }
+        $withQuestions = Quiz::query()->whereIn('lecture_id', $lectureIds)->whereHas('questions')->count();
+
+        return $withQuestions === count($lectureIds);
+    }
+
+    /** @param list<int> $lectureIds */
+    private function assignmentsReady(array $lectureIds): bool
+    {
+        if ($lectureIds === []) {
+            return true;
+        }
+
+        return Assignment::query()->whereIn('lecture_id', $lectureIds)->get()
+            ->filter(fn (Assignment $a) => HtmlSanitizer::textLength($a->instructions_html) >= 20)
+            ->count() === count($lectureIds);
     }
 
     public function isReady(Course $course): bool

@@ -62,14 +62,16 @@ class NotificationController extends Controller
         return ApiResponse::data($this->prefs($prefs));
     }
 
-    /** @return array{course_announcements: bool, qa_replies: bool, instructor_questions: bool, instructor_reviews: bool, promotions: bool} */
+    /** @return array{course_announcements: bool, qa_replies: bool, assignment_feedback: bool, instructor_questions: bool, instructor_reviews: bool, instructor_submissions: bool, promotions: bool} */
     private function prefs(NotificationPreference $p): array
     {
         return [
             'course_announcements' => $p->course_announcements,
             'qa_replies' => $p->qa_replies,
+            'assignment_feedback' => $p->assignment_feedback,
             'instructor_questions' => $p->instructor_questions,
             'instructor_reviews' => $p->instructor_reviews,
+            'instructor_submissions' => $p->instructor_submissions,
             'promotions' => $p->promotions,
         ];
     }

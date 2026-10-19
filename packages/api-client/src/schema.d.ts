@@ -38,6 +38,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learn/lectures/{lecture}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learner: the brief and their own submission, if any */
+        get: operations["assessment.assignment.show"];
+        put?: never;
+        /** Learner: hand in (or replace) an answer. Multipart: `body` and/or `file` */
+        post: operations["assessment.assignment.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignment-submissions/{submission}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["assessment.assignment.file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/lectures/{lecture}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Instructor: the brief, for the course builder */
+        get: operations["assessment.instructor.assignment.edit"];
+        put: operations["assessment.instructor.assignment.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Instructor: submissions across my courses; waiting for review by default */
+        get: operations["assessment.instructor.submissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/submissions/{submission}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["assessment.instructor.submissions.review"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -198,6 +282,59 @@ export interface paths {
         };
         /** One category with its parent and subcategories */
         get: operations["catalog.categories.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/certificates/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public verification. Anyone with the code can see who earned it, for which course,
+         *     and whether it is still valid
+         */
+        get: operations["certificates.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/certificates/{code}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["certificates.pdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/certificates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My certificates, newest first */
+        get: operations["certificates.mine"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1513,6 +1650,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learn/lectures/{lecture}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learner: the quiz to take (no answers), plus how they've done so far */
+        get: operations["assessment.quiz.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learn/lectures/{lecture}/quiz/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Learner: hand in answers; graded at once */
+        post: operations["assessment.quiz.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/lectures/{lecture}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Instructor: the quiz with its answers, for the course builder */
+        get: operations["assessment.instructor.quiz.edit"];
+        /** Instructor: replace the quiz's settings and questions */
+        put: operations["assessment.instructor.quiz.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/instructor/lectures/{lecture}/resources": {
         parameters: {
             query?: never;
@@ -2064,6 +2253,20 @@ export interface components {
                 name: string;
             }[];
         };
+        /** CertificateResource */
+        CertificateResource: {
+            code: string;
+            serial: string;
+            recipient_name: string;
+            course_title: string;
+            instructor_name: string;
+            duration_seconds: number;
+            issued_at: string;
+            /** @description False once the learner's access to the course has ended (refund or revoke). */
+            valid: boolean;
+            pdf_url: string;
+            course_slug?: string;
+        };
         /** CommissionRuleResource */
         CommissionRuleResource: {
             id: number;
@@ -2307,6 +2510,8 @@ export interface components {
             granted_at: string;
             last_accessed_at: string | null;
             completed_at: string | null;
+            /** @description Verification code of the course certificate, once earned. */
+            certificate_code: string | null;
             revoked_at: string | null;
             reason: string | null;
             course: {
@@ -2393,6 +2598,7 @@ export interface components {
                 completed_count: number;
                 last_lecture_id: number | null;
                 completed_at: string | null;
+                certificate_code: string | null;
             } | null;
             curriculum: {
                 id: number;
@@ -2426,6 +2632,11 @@ export interface components {
                 download_url: string;
             }[];
         };
+        /**
+         * LectureKind
+         * @enum {string}
+         */
+        LectureKind: "video" | "article" | "quiz" | "assignment";
         /** LedgerLineResource */
         LedgerLineResource: {
             id: number;
@@ -2709,6 +2920,32 @@ export interface components {
             /** Format: uri */
             sample_url?: string | null;
         };
+        /** SubmissionResource */
+        SubmissionResource: {
+            id: number;
+            body: string | null;
+            file: {
+                name: string;
+                size_bytes: number;
+                url: string;
+            } | null;
+            /** @enum {string} */
+            status: "submitted" | "reviewed";
+            feedback: string | null;
+            reviewed_at: string | null;
+            submitted_at: string;
+            learner?: {
+                name: string;
+            };
+            lecture?: {
+                id: number;
+                title: string;
+                course: {
+                    slug: string;
+                    title: string;
+                };
+            } | null;
+        };
         /**
          * TeachingExperience
          * @enum {string}
@@ -2912,6 +3149,277 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["AnnouncementResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.assignment.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            /** @description Sanitised with HTMLPurifier when the instructor saved it. */
+                            instructions_html: string | null;
+                            allow_file: boolean;
+                            file_types: [
+                                "pdf",
+                                "doc",
+                                "docx",
+                                "xls",
+                                "xlsx",
+                                "csv",
+                                "txt",
+                                "jpg",
+                                "jpeg",
+                                "png",
+                                "zip"
+                            ];
+                            max_file_mb: number;
+                            submission: components["schemas"]["SubmissionResource"] | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "assessment.assignment.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    body?: string | null;
+                    /**
+                     * Format: binary
+                     * @description Maximum file size: 20480 kilobytes.
+                     */
+                    file?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `SubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SubmissionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.assignment.file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The submission ID */
+                submission: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "assessment.instructor.assignment.edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            instructions_html: string | null;
+                            allow_file: boolean;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "assessment.instructor.assignment.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    instructions_html?: string | null;
+                    allow_file: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            instructions_html: string | null;
+                            allow_file: boolean;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.instructor.submissions": {
+        parameters: {
+            query?: {
+                status?: "submitted" | "reviewed" | "all" | null;
+                page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `SubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: (components["schemas"]["SubmissionResource"] & Record<string, never>)[];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.instructor.submissions.review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The submission ID */
+                submission: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    feedback: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `SubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SubmissionResource"] & Record<string, never>;
                     };
                 };
             };
@@ -3194,6 +3702,77 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "certificates.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CertificateResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CertificateResource"];
+                    };
+                };
+            };
+        };
+    };
+    "certificates.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    "Cache-Control"?: "private, max-age=3600";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "certificates.mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CertificateResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CertificateResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "commerce.checkout.states": {
@@ -4079,8 +4658,7 @@ export interface operations {
             content: {
                 "application/json": {
                     title: string;
-                    /** @enum {string} */
-                    kind: "video" | "article";
+                    kind: components["schemas"]["LectureKind"];
                 };
             };
         };
@@ -5425,8 +6003,10 @@ export interface operations {
                         data: {
                             course_announcements: boolean;
                             qa_replies: boolean;
+                            assignment_feedback: boolean;
                             instructor_questions: boolean;
                             instructor_reviews: boolean;
+                            instructor_submissions: boolean;
                             promotions: boolean;
                         };
                         meta: string;
@@ -5448,8 +6028,10 @@ export interface operations {
                 "application/json": {
                     course_announcements?: boolean;
                     qa_replies?: boolean;
+                    assignment_feedback?: boolean;
                     instructor_questions?: boolean;
                     instructor_reviews?: boolean;
+                    instructor_submissions?: boolean;
                     promotions?: boolean;
                 };
             };
@@ -5464,8 +6046,10 @@ export interface operations {
                         data: {
                             course_announcements: boolean;
                             qa_replies: boolean;
+                            assignment_feedback: boolean;
                             instructor_questions: boolean;
                             instructor_reviews: boolean;
+                            instructor_submissions: boolean;
                             promotions: boolean;
                         };
                         meta: string;
@@ -6129,6 +6713,227 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.quiz.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            pass_percent: number;
+                            questions: {
+                                id: number;
+                                /** @enum {string} */
+                                type: "single" | "multiple";
+                                prompt: string;
+                                options: {
+                                    id: number;
+                                    body: string;
+                                }[];
+                            }[];
+                            attempts: {
+                                count: number;
+                                best_percent: number | null;
+                                passed: boolean;
+                            };
+                            last_result: {
+                                score_percent: number;
+                                correct_count: number;
+                                question_count: number;
+                                passed: boolean;
+                                pass_percent: number;
+                                recorded: boolean;
+                                submitted_at: string;
+                                review: {
+                                    question_id: number;
+                                    chosen: number[];
+                                    correct: number[];
+                                    is_correct: boolean;
+                                    explanation: string | null;
+                                }[];
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "assessment.quiz.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    answers: {
+                        question_id: number;
+                        option_ids: number[];
+                    }[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            score_percent: number;
+                            correct_count: number;
+                            question_count: number;
+                            passed: boolean;
+                            pass_percent: number;
+                            recorded: boolean;
+                            submitted_at: string;
+                            review: {
+                                question_id: number;
+                                chosen: number[];
+                                correct: number[];
+                                is_correct: boolean;
+                                explanation: string | null;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "assessment.instructor.quiz.edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            pass_percent: number;
+                            shuffle_questions: boolean;
+                            questions: {
+                                id: number;
+                                /** @enum {string} */
+                                type: "single" | "multiple";
+                                prompt: string;
+                                explanation: string | null;
+                                options: {
+                                    id: number;
+                                    body: string;
+                                    is_correct: boolean;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "assessment.instructor.quiz.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    pass_percent: number;
+                    shuffle_questions?: boolean;
+                    questions: {
+                        id?: number | null;
+                        /** @enum {string} */
+                        type: "single" | "multiple";
+                        prompt: string;
+                        explanation?: string | null;
+                        options: {
+                            id?: number | null;
+                            body: string;
+                            is_correct: boolean;
+                        }[];
+                    }[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            pass_percent: number;
+                            shuffle_questions: boolean;
+                            questions: {
+                                id: number;
+                                /** @enum {string} */
+                                type: "single" | "multiple";
+                                prompt: string;
+                                explanation: string | null;
+                                options: {
+                                    id: number;
+                                    body: string;
+                                    is_correct: boolean;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
         };
     };

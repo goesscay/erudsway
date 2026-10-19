@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, LogOut, MonitorPlay, Presentation, Receipt, Settings, ShieldCheck } from "lucide-react";
+import { Award, Heart, LogOut, MonitorPlay, Presentation, Receipt, Settings, ShieldCheck } from "lucide-react";
 import { CartLink } from "@/components/commerce/cart-link";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { NotificationBell } from "@/components/engagement/notification-bell";
@@ -94,6 +94,9 @@ export function AuthNav() {
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href="/wishlist" />}>
             <Heart /> Wishlist
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/account/certificates" />}>
+            <Award /> My certificates
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href="/account/purchases" />}>
             <Receipt /> Purchase history

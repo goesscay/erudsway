@@ -3,6 +3,8 @@
 namespace App\Modules\Authoring\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Assessment\Services\Assignments;
+use App\Modules\Assessment\Services\Quizzes;
 use App\Modules\Authoring\Http\Requests\ReorderCurriculumRequest;
 use App\Modules\Authoring\Http\Resources\CourseEditorResource;
 use App\Modules\Catalog\Enums\LectureKind;
@@ -72,7 +74,7 @@ class CurriculumController extends Controller
         Gate::authorize('update', $section->course);
         $data = $request->validate([
             'title' => ['required', 'string', 'min:3', 'max:160'],
-            'kind' => ['required', Rule::in([LectureKind::Video->value, LectureKind::Article->value])],
+            'kind' => ['required', Rule::enum(LectureKind::class)],
         ]);
 
         $section->lectures()->create([
@@ -80,6 +82,12 @@ class CurriculumController extends Controller
             'title' => $data['title'],
             'kind' => $data['kind'],
             'position' => (int) $section->lectures()->max('position') + 1,
+            // Listed length until the quiz or brief is written.
+            'duration_seconds' => match ($data['kind']) {
+                LectureKind::Quiz->value => Quizzes::SECONDS_PER_QUESTION,
+                LectureKind::Assignment->value => Assignments::DURATION_SECONDS,
+                default => 0,
+            },
         ]);
         $this->stats->refresh($section->course_id);
 
@@ -177,12 +185,19 @@ class CurriculumController extends Controller
             ->each(fn (Lecture $l, int $i) => $l->update(['position' => $i + 1]));
     }
 
-    /** @param list<int> $lectureIds */
+    /**
+     * Downloadable resources and learners' assignment files of the given lectures.
+     *
+     * @param  list<int>  $lectureIds
+     */
     private function deleteResourceFiles(array $lectureIds): void
     {
         $paths = DB::table('lecture_resources')->whereIn('lecture_id', $lectureIds)->pluck('path')->all();
         if ($paths) {
             Storage::disk('local')->delete($paths);
+        }
+        foreach ($lectureIds as $id) {
+            Storage::disk('local')->deleteDirectory("assignments/{$id}");
         }
     }
 }

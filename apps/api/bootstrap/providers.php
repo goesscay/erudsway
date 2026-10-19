@@ -1,7 +1,9 @@
 <?php
 
+use App\Modules\Assessment\AssessmentServiceProvider;
 use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
+use App\Modules\Certificates\CertificatesServiceProvider;
 use App\Modules\Commerce\CommerceServiceProvider;
 use App\Modules\Engagement\EngagementServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
@@ -24,4 +26,6 @@ return [
     CommerceServiceProvider::class,
     FinanceServiceProvider::class,
     EngagementServiceProvider::class,
+    AssessmentServiceProvider::class,
+    CertificatesServiceProvider::class,
 ];

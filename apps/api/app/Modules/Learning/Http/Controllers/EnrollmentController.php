@@ -21,7 +21,7 @@ class EnrollmentController extends Controller
     {
         $enrollments = Enrollment::query()->active()
             ->where('user_id', $this->user($request)->id)
-            ->with(['course.instructor:id,name', 'course.instructorProfile'])
+            ->with(['course.instructor:id,name', 'course.instructorProfile', 'certificate:id,enrollment_id,code'])
             ->orderByRaw('COALESCE(last_accessed_at, granted_at) DESC')
             ->get();
 

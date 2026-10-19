@@ -67,7 +67,21 @@ export function CurriculumSidebar({
                   const Icon = icon[l.kind];
                   return (
                     <li key={l.id} className={cn("flex gap-3 px-5 py-3 text-sm", isCurrent ? "bg-navy-100/70" : "hover:bg-paper")}>
-                      {tracked && (
+                      {tracked && (l.kind === "quiz" || l.kind === "assignment") && (
+                        // Completed by passing or handing in, so it's a status, not a checkbox.
+                        <span
+                          role="img"
+                          aria-label={l.completed ? "Done" : l.kind === "quiz" ? "Not passed yet" : "Not handed in yet"}
+                          title={l.completed ? undefined : l.kind === "quiz" ? "Completes when you pass" : "Completes when you hand in"}
+                          className={cn(
+                            "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full ring-1",
+                            l.completed ? "bg-navy-900 ring-navy-900" : "ring-stone-500/40",
+                          )}
+                        >
+                          {l.completed && <Check className="size-3 text-white" strokeWidth={3} />}
+                        </span>
+                      )}
+                      {tracked && l.kind !== "quiz" && l.kind !== "assignment" && (
                         <button
                           type="button"
                           onClick={() => onToggle(l.id, !l.completed)}

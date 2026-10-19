@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Megaphone, MessageSquare, Star } from "lucide-react";
+import { Award, Bell, ClipboardList, Megaphone, MessageSquare, Star } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNotificationActions, useNotifications } from "@/lib/engagement/api";
 import { timeAgo } from "@/lib/format";
@@ -13,6 +13,9 @@ const icons: Record<string, typeof Bell> = {
   qa_replies: MessageSquare,
   instructor_questions: MessageSquare,
   instructor_reviews: Star,
+  assignment_feedback: ClipboardList,
+  instructor_submissions: ClipboardList,
+  certificate: Award,
 };
 
 /** The header inbox: latest 20 notifications, refreshed every minute while the tab is open. */

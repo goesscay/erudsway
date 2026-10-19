@@ -182,6 +182,726 @@
                 }
             }
         },
+        "/learn/lectures/{lecture}/assignment": {
+            "get": {
+                "operationId": "assessment.assignment.show",
+                "summary": "Learner: the brief and their own submission, if any",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "instructions_html": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Sanitised with HTMLPurifier when the instructor saved it."
+                                                },
+                                                "allow_file": {
+                                                    "type": "boolean"
+                                                },
+                                                "file_types": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "pdf"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "doc"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "docx"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "xls"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "xlsx"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "csv"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "txt"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "jpg"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "jpeg"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "png"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "zip"
+                                                        }
+                                                    ],
+                                                    "minItems": 11,
+                                                    "maxItems": 11
+                                                },
+                                                "max_file_mb": {
+                                                    "type": "integer"
+                                                },
+                                                "submission": {
+                                                    "anyOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/SubmissionResource"
+                                                        },
+                                                        {
+                                                            "type": "null"
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "instructions_html",
+                                                "allow_file",
+                                                "file_types",
+                                                "max_file_mb",
+                                                "submission"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "assessment.assignment.submit",
+                "summary": "Learner: hand in (or replace) an answer. Multipart: `body` and/or `file`",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "body": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 20000
+                                    },
+                                    "file": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 20480 kilobytes."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`SubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/SubmissionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "learner",
+                                                        "lecture"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/assignment-submissions/{submission}/file": {
+            "get": {
+                "operationId": "assessment.assignment.file",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "submission",
+                        "in": "path",
+                        "required": true,
+                        "description": "The submission ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/lectures/{lecture}/assignment": {
+            "get": {
+                "operationId": "assessment.instructor.assignment.edit",
+                "summary": "Instructor: the brief, for the course builder",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "instructions_html": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "allow_file": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "instructions_html",
+                                                "allow_file"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "assessment.instructor.assignment.update",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "instructions_html": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 20000
+                                    },
+                                    "allow_file": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "allow_file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "instructions_html": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "allow_file": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "instructions_html",
+                                                "allow_file"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/submissions": {
+            "get": {
+                "operationId": "assessment.instructor.submissions",
+                "summary": "Instructor: submissions across my courses; waiting for review by default",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "submitted",
+                                "reviewed",
+                                "all",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `SubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/SubmissionResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "lecture"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/submissions/{submission}/review": {
+            "put": {
+                "operationId": "assessment.instructor.submissions.review",
+                "tags": [
+                    "Assignment"
+                ],
+                "parameters": [
+                    {
+                        "name": "submission",
+                        "in": "path",
+                        "required": true,
+                        "description": "The submission ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "feedback": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 5000
+                                    }
+                                },
+                                "required": [
+                                    "feedback"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`SubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/SubmissionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "learner",
+                                                        "lecture"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "operationId": "identity.register",
@@ -624,6 +1344,126 @@
                     }
                 },
                 "security": []
+            }
+        },
+        "/certificates/{code}": {
+            "get": {
+                "operationId": "certificates.show",
+                "summary": "Public verification. Anyone with the code can see who earned it, for which course,\nand whether it is still valid",
+                "tags": [
+                    "Certificate"
+                ],
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CertificateResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CertificateResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/certificates/{code}/pdf": {
+            "get": {
+                "operationId": "certificates.pdf",
+                "tags": [
+                    "Certificate"
+                ],
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string",
+                                    "const": "private, max-age=3600"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/me/certificates": {
+            "get": {
+                "operationId": "certificates.mine",
+                "summary": "My certificates, newest first",
+                "tags": [
+                    "Certificate"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CertificateResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CertificateResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/checkout/states": {
@@ -2714,11 +3554,7 @@
                                         "maxLength": 160
                                     },
                                     "kind": {
-                                        "type": "string",
-                                        "enum": [
-                                            "video",
-                                            "article"
-                                        ]
+                                        "$ref": "#/components/schemas/LectureKind"
                                     }
                                 },
                                 "required": [
@@ -5461,10 +6297,16 @@
                                                 "qa_replies": {
                                                     "type": "boolean"
                                                 },
+                                                "assignment_feedback": {
+                                                    "type": "boolean"
+                                                },
                                                 "instructor_questions": {
                                                     "type": "boolean"
                                                 },
                                                 "instructor_reviews": {
+                                                    "type": "boolean"
+                                                },
+                                                "instructor_submissions": {
                                                     "type": "boolean"
                                                 },
                                                 "promotions": {
@@ -5474,8 +6316,10 @@
                                             "required": [
                                                 "course_announcements",
                                                 "qa_replies",
+                                                "assignment_feedback",
                                                 "instructor_questions",
                                                 "instructor_reviews",
+                                                "instructor_submissions",
                                                 "promotions"
                                             ]
                                         },
@@ -5513,10 +6357,16 @@
                                     "qa_replies": {
                                         "type": "boolean"
                                     },
+                                    "assignment_feedback": {
+                                        "type": "boolean"
+                                    },
                                     "instructor_questions": {
                                         "type": "boolean"
                                     },
                                     "instructor_reviews": {
+                                        "type": "boolean"
+                                    },
+                                    "instructor_submissions": {
                                         "type": "boolean"
                                     },
                                     "promotions": {
@@ -5544,10 +6394,16 @@
                                                 "qa_replies": {
                                                     "type": "boolean"
                                                 },
+                                                "assignment_feedback": {
+                                                    "type": "boolean"
+                                                },
                                                 "instructor_questions": {
                                                     "type": "boolean"
                                                 },
                                                 "instructor_reviews": {
+                                                    "type": "boolean"
+                                                },
+                                                "instructor_submissions": {
                                                     "type": "boolean"
                                                 },
                                                 "promotions": {
@@ -5557,8 +6413,10 @@
                                             "required": [
                                                 "course_announcements",
                                                 "qa_replies",
+                                                "assignment_feedback",
                                                 "instructor_questions",
                                                 "instructor_reviews",
+                                                "instructor_submissions",
                                                 "promotions"
                                             ]
                                         },
@@ -7091,6 +7949,723 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/learn/lectures/{lecture}/quiz": {
+            "get": {
+                "operationId": "assessment.quiz.show",
+                "summary": "Learner: the quiz to take (no answers), plus how they've done so far",
+                "tags": [
+                    "Quiz"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "pass_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "questions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "single",
+                                                                    "multiple"
+                                                                ]
+                                                            },
+                                                            "prompt": {
+                                                                "type": "string"
+                                                            },
+                                                            "options": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "body": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "body"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "type",
+                                                            "prompt",
+                                                            "options"
+                                                        ]
+                                                    }
+                                                },
+                                                "attempts": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "count": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "best_percent": {
+                                                            "type": [
+                                                                "integer",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "passed": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "count",
+                                                        "best_percent",
+                                                        "passed"
+                                                    ]
+                                                },
+                                                "last_result": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "score_percent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "correct_count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "question_count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "passed": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "pass_percent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "recorded": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "submitted_at": {
+                                                            "type": "string"
+                                                        },
+                                                        "review": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "question_id": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "chosen": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "integer"
+                                                                        }
+                                                                    },
+                                                                    "correct": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "integer"
+                                                                        }
+                                                                    },
+                                                                    "is_correct": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "explanation": {
+                                                                        "type": [
+                                                                            "string",
+                                                                            "null"
+                                                                        ]
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "question_id",
+                                                                    "chosen",
+                                                                    "correct",
+                                                                    "is_correct",
+                                                                    "explanation"
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "score_percent",
+                                                        "correct_count",
+                                                        "question_count",
+                                                        "passed",
+                                                        "pass_percent",
+                                                        "recorded",
+                                                        "submitted_at",
+                                                        "review"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "pass_percent",
+                                                "questions",
+                                                "attempts",
+                                                "last_result"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/learn/lectures/{lecture}/quiz/attempts": {
+            "post": {
+                "operationId": "assessment.quiz.submit",
+                "summary": "Learner: hand in answers; graded at once",
+                "tags": [
+                    "Quiz"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "answers": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "question_id": {
+                                                    "type": "integer"
+                                                },
+                                                "option_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "maxItems": 10
+                                                }
+                                            },
+                                            "required": [
+                                                "question_id",
+                                                "option_ids"
+                                            ]
+                                        },
+                                        "maxItems": 100
+                                    }
+                                },
+                                "required": [
+                                    "answers"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "score_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "correct_count": {
+                                                    "type": "integer"
+                                                },
+                                                "question_count": {
+                                                    "type": "integer"
+                                                },
+                                                "passed": {
+                                                    "type": "boolean"
+                                                },
+                                                "pass_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "recorded": {
+                                                    "type": "boolean"
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string"
+                                                },
+                                                "review": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "question_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "chosen": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "correct": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "integer"
+                                                                }
+                                                            },
+                                                            "is_correct": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "explanation": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "question_id",
+                                                            "chosen",
+                                                            "correct",
+                                                            "is_correct",
+                                                            "explanation"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "score_percent",
+                                                "correct_count",
+                                                "question_count",
+                                                "passed",
+                                                "pass_percent",
+                                                "recorded",
+                                                "submitted_at",
+                                                "review"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/lectures/{lecture}/quiz": {
+            "get": {
+                "operationId": "assessment.instructor.quiz.edit",
+                "summary": "Instructor: the quiz with its answers, for the course builder",
+                "tags": [
+                    "Quiz"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "pass_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "shuffle_questions": {
+                                                    "type": "boolean"
+                                                },
+                                                "questions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "single",
+                                                                    "multiple"
+                                                                ]
+                                                            },
+                                                            "prompt": {
+                                                                "type": "string"
+                                                            },
+                                                            "explanation": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "options": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "body": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "is_correct": {
+                                                                            "type": "boolean"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "body",
+                                                                        "is_correct"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "type",
+                                                            "prompt",
+                                                            "explanation",
+                                                            "options"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "pass_percent",
+                                                "shuffle_questions",
+                                                "questions"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "assessment.instructor.quiz.update",
+                "summary": "Instructor: replace the quiz's settings and questions",
+                "tags": [
+                    "Quiz"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "pass_percent": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 100
+                                    },
+                                    "shuffle_questions": {
+                                        "type": "boolean"
+                                    },
+                                    "questions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "single",
+                                                        "multiple"
+                                                    ]
+                                                },
+                                                "prompt": {
+                                                    "type": "string",
+                                                    "maxLength": 2000
+                                                },
+                                                "explanation": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "maxLength": 2000
+                                                },
+                                                "options": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": [
+                                                                    "integer",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "body": {
+                                                                "type": "string",
+                                                                "maxLength": 500
+                                                            },
+                                                            "is_correct": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "body",
+                                                            "is_correct"
+                                                        ]
+                                                    },
+                                                    "minItems": 2,
+                                                    "maxItems": 10
+                                                }
+                                            },
+                                            "required": [
+                                                "type",
+                                                "prompt",
+                                                "options"
+                                            ]
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 100
+                                    }
+                                },
+                                "required": [
+                                    "pass_percent",
+                                    "questions"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "pass_percent": {
+                                                    "type": "integer"
+                                                },
+                                                "shuffle_questions": {
+                                                    "type": "boolean"
+                                                },
+                                                "questions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "single",
+                                                                    "multiple"
+                                                                ]
+                                                            },
+                                                            "prompt": {
+                                                                "type": "string"
+                                                            },
+                                                            "explanation": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "options": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer"
+                                                                        },
+                                                                        "body": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "is_correct": {
+                                                                            "type": "boolean"
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "body",
+                                                                        "is_correct"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "type",
+                                                            "prompt",
+                                                            "explanation",
+                                                            "options"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "pass_percent",
+                                                "shuffle_questions",
+                                                "questions"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -10313,6 +11888,54 @@
                 ],
                 "title": "CategoryResource"
             },
+            "CertificateResource": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "serial": {
+                        "type": "string"
+                    },
+                    "recipient_name": {
+                        "type": "string"
+                    },
+                    "course_title": {
+                        "type": "string"
+                    },
+                    "instructor_name": {
+                        "type": "string"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "issued_at": {
+                        "type": "string"
+                    },
+                    "valid": {
+                        "type": "boolean",
+                        "description": "False once the learner's access to the course has ended (refund or revoke)."
+                    },
+                    "pdf_url": {
+                        "type": "string"
+                    },
+                    "course_slug": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "serial",
+                    "recipient_name",
+                    "course_title",
+                    "instructor_name",
+                    "duration_seconds",
+                    "issued_at",
+                    "valid",
+                    "pdf_url"
+                ],
+                "title": "CertificateResource"
+            },
             "CommissionRuleResource": {
                 "type": "object",
                 "properties": {
@@ -11401,6 +13024,13 @@
                             "null"
                         ]
                     },
+                    "certificate_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Verification code of the course certificate, once earned."
+                    },
                     "revoked_at": {
                         "type": [
                             "string",
@@ -11462,6 +13092,7 @@
                     "granted_at",
                     "last_accessed_at",
                     "completed_at",
+                    "certificate_code",
                     "revoked_at",
                     "reason",
                     "course"
@@ -11778,13 +13409,20 @@
                                     "string",
                                     "null"
                                 ]
+                            },
+                            "certificate_code": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
                             }
                         },
                         "required": [
                             "progress_percent",
                             "completed_count",
                             "last_lecture_id",
-                            "completed_at"
+                            "completed_at",
+                            "certificate_code"
                         ]
                     },
                     "curriculum": {
@@ -11936,6 +13574,16 @@
                     "resources"
                 ],
                 "title": "LectureContentResource"
+            },
+            "LectureKind": {
+                "type": "string",
+                "enum": [
+                    "video",
+                    "article",
+                    "quiz",
+                    "assignment"
+                ],
+                "title": "LectureKind"
             },
             "LedgerLineResource": {
                 "type": "object",
@@ -13035,6 +14683,119 @@
                     "teaching_experience"
                 ],
                 "title": "StoreInstructorApplicationRequest"
+            },
+            "SubmissionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "body": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "file": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "size_bytes": {
+                                "type": "integer"
+                            },
+                            "url": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "size_bytes",
+                            "url"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "submitted",
+                            "reviewed"
+                        ]
+                    },
+                    "feedback": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reviewed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_at": {
+                        "type": "string"
+                    },
+                    "learner": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "lecture": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "course": {
+                                "type": "object",
+                                "properties": {
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "slug",
+                                    "title"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "title",
+                            "course"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "body",
+                    "file",
+                    "status",
+                    "feedback",
+                    "reviewed_at",
+                    "submitted_at"
+                ],
+                "title": "SubmissionResource"
             },
             "TeachingExperience": {
                 "type": "string",

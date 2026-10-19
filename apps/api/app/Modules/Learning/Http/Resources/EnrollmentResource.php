@@ -30,6 +30,8 @@ class EnrollmentResource extends JsonResource
             'granted_at' => $this->granted_at->toIso8601String(),
             'last_accessed_at' => $this->last_accessed_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),
+            /** Verification code of the course certificate, once earned. */
+            'certificate_code' => $this->certificate?->code,
             'revoked_at' => $this->revoked_at?->toIso8601String(),
             'reason' => $this->reason,
             'course' => [

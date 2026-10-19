@@ -178,12 +178,14 @@ describe('curriculum', function () {
         expect($course->fresh()->lecture_count)->toBe(1);
     });
 
-    it('only allows video and article lectures for now', function () {
+    it('adds quiz and assignment lectures, and rejects unknown kinds', function () {
         $course = draftFor();
+        $url = "/api/v1/instructor/sections/{$course->sections()->first()->id}/lectures";
 
-        $this->actingAs($course->instructor)
-            ->postJson("/api/v1/instructor/sections/{$course->sections()->first()->id}/lectures", ['title' => 'A quiz', 'kind' => 'quiz'])
-            ->assertUnprocessable();
+        $this->actingAs($course->instructor)->postJson($url, ['title' => 'A quiz', 'kind' => 'quiz'])->assertOk();
+        $this->actingAs($course->instructor)->postJson($url, ['title' => 'An assignment', 'kind' => 'assignment'])->assertOk();
+        $this->actingAs($course->instructor)->postJson($url, ['title' => 'A podcast', 'kind' => 'podcast'])->assertUnprocessable();
+        expect($course->lectures()->pluck('duration_seconds', 'kind')->all())->toMatchArray(['quiz' => 60, 'assignment' => 600]);
     });
 
     it('sanitises article content and estimates reading time', function () {

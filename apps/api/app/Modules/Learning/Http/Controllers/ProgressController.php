@@ -4,6 +4,7 @@ namespace App\Modules\Learning\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Catalog\Enums\LectureKind;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Learning\Models\LectureProgress;
 use App\Modules\Learning\Services\Entitlements;
@@ -37,6 +38,7 @@ class ProgressController extends Controller
     public function complete(Request $request, Lecture $lecture): JsonResponse
     {
         $user = $this->authorize($request, $lecture);
+        $this->manual($lecture);
 
         return $this->respond($user, $lecture, $this->tracker->setCompleted($user, $lecture, true));
     }
@@ -44,8 +46,19 @@ class ProgressController extends Controller
     public function uncomplete(Request $request, Lecture $lecture): JsonResponse
     {
         $user = $this->authorize($request, $lecture);
+        $this->manual($lecture);
 
         return $this->respond($user, $lecture, $this->tracker->setCompleted($user, $lecture, false));
+    }
+
+    /** Quizzes complete when passed and assignments when handed in, never by a tick. */
+    private function manual(Lecture $lecture): void
+    {
+        if (in_array($lecture->kind, [LectureKind::Quiz, LectureKind::Assignment], true)) {
+            throw new DomainException('COMPLETES_AUTOMATICALLY', $lecture->kind === LectureKind::Quiz
+                ? 'This quiz completes when you pass it.'
+                : 'This assignment completes when you hand it in.', 422);
+        }
     }
 
     private function authorize(Request $request, Lecture $lecture): User

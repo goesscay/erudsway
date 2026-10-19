@@ -15,7 +15,8 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CheckCircle2, ChevronDown, CircleAlert, FileText, GripVertical, Loader2, MonitorPlay, Pencil, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, ChevronDown, CircleAlert, ClipboardList, FileText, GripVertical, ListChecks, Loader2, MonitorPlay, Pencil, Plus, Trash2 } from "lucide-react";
+import { AssignmentPanel, QuizPanel } from "@/components/authoring/assessment-panels";
 import { ArticlePanel, ResourcesPanel, VideoPanel } from "@/components/authoring/lecture-panels";
 import { FormAlert, TextInput } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
@@ -166,7 +167,7 @@ function SectionCard({
     unwrap(api.PATCH("/instructor/sections/{section}", { params: { path: { section: section.id } }, body: { title } })),
   );
   const remove = useEditorAction(course.id, () => unwrap(api.DELETE("/instructor/sections/{section}", { params: { path: { section: section.id } } })));
-  const addLecture = useEditorAction(course.id, (vars: { title: string; kind: "video" | "article" }) =>
+  const addLecture = useEditorAction(course.id, (vars: { title: string; kind: LectureKind }) =>
     unwrap(api.POST("/instructor/sections/{section}/lectures", { params: { path: { section: section.id } }, body: vars })),
   );
 
@@ -276,7 +277,7 @@ function LectureRow({
     unwrap(api.PATCH("/instructor/lectures/{lecture}", { params: { path: { lecture: lecture.id } }, body })),
   );
   const remove = useEditorAction(course.id, () => unwrap(api.DELETE("/instructor/lectures/{lecture}", { params: { path: { lecture: lecture.id } } })));
-  const KindIcon = lecture.kind === "article" ? FileText : MonitorPlay;
+  const KindIcon = kinds[lecture.kind].icon;
 
   return (
     <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} className={cn("rounded-sm border border-line bg-paper/60", isDragging && "relative z-10 bg-white shadow-md")}>
@@ -299,7 +300,7 @@ function LectureRow({
         ) : (
           <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm">
             <span className="truncate text-ink">
-              <span className="text-stone-500">{lecture.kind === "article" ? "Article" : "Lecture"} {index + 1}:</span> {lecture.title}
+              <span className="text-stone-500">{kinds[lecture.kind].noun} {index + 1}:</span> {lecture.title}
             </span>
           </button>
         )}
@@ -315,6 +316,10 @@ function LectureRow({
         <div className="space-y-5 border-t border-line bg-white px-4 py-4">
           {lecture.kind === "video" ? (
             <VideoPanel courseId={course.id} lecture={lecture} locked={locked} />
+          ) : lecture.kind === "quiz" ? (
+            <QuizPanel courseId={course.id} lecture={lecture} locked={locked} />
+          ) : lecture.kind === "assignment" ? (
+            <AssignmentPanel courseId={course.id} lecture={lecture} locked={locked} />
           ) : (
             <ArticlePanel courseId={course.id} lecture={lecture} locked={locked} />
           )}
@@ -373,6 +378,9 @@ function LectureRow({
 }
 
 function LectureStatus({ lecture }: { lecture: EditorLecture }) {
+  if (lecture.kind === "quiz" || lecture.kind === "assignment") {
+    return <span className="text-xs text-stone-500">{kinds[lecture.kind].label}</span>;
+  }
   if (lecture.kind === "article") {
     return lecture.article_html ? (
       <span className="tabular text-xs text-stone-500">{formatClock(lecture.duration_seconds)} read</span>
@@ -450,10 +458,19 @@ function InlineTitle({ initial, onSave, onCancel }: { initial: string; onSave: (
   );
 }
 
-function AddLecture({ onAdd }: { onAdd: (vars: { title: string; kind: "video" | "article" }) => Promise<unknown> }) {
+type LectureKind = EditorLecture["kind"];
+
+const kinds: Record<LectureKind, { label: string; noun: string; icon: typeof FileText; placeholder: string }> = {
+  video: { label: "Video", noun: "Lecture", icon: MonitorPlay, placeholder: "Lecture title, e.g. Filing GSTR-3B" },
+  article: { label: "Article", noun: "Article", icon: FileText, placeholder: "Article title, e.g. GSTR-3B checklist" },
+  quiz: { label: "Quiz", noun: "Quiz", icon: ListChecks, placeholder: "Quiz title, e.g. Check your understanding" },
+  assignment: { label: "Assignment", noun: "Assignment", icon: ClipboardList, placeholder: "Assignment title, e.g. Reconcile GSTR-2B" },
+};
+
+function AddLecture({ onAdd }: { onAdd: (vars: { title: string; kind: LectureKind }) => Promise<unknown> }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [kind, setKind] = useState<"video" | "article">("video");
+  const [kind, setKind] = useState<LectureKind>("video");
   const [busy, setBusy] = useState(false);
 
   if (!open) {
@@ -487,22 +504,25 @@ function AddLecture({ onAdd }: { onAdd: (vars: { title: string; kind: "video" | 
       }}
     >
       <div className="flex gap-2" role="radiogroup" aria-label="Lecture type">
-        {(["video", "article"] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={kind === k}
-            onClick={() => setKind(k)}
-            className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold", kind === k ? "border-navy-900 bg-navy-900 text-white" : "border-line bg-white text-stone-700")}
-          >
-            {k === "video" ? <MonitorPlay className="size-3.5" /> : <FileText className="size-3.5" />}
-            {k === "video" ? "Video" : "Article"}
-          </button>
-        ))}
+        {(["video", "article", "quiz", "assignment"] as const).map((k) => {
+          const Icon = kinds[k].icon;
+          return (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={kind === k}
+              onClick={() => setKind(k)}
+              className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold", kind === k ? "border-navy-900 bg-navy-900 text-white" : "border-line bg-white text-stone-700")}
+            >
+              <Icon className="size-3.5" />
+              {kinds[k].label}
+            </button>
+          );
+        })}
       </div>
       <div className="flex gap-2">
-        <TextInput value={title} autoFocus maxLength={160} placeholder="Lecture title, e.g. Filing GSTR-3B" aria-label="Lecture title" onChange={(e) => setTitle(e.target.value)} className="h-10" />
+        <TextInput value={title} autoFocus maxLength={160} placeholder={kinds[kind].placeholder} aria-label="Lecture title" onChange={(e) => setTitle(e.target.value)} className="h-10" />
         <Button type="submit" disabled={busy || title.trim().length < 3}>
           Add
         </Button>

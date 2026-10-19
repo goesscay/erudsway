@@ -5,11 +5,13 @@ namespace App\Modules\Learning\Models;
 use App\Models\User;
 use App\Modules\Catalog\Models\Course;
 use App\Modules\Catalog\Models\Lecture;
+use App\Modules\Certificates\Models\Certificate;
 use App\Modules\Learning\Enums\EnrollmentSource;
 use App\Modules\Learning\Enums\EnrollmentStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -30,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $last_lecture_id
  * @property Carbon|null $last_accessed_at
  * @property Carbon|null $completed_at
+ * @property-read Certificate|null $certificate
  * @property Carbon $created_at
  */
 class Enrollment extends Model
@@ -86,5 +89,11 @@ class Enrollment extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', EnrollmentStatus::Active->value);
+    }
+
+    /** @return HasOne<Certificate, $this> */
+    public function certificate(): HasOne
+    {
+        return $this->hasOne(Certificate::class);
     }
 }

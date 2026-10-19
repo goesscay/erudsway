@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ExternalLink, IndianRupee, Landmark, Megaphone, MessageSquare, MonitorPlay, ShieldAlert, Star } from "lucide-react";
+import { ClipboardList, ExternalLink, IndianRupee, Landmark, Megaphone, MessageSquare, MonitorPlay, ShieldAlert, Star } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -45,6 +45,7 @@ export function InstructorGate({ children }: { children: React.ReactNode }) {
 const nav = [
   { href: "/instructor", label: "Courses", icon: MonitorPlay },
   { href: "/instructor/qa", label: "Q&A", icon: MessageSquare },
+  { href: "/instructor/assignments", label: "Assignments", icon: ClipboardList },
   { href: "/instructor/reviews", label: "Reviews", icon: Star },
   { href: "/instructor/announcements", label: "Announcements", icon: Megaphone },
   { href: "/instructor/revenue", label: "Revenue", icon: IndianRupee },

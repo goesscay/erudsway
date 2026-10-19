@@ -5,6 +5,7 @@ namespace App\Modules\Learning\Services;
 use App\Models\User;
 use App\Modules\Catalog\Enums\LectureKind;
 use App\Modules\Catalog\Models\Lecture;
+use App\Modules\Learning\Events\CourseCompleted;
 use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Models\LectureProgress;
 use Illuminate\Support\Facades\DB;
@@ -78,12 +79,17 @@ class ProgressTracker
             ->whereNotNull('completed_at')
             ->count();
 
+        $wasComplete = $enrollment->completed_at !== null;
         $enrollment->forceFill([
             'completed_count' => $done,
             // Floor, so 100% means every lecture is done.
             'progress_percent' => $total > 0 ? intdiv($done * 100, $total) : 0,
             'completed_at' => $total > 0 && $done >= $total ? ($enrollment->completed_at ?? now()) : null,
         ])->save();
+
+        if (! $wasComplete && $enrollment->completed_at !== null) {
+            CourseCompleted::dispatch($enrollment);
+        }
     }
 
     private function touch(Enrollment $enrollment, Lecture $lecture, bool $recount): void

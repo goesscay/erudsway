@@ -57,6 +57,7 @@ class LearnCourseResource extends JsonResource
                 'completed_count' => $this->enrollment->completed_count,
                 'last_lecture_id' => $this->enrollment->last_lecture_id,
                 'completed_at' => $this->enrollment->completed_at?->toIso8601String(),
+                'certificate_code' => $this->enrollment->certificate?->code,
             ] : null,
             /** @var list<array{id: int, title: string, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool, has_video: bool, resource_count: int, completed: bool, last_position_seconds: int}>}> */
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [

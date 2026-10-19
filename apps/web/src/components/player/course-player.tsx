@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Eye, FileText, Lock } from "lucide-react";
+import { Award, ChevronLeft, ChevronRight, Download, Eye, FileText, Lock } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,8 +17,10 @@ import { NotificationBell } from "@/components/engagement/notification-bell";
 import { MyReview } from "@/components/engagement/my-review";
 import { QaPanel } from "@/components/engagement/qa-panel";
 import { ArticleView } from "./article-view";
+import { AssignmentView } from "./assignment-view";
 import { CurriculumSidebar } from "./curriculum-sidebar";
 import { NotesPanel } from "./notes-panel";
+import { QuizView } from "./quiz-view";
 import { VideoPlayer } from "./video-player";
 
 const UP_NEXT_SECONDS = 5;
@@ -137,6 +139,14 @@ function Player({ course }: { course: LearnCourse }) {
           <span className="truncate">{course.title}</span>
         </Link>
         <div className="ml-auto flex items-center gap-4 text-sm text-white/80">
+          {course.enrollment?.certificate_code && (
+            <Link
+              href={`/certificates/${course.enrollment.certificate_code}`}
+              className="hidden items-center gap-1.5 rounded-sm bg-gold-500 px-2.5 py-1 text-xs font-bold text-navy-950 hover:bg-gold-400 sm:inline-flex"
+            >
+              <Award className="size-3.5" /> Your certificate
+            </Link>
+          )}
           {tracked ? (
             <ProgressRing percent={percent} label={`${course.enrollment?.completed_count ?? 0} of ${course.lecture_count} complete`} />
           ) : (
@@ -180,6 +190,17 @@ function Player({ course }: { course: LearnCourse }) {
                 ) : (
                   <div className="flex aspect-video items-center justify-center bg-navy-950 text-sm text-white/70">This video is still being prepared.</div>
                 )
+              ) : current.kind === "quiz" ? (
+                <QuizView
+                  key={current.id}
+                  slug={course.slug}
+                  lectureId={current.id}
+                  title={`${current.number}. ${current.title}`}
+                  tracked={tracked}
+                  onNext={next ? () => go(next.id, { play: false }) : undefined}
+                />
+              ) : current.kind === "assignment" ? (
+                <AssignmentView key={current.id} slug={course.slug} lectureId={current.id} title={`${current.number}. ${current.title}`} tracked={tracked} />
               ) : (
                 <ArticleView
                   key={current.id}
