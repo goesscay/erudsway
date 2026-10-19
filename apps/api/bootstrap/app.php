@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identity\Http\Middleware\ReadOnlyWhileImpersonating;
 use App\Support\Http\ApiResponse;
 use App\Support\Http\DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -27,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cookie-based Sanctum auth for the Next.js frontend on the same parent domain.
         $middleware->statefulApi();
         $middleware->throttleApi();
+        // Admins "viewing as" a user can look but not change anything.
+        $middleware->appendToGroup('api', ReadOnlyWhileImpersonating::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = fn (Request $request): bool => $request->is('api/*');

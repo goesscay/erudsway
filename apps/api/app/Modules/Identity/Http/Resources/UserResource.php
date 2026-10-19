@@ -3,6 +3,7 @@
 namespace App\Modules\Identity\Http\Resources;
 
 use App\Models\User;
+use App\Modules\Identity\Services\Impersonation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -41,6 +42,19 @@ class UserResource extends JsonResource
                 'approved_at' => $instructor->approved_at->toIso8601String(),
             ] : null,
             'created_at' => $this->created_at->toIso8601String(),
+            // Set when an admin is viewing the site as this user (read-only).
+            'impersonator' => $this->impersonator($request),
         ];
+    }
+
+    /** @return array{name: string}|null */
+    private function impersonator(Request $request): ?array
+    {
+        $id = app(Impersonation::class)->impersonatorId($request);
+        if ($id === null || ! $request->user()?->is($this->resource)) {
+            return null;
+        }
+
+        return ['name' => (string) User::query()->whereKey($id)->value('name')];
     }
 }

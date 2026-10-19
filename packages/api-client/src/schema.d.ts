@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/admin/queues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Work waiting for staff, limited to what this person can act on */
+        get: operations["analytics.queues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Headline numbers, daily trend and top courses for a period (default: last 30 days) */
+        get: operations["analytics.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A report as typed columns and rows (money in paise) */
+        get: operations["analytics.report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/{name}/csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same report as CSV, with money in rupees */
+        get: operations["analytics.csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learn/{slug}/announcements": {
         parameters: {
             query?: never;
@@ -115,6 +183,55 @@ export interface paths {
         };
         get?: never;
         put: operations["assessment.instructor.submissions.review"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["platform.admin.audit.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit-logs/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The distinct action names, for the filter */
+        get: operations["platform.admin.audit.actions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit-logs/csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["platform.admin.audit.csv"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1025,6 +1142,23 @@ export interface paths {
         get: operations["platform.health"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/impersonation/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End "view as" and return to the admin's own account */
+        post: operations["identity.impersonation.stop"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1997,6 +2131,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every editable setting with its current value and the config/.env default */
+        get: operations["platform.admin.settings.index"];
+        /** Change several settings at once; a null value resets one to its default */
+        put: operations["platform.admin.settings.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -2042,6 +2194,60 @@ export interface paths {
         put?: never;
         /** Restore a suspended user's access */
         post: operations["admin.users.reactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everything support needs about one user */
+        get: operations["admin.users.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Admin only: make someone an admin, or give them individual staff permissions.
+         *     Nobody can change their own access, and the last admin can't be removed
+         */
+        put: operations["admin.users.access"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}/impersonate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Admin only: start viewing the site as this user (read-only) */
+        post: operations["admin.users.impersonate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2211,6 +2417,26 @@ export interface components {
          * @enum {string}
          */
         ApplicationStatus: "pending" | "approved" | "rejected";
+        /** AuditLogResource */
+        AuditLogResource: {
+            id: number;
+            action: string;
+            actor: {
+                name: string;
+                email: string;
+            } | null;
+            /** @description Short model name, e.g. Refund. */
+            subject_type: string | null;
+            subject_id: string | null;
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: {
+                [key: string]: unknown;
+            } | null;
+            ip: string | null;
+            created_at: string;
+        };
         /** CartLineResource */
         CartLineResource: {
             course: components["schemas"]["CourseCardResource"];
@@ -2772,6 +2998,12 @@ export interface components {
          * @enum {string}
          */
         PayoutStatus: "draft" | "approved" | "paid" | "cancelled";
+        /**
+         * Permission
+         * @description Fine-grained staff permissions. The admin role holds all of them; support staff can be given a subset (e.g. moderation without finance).
+         * @enum {string}
+         */
+        Permission: "review_instructor_applications" | "moderate_courses" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
         /** PriceTierResource */
         PriceTierResource: {
             id: number;
@@ -3001,6 +3233,10 @@ export interface components {
                 approved_at: string;
             } | null;
             created_at: string;
+            /** @description Set when an admin is viewing the site as this user (read-only). */
+            impersonator: {
+                name: string;
+            } | null;
         };
         /**
          * UserStatus
@@ -3009,19 +3245,15 @@ export interface components {
         UserStatus: "active" | "suspended";
     };
     responses: {
-        /** @description Validation error */
-        ValidationException: {
+        /** @description Authorization error */
+        AuthorizationException: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
                 "application/json": {
-                    /** @description Errors overview. */
+                    /** @description Error overview. */
                     message: string;
-                    /** @description A detailed description of each field that failed validation. */
-                    errors: {
-                        [key: string]: string[];
-                    };
                 };
             };
         };
@@ -3037,15 +3269,19 @@ export interface components {
                 };
             };
         };
-        /** @description Authorization error */
-        AuthorizationException: {
+        /** @description Validation error */
+        ValidationException: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
                 "application/json": {
-                    /** @description Error overview. */
+                    /** @description Errors overview. */
                     message: string;
+                    /** @description A detailed description of each field that failed validation. */
+                    errors: {
+                        [key: string]: string[];
+                    };
                 };
             };
         };
@@ -3069,6 +3305,179 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "analytics.queues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            key: string;
+                            label: string;
+                            count: number;
+                            href: string;
+                        }[];
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            /** @description An error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Error overview.
+                         * @example
+                         */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    "analytics.overview": {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            period: {
+                                from: string;
+                                to: string;
+                            };
+                            kpis: {
+                                key: string;
+                                label: string;
+                                value: number;
+                                previous: number;
+                                money: boolean;
+                            }[];
+                            daily: {
+                                date: string;
+                                revenue: number;
+                                orders: number;
+                                enrollments: number;
+                                signups: number;
+                            }[];
+                            top_courses: {
+                                slug: string;
+                                title: string;
+                                sales: number;
+                                revenue: number;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "analytics.report": {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                group?: "day" | "month" | null;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            name: string;
+                            period: {
+                                from: string;
+                                to: string;
+                            };
+                            columns: {
+                                key: string;
+                                label: string;
+                                /** @enum {string} */
+                                type: "text" | "number" | "money" | "percent" | "date";
+                            }[];
+                            rows: {
+                                [key: string]: string | number | null;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "analytics.csv": {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                group?: "day" | "month" | null;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv; charset=UTF-8": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "engagement.announcements.course": {
         parameters: {
             query?: never;
@@ -3426,6 +3835,121 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "platform.admin.audit.index": {
+        parameters: {
+            query?: {
+                action?: string | null;
+                actor?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `AuditLogResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuditLogResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "platform.admin.audit.actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: string[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "platform.admin.audit.csv": {
+        parameters: {
+            query?: {
+                action?: string | null;
+                actor?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
         };
     };
@@ -5401,6 +5925,29 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "identity.impersonation.stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `UserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "catalog.instructors.show": {
@@ -7726,6 +8273,87 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "platform.admin.settings.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                key: string;
+                                group: string;
+                                label: string;
+                                help: string;
+                                /** @enum {string} */
+                                type: "text" | "integer" | "bps" | "paise" | "boolean";
+                                value: string | number | boolean | null;
+                                default: string | number | boolean | null;
+                                overridden: boolean;
+                                updated_at: string | null;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "platform.admin.settings.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    values: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                key: string;
+                                group: string;
+                                label: string;
+                                help: string;
+                                /** @enum {string} */
+                                type: "text" | "integer" | "bps" | "paise" | "boolean";
+                                value: string | number | boolean | null;
+                                default: string | number | boolean | null;
+                                overridden: boolean;
+                                updated_at: string | null;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "admin.users.index": {
         parameters: {
             query?: {
@@ -7837,6 +8465,172 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["AdminUserResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.users.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            email: string;
+                            email_verified: boolean;
+                            /** @enum {string} */
+                            status: "active" | "suspended";
+                            created_at: string;
+                            last_login_at: string | null;
+                            roles: string[];
+                            is_admin: boolean;
+                            permissions: string[];
+                            direct_permissions: string[];
+                            instructor: {
+                                display_name: string;
+                                slug: string | null;
+                            } | null;
+                            stats: {
+                                enrollments: number;
+                                completed: number;
+                                certificates: number;
+                                orders: number;
+                                spent: number;
+                            };
+                            recent_orders: {
+                                number: string;
+                                total: number;
+                                status: string;
+                                paid_at: string | null;
+                            }[];
+                            activity: {
+                                action: string;
+                                by: string | null;
+                                about_this_user: boolean;
+                                created_at: string;
+                            }[];
+                            can_impersonate: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.users.access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    admin: boolean;
+                    permissions: components["schemas"]["Permission"][];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            email: string;
+                            email_verified: boolean;
+                            /** @enum {string} */
+                            status: "active" | "suspended";
+                            created_at: string;
+                            last_login_at: string | null;
+                            roles: string[];
+                            is_admin: boolean;
+                            permissions: string[];
+                            direct_permissions: string[];
+                            instructor: {
+                                display_name: string;
+                                slug: string | null;
+                            } | null;
+                            stats: {
+                                enrollments: number;
+                                completed: number;
+                                certificates: number;
+                                orders: number;
+                                spent: number;
+                            };
+                            recent_orders: {
+                                number: string;
+                                total: number;
+                                status: string;
+                                paid_at: string | null;
+                            }[];
+                            activity: {
+                                action: string;
+                                by: string | null;
+                                about_this_user: boolean;
+                                created_at: string;
+                            }[];
+                            can_impersonate: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.users.impersonate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `UserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserResource"];
                     };
                 };
             };

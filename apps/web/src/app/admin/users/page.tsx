@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDeferredValue, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
@@ -129,7 +130,9 @@ function UsersTable() {
                 {rows.map((u) => (
                   <tr key={u.id} className="hover:bg-paper">
                     <td className="px-5 py-3">
-                      <p className="font-semibold text-ink">{u.name}</p>
+                      <Link href={`/admin/users/${u.id}`} className="font-semibold text-ink hover:text-navy-800 hover:underline">
+                        {u.name}
+                      </Link>
                       <p className="text-xs text-stone-500">
                         {u.email}
                         {!u.email_verified && <span className="ml-1.5 text-gold-600">· unverified</span>}

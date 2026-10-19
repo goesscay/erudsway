@@ -2,9 +2,11 @@
 
 use App\Modules\Identity\Enums\Permission;
 use App\Modules\Identity\Http\Controllers\Admin\InstructorApplicationController as AdminApplications;
+use App\Modules\Identity\Http\Controllers\Admin\UserAccessController as UserAccess;
 use App\Modules\Identity\Http\Controllers\Admin\UserController as AdminUsers;
 use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\EmailVerificationController;
+use App\Modules\Identity\Http\Controllers\ImpersonationController;
 use App\Modules\Identity\Http\Controllers\InstructorApplicationController;
 use App\Modules\Identity\Http\Controllers\MeController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
@@ -23,6 +25,7 @@ Route::prefix('auth')->name('identity.')->group(function () {
 // Signed-in users
 Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout'])->name('identity.logout');
+    Route::post('auth/impersonation/stop', [ImpersonationController::class, 'stop'])->name('identity.impersonation.stop');
     Route::post('auth/email/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:verification')->name('identity.verification.send');
 
     Route::get('me', [MeController::class, 'show'])->name('identity.me');
@@ -47,6 +50,9 @@ Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function 
             ->prefix('users')->name('users.')
             ->group(function () {
                 Route::get('/', [AdminUsers::class, 'index'])->name('index');
+                Route::get('{user}', [UserAccess::class, 'show'])->name('show');
+                Route::put('{user}/access', [UserAccess::class, 'updateAccess'])->name('access');
+                Route::post('{user}/impersonate', [UserAccess::class, 'impersonate'])->middleware('throttle:10,1')->name('impersonate');
                 Route::post('{user}/suspend', [AdminUsers::class, 'suspend'])->name('suspend');
                 Route::post('{user}/reactivate', [AdminUsers::class, 'reactivate'])->name('reactivate');
             });

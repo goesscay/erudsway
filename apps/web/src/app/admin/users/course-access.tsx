@@ -15,7 +15,8 @@ import { api, ApiRequestError, mutate, unwrap } from "@/lib/api/client";
 import type { Enrollment } from "@/lib/learning/api";
 import { cn } from "@/lib/utils";
 
-type AdminUser = components["schemas"]["AdminUserResource"];
+/** Just enough of a user to manage their course access. */
+type AdminUser = Pick<components["schemas"]["AdminUserResource"], "id" | "name" | "email">;
 
 const sourceLabel: Record<Enrollment["source"], string> = {
   purchase: "Purchased",

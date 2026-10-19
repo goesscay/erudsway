@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Analytics\AnalyticsServiceProvider;
 use App\Modules\Assessment\AssessmentServiceProvider;
 use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
@@ -28,4 +29,5 @@ return [
     EngagementServiceProvider::class,
     AssessmentServiceProvider::class,
     CertificatesServiceProvider::class,
+    AnalyticsServiceProvider::class,
 ];
