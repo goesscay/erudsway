@@ -12,7 +12,9 @@ const figtree = Figtree({
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
+  // Optical sizing only: SOFT and WONK are pinned to their defaults in globals.css, so loading
+  // those axes only added weight.
+  axes: ["opsz"],
   display: "swap",
 });
 

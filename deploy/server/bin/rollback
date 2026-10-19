@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Erudsway — switch back to the previous release (as the erudsway user):
+#   /var/www/erudsway/bin/rollback [release-dir-name]
+# Database migrations are not reversed; only roll back across releases whose migrations
+# are backward compatible (add columns/tables; don't drop or rename).
+set -Eeuo pipefail
+BASE="${BASE:-/var/www/erudsway}"
+CURRENT="$(basename "$(readlink -f "$BASE/current")")"
+TARGET="${1:-$(ls -1t "$BASE/releases" | grep -vx "$CURRENT" | head -n 1)}"
+[ -n "$TARGET" ] && [ -d "$BASE/releases/$TARGET" ] || { echo "No release to roll back to." >&2; exit 1; }
+
+echo "Rolling back: $CURRENT -> $TARGET" | tee -a /var/log/erudsway/deploy.log
+ln -sfn "$BASE/releases/$TARGET" "$BASE/current.next" && mv -T "$BASE/current.next" "$BASE/current"
+sudo /usr/bin/systemctl reload php8.5-fpm
+sudo /usr/bin/systemctl restart erudsway-web
+php "$BASE/current/apps/api/artisan" horizon:terminate >/dev/null 2>&1 || true
+echo "Now live: $TARGET"

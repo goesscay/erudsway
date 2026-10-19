@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Erudsway — deploy from your machine:  deploy/push [git-ref]   (default: main)
+# Pushes the commit to the server's repository over SSH and runs the release script there.
+# Needs the `ria-vps` SSH host alias (see deploy/README.md).
+set -Eeuo pipefail
+HOST="${DEPLOY_HOST:-ria-vps}"
+BASE="${BASE:-/var/www/erudsway}"
+REF="${1:-main}"
+
+git diff --quiet && git diff --cached --quiet || { echo "You have uncommitted changes; commit or stash them first." >&2; exit 1; }
+SHA="$(git rev-parse --verify "$REF^{commit}")"
+echo "Deploying $REF (${SHA:0:9}) to $HOST…"
+
+# Objects are written as the erudsway user so its release script can read them.
+git push --force --receive-pack="sudo -u erudsway git-receive-pack" "ssh://$HOST$BASE/repo.git" "$SHA:refs/heads/main"
+ssh "$HOST" "sudo -u erudsway $BASE/bin/release main"

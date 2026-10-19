@@ -1,0 +1,11 @@
+# /etc/systemd/system/erudsway-scheduler.timer
+[Unit]
+Description=Run Erudsway scheduled tasks every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

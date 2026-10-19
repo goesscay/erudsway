@@ -1,0 +1,13 @@
+# /etc/systemd/system/erudsway-scheduler.service — run once a minute by erudsway-scheduler.timer.
+# Runs payment reconciliation, earnings release, monthly payouts and ops:check.
+[Unit]
+Description=Erudsway scheduled tasks
+
+[Service]
+Type=oneshot
+User=erudsway
+Group=erudsway
+WorkingDirectory=__BASE__/current/apps/api
+ExecStart=/usr/bin/php __BASE__/current/apps/api/artisan schedule:run
+NoNewPrivileges=true
+PrivateTmp=true

@@ -138,7 +138,7 @@ class Quizzes
             });
         }
 
-        return ['attempt' => $attempt, 'recorded' => $recorded, 'review' => $this->review($quiz, $attempt)];
+        return ['attempt' => $attempt, 'recorded' => $recorded, 'review' => $this->review($quiz, $attempt, $attempt->passed)];
     }
 
     /** @return array{count: int, best_percent: int|null, passed: bool, last: QuizAttempt|null} */
@@ -156,22 +156,24 @@ class Quizzes
 
     /**
      * Per-question result for an attempt, against the quiz as it is now. Questions added
-     * since the attempt show as unanswered.
+     * since the attempt show as unanswered. The right answers and explanations are only
+     * revealed once the learner has passed — otherwise a failed attempt would hand them
+     * the answer key and the pass mark would mean nothing.
      *
      * @return list<array{question_id: int, chosen: list<int>, correct: list<int>, is_correct: bool, explanation: string|null}>
      */
-    public function review(Quiz $quiz, QuizAttempt $attempt): array
+    public function review(Quiz $quiz, QuizAttempt $attempt, bool $reveal): array
     {
-        return $quiz->questions->map(function (QuizQuestion $q) use ($attempt) {
+        return $quiz->questions->map(function (QuizQuestion $q) use ($attempt, $reveal) {
             $chosen = array_map('intval', $attempt->answers[$q->id] ?? []);
             sort($chosen);
 
             return [
                 'question_id' => $q->id,
                 'chosen' => $chosen,
-                'correct' => $q->correctIds(),
+                'correct' => $reveal ? $q->correctIds() : [],
                 'is_correct' => $chosen === $q->correctIds(),
-                'explanation' => $q->explanation,
+                'explanation' => $reveal ? $q->explanation : null,
             ];
         })->values()->all();
     }

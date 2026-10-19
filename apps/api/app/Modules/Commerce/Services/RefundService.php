@@ -15,6 +15,7 @@ use App\Modules\Commerce\Payments\GatewayException;
 use App\Modules\Commerce\Payments\PaymentGateway;
 use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Services\Enroller;
+use App\Modules\Learning\Services\ProgressTracker;
 use App\Modules\Platform\Services\AuditLogger;
 use App\Support\Http\DomainException;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,7 @@ class RefundService
         private readonly PaymentGateway $gateway,
         private readonly Enroller $enroller,
         private readonly AuditLogger $audit,
+        private readonly ProgressTracker $progress,
     ) {}
 
     public function request(User $user, OrderItem $item, string $reason): Refund
@@ -38,18 +40,23 @@ class RefundService
         if ($order->user_id !== $user->id) {
             throw new DomainException('NOT_FOUND', 'Order not found.', 404);
         }
-        $this->assertRefundable($item);
-
         $enrollment = Enrollment::query()->where('user_id', $user->id)->where('course_id', $item->course_id)->first();
-        $auto = $enrollment !== null && $enrollment->progress_percent < (int) config('commerce.refunds.auto_approve_below_percent');
+        // Judged on what was consumed, not the current tick count (which can be lowered).
+        $auto = $enrollment !== null && $this->progress->consumedPercent($enrollment) < (int) config('commerce.refunds.auto_approve_below_percent');
 
-        $refund = Refund::query()->create([
-            'order_item_id' => $item->id,
-            'amount' => $item->amount - $item->refunded_amount,
-            'status' => RefundStatus::Requested,
-            'reason' => $reason,
-            'requested_by' => $user->id,
-        ]);
+        // Check and create under a row lock, so parallel requests can't each open a refund.
+        $refund = DB::transaction(function () use ($item, $user, $reason) {
+            $locked = OrderItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
+            $this->assertRefundable($locked);
+
+            return Refund::query()->create([
+                'order_item_id' => $locked->id,
+                'amount' => $locked->amount - $locked->refunded_amount,
+                'status' => RefundStatus::Requested,
+                'reason' => $reason,
+                'requested_by' => $user->id,
+            ]);
+        });
         $this->audit->record('refund.requested', $refund, null, ['order' => $order->number, 'course_id' => $item->course_id, 'auto' => $auto], $user);
 
         if ($auto) {

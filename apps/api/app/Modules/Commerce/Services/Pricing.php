@@ -4,9 +4,11 @@ namespace App\Modules\Commerce\Services;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Commerce\Enums\OrderStatus;
 use App\Modules\Commerce\Enums\SaleChannel;
 use App\Modules\Commerce\Models\Coupon;
 use App\Modules\Commerce\Models\CouponRedemption;
+use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Support\Gst;
 use Illuminate\Support\Str;
 
@@ -72,7 +74,14 @@ class Pricing
         if (($coupon->starts_at && $coupon->starts_at->isAfter($now)) || ($coupon->ends_at && $coupon->ends_at->isBefore($now))) {
             return [null, 'That code has expired.'];
         }
-        if ($coupon->max_redemptions !== null && $coupon->redemptions()->count() >= $coupon->max_redemptions) {
+        // Other people's unpaid checkouts from the last half hour hold a place, so a burst of
+        // parallel checkouts can't exceed the limit before any of them is paid.
+        $reserved = $coupon->max_redemptions === null ? 0 : Order::query()
+            ->where('coupon_code', $coupon->code)->where('status', OrderStatus::Pending->value)
+            ->where('created_at', '>=', $now->copy()->subMinutes(30))
+            ->when($user, fn ($q) => $q->where('user_id', '!=', $user->id))
+            ->count();
+        if ($coupon->max_redemptions !== null && $coupon->redemptions()->count() + $reserved >= $coupon->max_redemptions) {
             return [null, 'That code has been fully used.'];
         }
         if ($user !== null && CouponRedemption::query()->where('coupon_id', $coupon->id)->where('user_id', $user->id)->count() >= $coupon->per_user_limit) {

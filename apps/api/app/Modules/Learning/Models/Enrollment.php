@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $revoked_at
  * @property int $completed_count
  * @property int $progress_percent
+ * @property int $peak_progress_percent Highest progress_percent ever reached
  * @property int|null $last_lecture_id
  * @property Carbon|null $last_accessed_at
  * @property Carbon|null $completed_at

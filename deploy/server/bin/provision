@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# Erudsway — one-time (re-runnable) server setup. Run as root from a checkout of this repo:
+#   sudo DOMAIN=new.erudsway.com ALERT_EMAIL=ops@example.com deploy/server/bin/provision
+#
+# Installs Redis, the PHP Redis extension and ffmpeg; creates the `erudsway` user, its
+# PostgreSQL role and database, directories and secrets; installs the php-fpm pool, Nginx
+# site, systemd units, deploy sudo rule, backup cron and log rotation. It never touches the
+# Moodle or simulator sites, and never overwrites an existing .env or secret.
+set -Eeuo pipefail
+
+DOMAIN="${DOMAIN:?set DOMAIN, e.g. new.erudsway.com}"
+ALERT_EMAIL="${ALERT_EMAIL:-}"
+BASE="${BASE:-/var/www/erudsway}"
+WEB_PORT="${WEB_PORT:-3200}"
+API_INTERNAL_PORT="${API_INTERNAL_PORT:-8091}"
+APP_USER=erudsway
+DB_NAME="${DB_NAME:-erudsway}"
+SRC="$(cd "$(dirname "$0")/.." && pwd)"   # deploy/server
+
+say() { printf '\n== %s\n' "$*"; }
+fill() { sed -e "s#__DOMAIN__#${DOMAIN}#g" -e "s#__BASE__#${BASE}#g" -e "s#__WEB_PORT__#${WEB_PORT}#g" -e "s#__API_INTERNAL_PORT__#${API_INTERNAL_PORT}#g" "$1"; }
+rand() { openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c "${1:-40}"; }
+
+[ "$(id -u)" = 0 ] || { echo "Run as root." >&2; exit 1; }
+
+say "Packages"
+NEED=()
+for p in redis-server php8.5-redis ffmpeg; do dpkg -s "$p" >/dev/null 2>&1 || NEED+=("$p"); done
+if [ ${#NEED[@]} -gt 0 ]; then
+    apt-get update -qq
+    # Keep php-fpm from restarting mid-install (it serves Moodle and the simulator too);
+    # it's reloaded gracefully at the end instead.
+    RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${NEED[@]}"
+fi
+systemctl enable --now redis-server >/dev/null
+
+say "User and directories"
+id "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --home-dir "$BASE" --shell /bin/bash "$APP_USER"
+install -d -o "$APP_USER" -g "$APP_USER" -m 755 "$BASE" "$BASE/releases" "$BASE/shared" "$BASE/bin"
+install -d -o "$APP_USER" -g "$APP_USER" -m 750 "$BASE/shared/storage"
+for d in app/public app/private framework/cache/data framework/sessions framework/views logs; do
+    install -d -o "$APP_USER" -g "$APP_USER" -m 750 "$BASE/shared/storage/$d"
+done
+chmod 755 "$BASE/shared/storage" "$BASE/shared/storage/app" "$BASE/shared/storage/app/public"
+# Nginx (www-data) reads public uploads and HLS segments directly.
+install -d -o "$APP_USER" -g www-data -m 750 "$BASE/shared/storage/app/private/video-hls"
+chmod 751 "$BASE/shared/storage/app/private"
+install -d -o "$APP_USER" -g "$APP_USER" -m 750 /var/log/erudsway
+install -d -m 700 /var/backups/erudsway /var/backups/erudsway/db /var/backups/erudsway/files
+
+say "Git repository (deploys are pushed here)"
+if [ ! -d "$BASE/repo.git" ]; then
+    sudo -u "$APP_USER" git init --bare -q "$BASE/repo.git"
+fi
+install -o root -g root -m 755 "$SRC/bin/release" "$SRC/bin/rollback" "$BASE/bin/"
+install -o root -g root -m 700 "$SRC/bin/backup" "$SRC/bin/restore-drill" "$BASE/bin/"
+
+say "PostgreSQL role and database"
+if ! sudo -u postgres psql -Atqc "select 1 from pg_roles where rolname='$APP_USER'" | grep -q 1; then
+    DB_PASSWORD="$(rand 40)"
+    sudo -u postgres psql -qc "create role $APP_USER login password '$DB_PASSWORD'"
+    echo "$DB_PASSWORD" > /root/.erudsway-db-password && chmod 600 /root/.erudsway-db-password
+fi
+sudo -u postgres psql -Atqc "select 1 from pg_database where datname='$DB_NAME'" | grep -q 1 \
+    || sudo -u postgres createdb -O "$APP_USER" -E UTF8 "$DB_NAME"
+
+say "Secrets and .env files (kept if they already exist)"
+API_ENV="$BASE/shared/api.env"
+if [ ! -f "$API_ENV" ]; then
+    DB_PASSWORD="$(cat /root/.erudsway-db-password)"
+    APP_KEY="base64:$(openssl rand -base64 32)"
+    HLS_SECRET="$(rand 48)"
+    cat > "$API_ENV" <<ENV
+APP_NAME=Erudsway
+APP_ENV=production
+APP_KEY=${APP_KEY}
+APP_DEBUG=false
+APP_URL=https://${DOMAIN}
+FRONTEND_URL=https://${DOMAIN}
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+
+LOG_CHANNEL=daily
+LOG_LEVEL=info
+LOG_DAILY_DAYS=21
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=${DB_NAME}
+DB_USERNAME=${APP_USER}
+DB_PASSWORD=${DB_PASSWORD}
+
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=true
+SESSION_DOMAIN=${DOMAIN}
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
+SANCTUM_STATEFUL_DOMAINS=${DOMAIN}
+
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PREFIX=erudsway_
+
+# Mail: no mail service on this server yet. Until one is configured, mail is written to the log.
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=no-reply@${DOMAIN#new.}
+MAIL_FROM_NAME=Erudsway
+
+# Payments: without Razorpay keys the API refuses the fake gateway in production, so checkout
+# stays closed until these are set.
+PAYMENT_GATEWAY=razorpay
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+
+MEDIA_SECURE_LINK_SECRET=${HLS_SECRET}
+MEDIA_SEGMENT_URL=https://${DOMAIN}
+FFMPEG_PATH=/usr/bin/ffmpeg
+FFPROBE_PATH=/usr/bin/ffprobe
+
+OPS_ALERT_EMAIL=${ALERT_EMAIL}
+BACKUP_DIR=/var/backups/erudsway
+ENV
+    chown "$APP_USER:$APP_USER" "$API_ENV" && chmod 600 "$API_ENV"
+fi
+WEB_ENV="$BASE/shared/web.env"
+if [ ! -f "$WEB_ENV" ]; then
+    cat > "$WEB_ENV" <<ENV
+NEXT_PUBLIC_API_URL=https://${DOMAIN}
+NEXT_PUBLIC_SITE_URL=https://${DOMAIN}
+API_INTERNAL_URL=http://127.0.0.1:${API_INTERNAL_PORT}
+ENV
+    chown "$APP_USER:$APP_USER" "$WEB_ENV" && chmod 640 "$WEB_ENV"
+fi
+# Nginx needs the HLS signing secret; keep it in a root-only include, not the world-readable site file.
+HLS_SECRET="$(grep -E '^MEDIA_SECURE_LINK_SECRET=' "$API_ENV" | cut -d= -f2-)"
+printf 'set $erudsway_hls_secret "%s";\n' "$HLS_SECRET" > /etc/nginx/snippets/erudsway-hls-secret.conf
+chmod 600 /etc/nginx/snippets/erudsway-hls-secret.conf
+
+say "php-fpm pool"
+install -m 644 "$SRC/php-fpm/erudsway.conf" /etc/php/8.5/fpm/pool.d/erudsway.conf
+
+say "Nginx"
+install -m 644 "$SRC/nginx/erudsway-zones.conf" /etc/nginx/conf.d/erudsway-zones.conf
+install -m 644 "$SRC/nginx/erudsway-php.conf" /etc/nginx/snippets/erudsway-php.conf
+if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
+    fill "$SRC/nginx/site.conf" > /etc/nginx/sites-available/erudsway
+else
+    # No certificate yet: serve only the ACME challenge until certbot has issued one.
+    cat > /etc/nginx/sites-available/erudsway <<NGINX
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 503; }
+}
+NGINX
+    echo "No TLS certificate for ${DOMAIN} yet. Once DNS points here, run:"
+    echo "  certbot certonly --webroot -w /var/www/html -d ${DOMAIN} && DOMAIN=${DOMAIN} $0"
+fi
+ln -sfn /etc/nginx/sites-available/erudsway /etc/nginx/sites-enabled/erudsway
+
+say "systemd units"
+for u in erudsway-web.service erudsway-horizon.service erudsway-scheduler.service erudsway-scheduler.timer; do
+    fill "$SRC/systemd/$u" > "/etc/systemd/system/$u"
+done
+systemctl daemon-reload
+
+say "Deploy permissions"
+cat > /etc/sudoers.d/erudsway-deploy <<SUDO
+# The erudsway user may restart its own services and reload php-fpm during a deploy.
+erudsway ALL=(root) NOPASSWD: /usr/bin/systemctl restart erudsway-web, /usr/bin/systemctl restart erudsway-horizon, /usr/bin/systemctl reload php8.5-fpm, /usr/bin/systemctl start erudsway-web, /usr/bin/systemctl start erudsway-horizon
+SUDO
+chmod 440 /etc/sudoers.d/erudsway-deploy
+visudo -cf /etc/sudoers.d/erudsway-deploy >/dev/null
+
+say "Backups and log rotation"
+cat > /etc/cron.d/erudsway-backup <<CRON
+# Erudsway nightly backup (after Moodle's at 03:15). Log: /var/log/erudsway/backup.log
+45 3 * * * root ${BASE}/bin/backup
+CRON
+cat > /etc/logrotate.d/erudsway <<ROTATE
+/var/log/erudsway/*.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
+ROTATE
+
+say "Checks"
+nginx -t
+php-fpm8.5 -t
+systemctl reload php8.5-fpm
+systemctl reload nginx
+echo
+echo "Provisioned ${DOMAIN}. Next: push a release (deploy/push) — see deploy/README.md."

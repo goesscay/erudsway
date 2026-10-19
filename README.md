@@ -27,9 +27,10 @@ pnpm dev:web
 - Web: http://localhost:3000 — design review screens: `/`, `/course/complete-full-stack-web-development`, `/learn/complete-full-stack-web-development`, `/instructor/courses/demo/curriculum`, `/design-system`
 - API health: http://localhost:8000/api/v1/health
 - Local accounts (created by `php artisan db:seed`, local only, password `password`): `admin@erudsway.test` (admin), `instructor@erudsway.test` (instructor), `learner@erudsway.test` (student), `finance@erudsway.test` (finance staff — payouts need a second approver)
-- Video processing runs on the queue: `cd apps/api && php -d opcache.enable_cli=0 artisan queue:work --queue=critical,default,media` (needs ffmpeg on PATH)
+- Background jobs: `cd apps/api && php -d opcache.enable_cli=0 artisan queue:work --queue=critical,default`, and for video processing (its own connection, long timeout) `php -d opcache.enable_cli=0 artisan queue:work media --queue=media --timeout=11000` (needs ffmpeg on PATH). Production runs both under Horizon — see `deploy/README.md`.
+- PostgreSQL check (production runs PostgreSQL): `DB_CONNECTION=pgsql DB_DATABASE=erudsway_test DB_USERNAME=postgres php -d opcache.enable_cli=0 vendor/bin/pest`
 - Payments: without Razorpay keys the API uses a local test gateway (checkout shows a "Test payment" dialog; refused in production). With test keys set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`, and point the Razorpay webhook at `/api/v1/webhooks/razorpay` (events: payment.captured, order.paid, refund.processed, refund.failed). Run `php artisan schedule:work` locally for the scheduled jobs (payment reconciliation, releasing instructor earnings after the 30-day hold, drafting monthly payouts).
-- Video playback: segments are served by Nginx `secure_link` in production (`docs/deploy/nginx-hls.conf`; set `MEDIA_SECURE_LINK_SECRET` to the same secret). Locally the API serves them itself.
+- Video playback: segments are served by Nginx `secure_link` in production (`deploy/server/nginx/site.conf`; provisioning sets the shared secret). Locally the API serves them itself.
 - API docs (OpenAPI UI): http://localhost:8000/docs/api
 
 > **Windows note:** the local PHP build intermittently crashes (PHPStan, Scramble, Pest) when CLI OPcache JIT is on, so project scripts pass `-d opcache.enable_cli=0`. Without Docker, `apps/api/.env` falls back to SQLite and file drivers.

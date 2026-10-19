@@ -22,6 +22,11 @@ return [
     */
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
+    /* Operations: where `ops:check` sends alerts, and where the nightly backups land. */
+    'ops_alert_email' => env('OPS_ALERT_EMAIL', ''),
+    'backup_dir' => env('BACKUP_DIR', ''),
+    'ops_disk_min_percent' => (int) env('OPS_DISK_MIN_PERCENT', 10),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

@@ -5,6 +5,7 @@ namespace App\Modules\Commerce\Services;
 use App\Modules\Commerce\Enums\OrderStatus;
 use App\Modules\Commerce\Events\OrderPaid;
 use App\Modules\Commerce\Jobs\IssueInvoice;
+use App\Modules\Commerce\Models\Coupon;
 use App\Modules\Commerce\Models\CouponRedemption;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\OrderItem;
@@ -124,12 +125,30 @@ class OrderCompleter
         foreach ($order->items as $item) {
             $this->enroller->enrollPurchase($order->user, $item->course, $item->id);
             if ($item->coupon_id !== null) {
-                CouponRedemption::query()->firstOrCreate(['coupon_id' => $item->coupon_id, 'order_id' => $order->id], ['user_id' => $order->user_id]);
+                $this->redeem($order, $item->coupon_id);
             }
         }
 
         $this->carts->forget($order->user, $order->items->pluck('course_id'));
         OrderPaid::dispatch($order);
         $this->audit->record('order.paid', $order, null, ['total' => $order->total, 'number' => $order->number], $order->user);
+    }
+
+    /**
+     * Record the coupon's use. The payment has already been captured, so an order that went
+     * over a limit (parallel checkouts) still completes — but staff can see it in the audit log.
+     */
+    private function redeem(Order $order, int $couponId): void
+    {
+        $coupon = Coupon::query()->find($couponId);
+        $redemption = CouponRedemption::query()->firstOrCreate(['coupon_id' => $couponId, 'order_id' => $order->id], ['user_id' => $order->user_id]);
+        if ($coupon === null || ! $redemption->wasRecentlyCreated) {
+            return;
+        }
+        $byUser = CouponRedemption::query()->where('coupon_id', $couponId)->where('user_id', $order->user_id)->count();
+        $total = CouponRedemption::query()->where('coupon_id', $couponId)->count();
+        if ($byUser > $coupon->per_user_limit || ($coupon->max_redemptions !== null && $total > $coupon->max_redemptions)) {
+            $this->audit->record('coupon.limit_exceeded', $coupon, null, ['order' => $order->number, 'user_uses' => $byUser, 'total_uses' => $total], $order->user);
+        }
     }
 }

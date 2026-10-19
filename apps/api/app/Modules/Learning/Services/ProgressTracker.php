@@ -68,6 +68,26 @@ class ProgressTracker
         });
     }
 
+    /**
+     * How much of the course the learner has actually consumed, in percent: the higher of
+     * the most lectures ever completed and the share of video time watched. Used to decide
+     * whether a refund can be approved automatically.
+     */
+    public function consumedPercent(Enrollment $enrollment): int
+    {
+        $videos = Lecture::query()->where('course_id', $enrollment->course_id)->where('kind', LectureKind::Video->value)->pluck('duration_seconds', 'id');
+        $total = (int) $videos->sum();
+        $watched = 0;
+        if ($total > 0) {
+            $positions = LectureProgress::query()->where('user_id', $enrollment->user_id)->whereIn('lecture_id', $videos->keys())->pluck('max_position_seconds', 'lecture_id');
+            foreach ($positions as $lectureId => $seconds) {
+                $watched += min((int) $seconds, (int) $videos[$lectureId]);
+            }
+        }
+
+        return max((int) $enrollment->peak_progress_percent, (int) $enrollment->progress_percent, $total > 0 ? intdiv($watched * 100, $total) : 0);
+    }
+
     /** Recount completed lectures that still exist in the course. */
     public function recount(Enrollment $enrollment): void
     {
@@ -80,10 +100,12 @@ class ProgressTracker
             ->count();
 
         $wasComplete = $enrollment->completed_at !== null;
+        // Floor, so 100% means every lecture is done.
+        $percent = $total > 0 ? intdiv($done * 100, $total) : 0;
         $enrollment->forceFill([
             'completed_count' => $done,
-            // Floor, so 100% means every lecture is done.
-            'progress_percent' => $total > 0 ? intdiv($done * 100, $total) : 0,
+            'progress_percent' => $percent,
+            'peak_progress_percent' => max($percent, (int) $enrollment->peak_progress_percent),
             'completed_at' => $total > 0 && $done >= $total ? ($enrollment->completed_at ?? now()) : null,
         ])->save();
 

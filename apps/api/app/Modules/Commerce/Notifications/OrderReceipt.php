@@ -4,6 +4,7 @@ namespace App\Modules\Commerce\Notifications;
 
 use App\Modules\Commerce\Models\Invoice;
 use App\Modules\Commerce\Models\Order;
+use App\Support\Mail\Markdown;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -32,7 +33,7 @@ class OrderReceipt extends Notification implements ShouldQueue
             ->line('You now have lifetime access to:');
 
         foreach ($order->items as $item) {
-            $mail->line("• {$item->course_title}");
+            $mail->line('• '.Markdown::escape($item->course_title));
         }
 
         $mail->line('Total paid: ₹'.number_format($order->total / 100, 2).' (including GST).')

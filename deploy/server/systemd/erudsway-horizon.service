@@ -1,0 +1,24 @@
+# /etc/systemd/system/erudsway-horizon.service
+# Queue workers: payments/emails/invoices, and (one at a time, low priority) video transcoding.
+# A deploy runs `php artisan horizon:terminate`; systemd starts it again on the new release.
+[Unit]
+Description=Erudsway queue workers (Laravel Horizon)
+After=network.target redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User=erudsway
+Group=erudsway
+WorkingDirectory=__BASE__/current/apps/api
+ExecStart=/usr/bin/php __BASE__/current/apps/api/artisan horizon
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=__BASE__/shared /var/log/erudsway
+
+[Install]
+WantedBy=multi-user.target

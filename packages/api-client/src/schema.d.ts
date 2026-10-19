@@ -1138,7 +1138,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liveness check for load balancers and uptime monitors */
+        /**
+         * Readiness check for uptime monitors and the deploy script: answers 503 if the
+         *     database or the cache/session store can't be reached. Reveals nothing else
+         */
         get: operations["platform.health"];
         put?: never;
         post?: never;
@@ -5914,15 +5917,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: {
-                            /** @constant */
-                            status: "ok";
-                            version: string;
-                            time: string;
-                        };
-                        meta: string;
-                    };
+                    "application/json": string;
                 };
             };
         };
@@ -7306,6 +7301,7 @@ export interface operations {
                                 passed: boolean;
                                 pass_percent: number;
                                 recorded: boolean;
+                                answers_revealed: boolean;
                                 submitted_at: string;
                                 review: {
                                     question_id: number;
@@ -7358,6 +7354,7 @@ export interface operations {
                             passed: boolean;
                             pass_percent: number;
                             recorded: boolean;
+                            answers_revealed: boolean;
                             submitted_at: string;
                             review: {
                                 question_id: number;

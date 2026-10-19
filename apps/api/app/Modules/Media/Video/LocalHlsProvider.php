@@ -66,7 +66,7 @@ class LocalHlsProvider implements VideoProvider
                 $h = $r['height'];
                 $w = (int) (round($probe['width'] * $h / max(1, $probe['height']) / 2) * 2);
                 $this->ffmpeg->run([
-                    '-i', $source,
+                    ...Ffmpeg::input($source, $probe['format']),
                     '-map', '0:v:0',
                     ...($probe['has_audio'] ? ['-map', '0:a:0', '-c:a', 'aac', '-b:a', '128k', '-ac', '2'] : []),
                     '-vf', "scale=-2:{$h}",
@@ -90,7 +90,7 @@ class LocalHlsProvider implements VideoProvider
             $disk->put("{$dir}/master.m3u8", $this->masterPlaylist($renditions));
 
             $this->ffmpeg->run([
-                '-ss', (string) min(3, $probe['duration'] / 2), '-i', $source,
+                '-ss', (string) min(3, $probe['duration'] / 2), ...Ffmpeg::input($source, $probe['format']),
                 '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '3', "{$out}/poster.jpg",
             ], 120);
         } catch (Throwable $e) {

@@ -3,6 +3,7 @@
 namespace App\Modules\Certificates\Notifications;
 
 use App\Modules\Certificates\Models\Certificate;
+use App\Support\Mail\Markdown;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -39,7 +40,7 @@ class CertificateIssued extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Your certificate for {$c->course_title}")
             ->greeting('Congratulations!')
-            ->line('You completed every lecture of '.e($c->course_title).' and earned a certificate of completion.')
+            ->line('You completed every lecture of '.Markdown::escape($c->course_title).' and earned a certificate of completion.')
             ->line("Certificate number {$c->serial}. Anyone can check it at the link below.")
             ->action('View your certificate', $c->verifyUrl());
     }

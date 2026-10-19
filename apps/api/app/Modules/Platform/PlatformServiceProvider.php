@@ -2,8 +2,10 @@
 
 namespace App\Modules\Platform;
 
+use App\Modules\Platform\Console\OpsCheck;
 use App\Modules\Platform\Services\Settings;
 use App\Support\Modules\ModuleServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 
 class PlatformServiceProvider extends ModuleServiceProvider
 {
@@ -22,5 +24,12 @@ class PlatformServiceProvider extends ModuleServiceProvider
         parent::boot();
         // Admin-edited settings override config/*.php for the rest of the request.
         $this->app->make(Settings::class)->apply();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([OpsCheck::class]);
+        }
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('ops:check')->everyFiveMinutes()->withoutOverlapping();
+        });
     }
 }

@@ -28,7 +28,11 @@ class AppServiceProvider extends ServiceProvider
             ? Password::min(8)->letters()->numbers()->uncompromised()
             : Password::min(8)->letters()->numbers());
 
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)
-            ->by($request->user()?->getAuthIdentifier() ?? $request->ip()));
+        // The web app's server-side rendering calls the API over loopback for every visitor;
+        // it mustn't share one bucket. (Nginx only trusts Cloudflare to set the client IP,
+        // so outside callers can't appear as loopback.)
+        RateLimiter::for('api', fn (Request $request) => in_array($request->ip(), ['127.0.0.1', '::1'], true) && $request->user() === null
+            ? Limit::none()
+            : Limit::perMinute(120)->by($request->user()?->getAuthIdentifier() ?? $request->ip()));
     }
 }

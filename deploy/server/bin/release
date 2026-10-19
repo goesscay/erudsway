@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Erudsway — build and switch to a new release. Runs on the server as the `erudsway` user:
+#   /var/www/erudsway/bin/release [git-ref]       (default: main)
+#
+# Builds in a fresh directory, runs migrations, switches the `current` symlink, restarts the
+# services, then checks health — and switches straight back if the new release is unhealthy.
+set -Eeuo pipefail
+
+BASE="${BASE:-/var/www/erudsway}"
+REF="${1:-main}"
+KEEP=5
+WEB_PORT="${WEB_PORT:-3200}"
+API_INTERNAL_PORT="${API_INTERNAL_PORT:-8091}"
+LOG=/var/log/erudsway/deploy.log
+exec > >(tee -a "$LOG") 2>&1
+
+[ "$(id -un)" = erudsway ] || { echo "Run as the erudsway user (sudo -u erudsway $0)." >&2; exit 1; }
+
+STAMP="$(date +%Y%m%d-%H%M%S)"
+REL="$BASE/releases/$STAMP"
+PREV="$(readlink -f "$BASE/current" 2>/dev/null || true)"
+SHA="$(git --git-dir="$BASE/repo.git" rev-parse --verify "$REF^{commit}")"
+echo "=== release $STAMP ($REF @ ${SHA:0:9}) ==="
+
+mkdir -p "$REL"
+git --git-dir="$BASE/repo.git" archive "$SHA" | tar -x -C "$REL"
+echo "$SHA" > "$REL/REVISION"
+
+# Shared state lives outside the release.
+ln -s "$BASE/shared/api.env" "$REL/apps/api/.env"
+rm -rf "$REL/apps/api/storage" && ln -s "$BASE/shared/storage" "$REL/apps/api/storage"
+ln -s "$BASE/shared/web.env" "$REL/apps/web/.env.production.local"
+
+echo "--- API dependencies"
+cd "$REL/apps/api"
+composer install --no-dev --optimize-autoloader --no-interaction --no-progress --quiet
+php artisan storage:link --quiet >/dev/null 2>&1 || true
+
+echo "--- Web build"
+cd "$REL"
+export NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=3072 COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+corepack pnpm install --frozen-lockfile --reporter=silent
+corepack pnpm --filter web build
+
+echo "--- Migrate and cache"
+cd "$REL/apps/api"
+php artisan migrate --force
+php artisan optimize
+
+echo "--- Switch"
+ln -sfn "$REL" "$BASE/current.next" && mv -T "$BASE/current.next" "$BASE/current"
+sudo /usr/bin/systemctl reload php8.5-fpm
+sudo /usr/bin/systemctl restart erudsway-web
+php "$BASE/current/apps/api/artisan" horizon:terminate >/dev/null 2>&1 || true
+sudo /usr/bin/systemctl start erudsway-horizon
+
+echo "--- Health"
+healthy=0
+for _ in $(seq 1 30); do
+    if curl -fsS "http://127.0.0.1:${API_INTERNAL_PORT}/api/v1/health" >/dev/null \
+        && curl -fsS -o /dev/null "http://127.0.0.1:${WEB_PORT}/"; then
+        healthy=1; break
+    fi
+    sleep 2
+done
+if [ "$healthy" != 1 ]; then
+    echo "!!! New release is unhealthy."
+    if [ -n "$PREV" ] && [ -d "$PREV" ]; then
+        echo "!!! Switching back to $(basename "$PREV") (database migrations are NOT rolled back)."
+        ln -sfn "$PREV" "$BASE/current.next" && mv -T "$BASE/current.next" "$BASE/current"
+        sudo /usr/bin/systemctl reload php8.5-fpm
+        sudo /usr/bin/systemctl restart erudsway-web
+        php "$BASE/current/apps/api/artisan" horizon:terminate >/dev/null 2>&1 || true
+    fi
+    exit 1
+fi
+
+echo "--- Prune (keep $KEEP)"
+ls -1dt "$BASE"/releases/*/ | tail -n +$((KEEP + 1)) | xargs -r rm -rf
+echo "=== live: $STAMP (${SHA:0:9}) ==="

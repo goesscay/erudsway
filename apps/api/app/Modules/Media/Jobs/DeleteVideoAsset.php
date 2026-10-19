@@ -17,7 +17,7 @@ class DeleteVideoAsset implements ShouldQueue
 
     public function __construct(public readonly int $assetId)
     {
-        $this->onQueue('media');
+        $this->onConnection('media')->onQueue('media');
     }
 
     public function handle(VideoProvider $provider): void

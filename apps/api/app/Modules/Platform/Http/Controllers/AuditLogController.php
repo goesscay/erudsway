@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Platform\Http\Resources\AuditLogResource;
 use App\Modules\Platform\Models\AuditLog;
 use App\Support\Http\ApiResponse;
+use App\Support\Http\Csv;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class AuditLogController extends Controller
             $this->query($filters)->with('actor:id,name,email')->chunkById(500, function ($rows) use ($out) {
                 foreach ($rows as $log) {
                     /** @var AuditLog $log */
-                    fputcsv($out, [
+                    fputcsv($out, Csv::row([
                         $log->created_at->timezone('Asia/Kolkata')->format('Y-m-d H:i:s'),
                         $log->actor->name ?? 'System',
                         $log->actor->email ?? '',
@@ -52,7 +53,7 @@ class AuditLogController extends Controller
                         $log->before ? json_encode($log->before, JSON_UNESCAPED_UNICODE) : '',
                         $log->after ? json_encode($log->after, JSON_UNESCAPED_UNICODE) : '',
                         $log->ip,
-                    ]);
+                    ]));
                 }
             }, 'id');
         }, 'erudsway-audit-log-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);

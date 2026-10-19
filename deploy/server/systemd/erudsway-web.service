@@ -1,0 +1,23 @@
+# /etc/systemd/system/erudsway-web.service
+[Unit]
+Description=Erudsway web app (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=erudsway
+Group=erudsway
+WorkingDirectory=__BASE__/current/apps/web
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=PORT=__WEB_PORT__
+ExecStart=/usr/bin/node __BASE__/current/apps/web/node_modules/next/dist/bin/next start -p __WEB_PORT__ -H 127.0.0.1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+MemoryMax=1500M
+
+[Install]
+WantedBy=multi-user.target

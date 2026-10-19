@@ -4,6 +4,7 @@ namespace App\Modules\Engagement\Notifications;
 
 use App\Models\User;
 use App\Modules\Engagement\Models\NotificationPreference;
+use App\Support\Mail\Markdown;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -53,7 +54,7 @@ abstract class EngagementNotification extends Notification implements ShouldQueu
     /** Escape user-written text for the Markdown mail template, so it can't add links or formatting. */
     protected function plain(string $text): string
     {
-        return (string) preg_replace('/([\\\\`*_{}\[\]()#+\-.!|>~<])/', '\\\\$1', $text);
+        return Markdown::escape($text);
     }
 
     protected function link(string $path): string

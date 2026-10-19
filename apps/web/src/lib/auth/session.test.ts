@@ -12,6 +12,9 @@ describe("safeNext", () => {
     ["absolute URL", "https://evil.example/phish"],
     ["protocol-relative URL", "//evil.example"],
     ["javascript URL", "javascript:alert(1)"],
+    ["backslash host", "/\\evil.example"],
+    ["backslash-slash host", "/\\/evil.example"],
+    ["tab smuggling", "/\t/evil.example"],
     ["empty", ""],
     ["missing", null],
   ])("falls back for %s", (_, value) => {

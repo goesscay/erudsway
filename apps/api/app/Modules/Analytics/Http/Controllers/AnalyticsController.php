@@ -8,6 +8,7 @@ use App\Modules\Analytics\Services\Overview;
 use App\Modules\Analytics\Services\Period;
 use App\Modules\Analytics\Services\Reports;
 use App\Support\Http\ApiResponse;
+use App\Support\Http\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -82,11 +83,11 @@ class AnalyticsController extends Controller
             fwrite($out, "\xEF\xBB\xBF"); // so Excel reads UTF-8 (₹, names)
             fputcsv($out, array_map(fn ($c) => $c['type'] === 'money' ? $c['label'].' (INR)' : ($c['type'] === 'percent' ? $c['label'].' (%)' : $c['label']), $table['columns']));
             foreach ($table['rows'] as $row) {
-                fputcsv($out, array_map(function ($c) use ($row) {
+                fputcsv($out, Csv::row(array_map(function ($c) use ($row) {
                     $v = $row[$c['key']] ?? null;
 
                     return $c['type'] === 'money' && $v !== null ? number_format(((int) $v) / 100, 2, '.', '') : $v;
-                }, $table['columns']));
+                }, $table['columns'])));
             }
         }, "erudsway-{$name}-{$range['from']}-to-{$range['to']}.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

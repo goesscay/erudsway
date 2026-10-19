@@ -20,6 +20,7 @@ use App\Modules\Finance\Services\PayoutAccounts;
 use App\Modules\Finance\Services\Payouts;
 use App\Modules\Finance\Services\Reports;
 use App\Support\Http\ApiResponse;
+use App\Support\Http\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -169,7 +170,7 @@ class FinanceController extends Controller
                     $names = User::query()->whereIn('id', $entries->pluck('instructor_id')->filter()->unique())->pluck('name', 'id');
                     foreach ($entries as $e) {
                         /** @var LedgerEntry $e */
-                        fputcsv($out, [
+                        fputcsv($out, Csv::row([
                             $e->created_at->timezone('Asia/Kolkata')->format('Y-m-d H:i'),
                             $e->txn_uuid,
                             $e->account->value,
@@ -180,7 +181,7 @@ class FinanceController extends Controller
                             $e->order_item_id,
                             $e->refund_id,
                             $e->payout_id,
-                        ]);
+                        ]));
                     }
                 });
             fclose($out);

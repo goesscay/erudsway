@@ -28,7 +28,7 @@ class ProcessVideo implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public readonly VideoAsset $asset)
     {
-        $this->onQueue('media');
+        $this->onConnection('media')->onQueue('media');
         $this->timeout = (int) config('media.transcode_timeout') + 120;
     }
 

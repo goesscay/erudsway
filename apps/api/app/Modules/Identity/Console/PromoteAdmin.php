@@ -13,7 +13,9 @@ use Illuminate\Console\Command;
  */
 class PromoteAdmin extends Command
 {
-    protected $signature = 'identity:promote-admin {email : Email of an existing, verified account}';
+    protected $signature = 'identity:promote-admin
+        {email : Email of an existing account}
+        {--mark-verified : Also mark the email verified (for servers that can’t send mail yet)}';
 
     protected $description = 'Grant the admin role to an existing user';
 
@@ -28,8 +30,14 @@ class PromoteAdmin extends Command
             return self::FAILURE;
         }
 
+        if (! $user->hasVerifiedEmail() && $this->option('mark-verified')) {
+            $user->markEmailAsVerified();
+            $audit->record('user.email_verified', $user, after: ['via' => 'console']);
+            $this->line("Marked {$email} as verified.");
+        }
+
         if (! $user->hasVerifiedEmail()) {
-            $this->error('Verify the email address before granting admin access.');
+            $this->error('Verify the email address before granting admin access (or pass --mark-verified).');
 
             return self::FAILURE;
         }

@@ -77,6 +77,8 @@ export function isStaff(user: CurrentUser | null | undefined): boolean {
 
 /** Only allow same-site relative redirects after login (prevents open redirects). */
 export function safeNext(next: string | null | undefined, fallback = "/my-learning"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
+  // Browsers treat "\" like "/", so "/\evil.com" points at another site, and control
+  // characters can smuggle the same. Only a plain path on this site gets through.
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\x00-\x1f]/.test(next)) return fallback;
   return next;
 }

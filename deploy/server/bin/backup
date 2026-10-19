@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Erudsway — nightly local backup (root, from /etc/cron.d/erudsway-backup).
+#   * PostgreSQL: a custom-format dump; the last 14 are kept.
+#   * Files: a snapshot of storage/app with rsync hard links, so unchanged files (videos)
+#     take no extra space; the last 7 are kept. HLS output is left out — it can be rebuilt
+#     from the original uploads in video-sources, which are kept.
+# Backups stay on this server (decided 2026-10-19): they protect against mistakes and bad
+# deploys, not against losing the server. Log: /var/log/erudsway/backup.log
+set -Eeuo pipefail
+
+BASE="${BASE:-/var/www/erudsway}"
+DB_NAME="${DB_NAME:-erudsway}"
+ROOT=/var/backups/erudsway
+STAMP="$(date +%F_%H%M)"
+exec >>/var/log/erudsway/backup.log 2>&1
+echo "=== backup $STAMP start ==="
+
+sudo -u postgres pg_dump -Fc "$DB_NAME" > "$ROOT/db/$DB_NAME-$STAMP.dump.part"
+mv "$ROOT/db/$DB_NAME-$STAMP.dump.part" "$ROOT/db/$DB_NAME-$STAMP.dump"
+
+LATEST="$(ls -1dt "$ROOT"/files/*/ 2>/dev/null | head -n 1 || true)"
+rsync -a --delete \
+    --exclude 'private/video-hls/' --exclude 'private/video-uploads/' --exclude 'private/livewire-tmp/' \
+    ${LATEST:+--link-dest="$LATEST"} \
+    "$BASE/shared/storage/app/" "$ROOT/files/$STAMP.part/"
+mv "$ROOT/files/$STAMP.part" "$ROOT/files/$STAMP"
+cp -p "$BASE/shared/api.env" "$ROOT/files/$STAMP/api.env" && chmod 600 "$ROOT/files/$STAMP/api.env"
+
+ls -1t "$ROOT/db"/*.dump 2>/dev/null | tail -n +15 | xargs -r rm -f
+ls -1dt "$ROOT"/files/*/ 2>/dev/null | tail -n +8 | xargs -r rm -rf
+
+echo "=== backup $STAMP done — db=$(du -h "$ROOT/db/$DB_NAME-$STAMP.dump" | cut -f1) files=$(du -sh "$ROOT/files/$STAMP" | cut -f1) free=$(df -h / | awk 'NR==2{print $4}') ==="

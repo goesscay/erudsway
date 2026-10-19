@@ -52,9 +52,10 @@ it('never edits or deletes ledger amounts', function () {
 
     expect(fn () => $entry->update(['amount' => 1]))->toThrow(LogicException::class)
         ->and(fn () => $entry->delete())->toThrow(LogicException::class)
-        // The database enforces it too, even bypassing the model.
-        ->and(fn () => DB::table('ledger_entries')->where('id', $entry->id)->update(['amount' => 1]))->toThrow(QueryException::class)
-        ->and(fn () => DB::table('ledger_entries')->where('id', $entry->id)->delete())->toThrow(QueryException::class);
+        // The database enforces it too, even bypassing the model. (Each attempt in its own
+        // savepoint: on PostgreSQL a failed statement otherwise aborts the test's transaction.)
+        ->and(fn () => DB::transaction(fn () => DB::table('ledger_entries')->where('id', $entry->id)->update(['amount' => 1])))->toThrow(QueryException::class)
+        ->and(fn () => DB::transaction(fn () => DB::table('ledger_entries')->where('id', $entry->id)->delete()))->toThrow(QueryException::class);
 
     $entry->refresh()->update(['status' => 'available']); // allowed: state, not money
     expect($entry->refresh()->status->value)->toBe('available');

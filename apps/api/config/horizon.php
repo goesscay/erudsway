@@ -197,33 +197,48 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        // Payments, webhooks, emails, invoices, announcements. Payment work goes first.
+        'supervisor-app' => [
             'connection' => 'redis',
-            'queue' => ['default'],
+            'queue' => ['critical', 'default'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
+            'maxTime' => 3600,
+            'maxJobs' => 1000,
+            'memory' => 256,
+            'tries' => 3,
+            'timeout' => 120,
+            'nice' => 0,
+        ],
+        // Video transcoding: one ffmpeg at a time, at low CPU priority, so the site and
+        // the other apps on the server stay responsive while a course uploads.
+        'supervisor-media' => [
+            'connection' => 'media',
+            'queue' => ['media'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 128,
-            'tries' => 1,
-            'timeout' => 60,
-            'nice' => 0,
+            'memory' => 512,
+            'tries' => 2,
+            'timeout' => (int) env('MEDIA_TRANSCODE_TIMEOUT', 3 * 3600) + 120,
+            'nice' => 10,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
-                'maxProcesses' => 10,
+            'supervisor-app' => [
+                'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
-                'maxProcesses' => 3,
+            'supervisor-app' => [
+                'maxProcesses' => 2,
             ],
         ],
     ],

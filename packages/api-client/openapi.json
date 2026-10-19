@@ -5967,7 +5967,7 @@
         "/health": {
             "get": {
                 "operationId": "platform.health",
-                "summary": "Liveness check for load balancers and uptime monitors",
+                "summary": "Readiness check for uptime monitors and the deploy script: answers 503 if the\ndatabase or the cache/session store can't be reached. Reveals nothing else",
                 "tags": [
                     "Health"
                 ],
@@ -5977,36 +5977,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "status": {
-                                                    "type": "string",
-                                                    "const": "ok"
-                                                },
-                                                "version": {
-                                                    "type": "string"
-                                                },
-                                                "time": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "status",
-                                                "version",
-                                                "time"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "meta"
-                                    ]
+                                    "type": "string"
                                 }
                             }
                         }
@@ -9029,6 +9000,9 @@
                                                         "recorded": {
                                                             "type": "boolean"
                                                         },
+                                                        "answers_revealed": {
+                                                            "type": "boolean"
+                                                        },
                                                         "submitted_at": {
                                                             "type": "string"
                                                         },
@@ -9079,6 +9053,7 @@
                                                         "passed",
                                                         "pass_percent",
                                                         "recorded",
+                                                        "answers_revealed",
                                                         "submitted_at",
                                                         "review"
                                                     ]
@@ -9198,6 +9173,9 @@
                                                 "recorded": {
                                                     "type": "boolean"
                                                 },
+                                                "answers_revealed": {
+                                                    "type": "boolean"
+                                                },
                                                 "submitted_at": {
                                                     "type": "string"
                                                 },
@@ -9248,6 +9226,7 @@
                                                 "passed",
                                                 "pass_percent",
                                                 "recorded",
+                                                "answers_revealed",
                                                 "submitted_at",
                                                 "review"
                                             ]

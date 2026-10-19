@@ -64,6 +64,31 @@ return [
             'after_commit' => false,
         ],
 
+        /*
+        | Video transcoding (the "media" queue) can run for hours, far beyond the normal
+        | retry_after, so it has its own connection on the same backend with a retry window
+        | longer than the longest transcode (else a running job would be handed out again).
+        */
+        'media' => match (env('QUEUE_CONNECTION', 'database')) {
+            'sync' => ['driver' => 'sync'],
+            'redis' => [
+                'driver' => 'redis',
+                'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+                'queue' => 'media',
+                'retry_after' => (int) env('MEDIA_TRANSCODE_TIMEOUT', 3 * 3600) + 900,
+                'block_for' => null,
+                'after_commit' => true,
+            ],
+            default => [
+                'driver' => 'database',
+                'connection' => env('DB_QUEUE_CONNECTION'),
+                'table' => env('DB_QUEUE_TABLE', 'jobs'),
+                'queue' => 'media',
+                'retry_after' => (int) env('MEDIA_TRANSCODE_TIMEOUT', 3 * 3600) + 900,
+                'after_commit' => true,
+            ],
+        },
+
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),

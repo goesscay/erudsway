@@ -78,7 +78,7 @@ class QuizController extends Controller
                 'best_percent' => $summary['best_percent'],
                 'passed' => $summary['passed'],
             ],
-            'last_result' => $summary['last'] ? $this->result($quiz, $summary['last'], true) : null,
+            'last_result' => $summary['last'] ? $this->result($quiz, $summary['last'], true, $summary['passed']) : null,
         ]);
     }
 
@@ -98,13 +98,20 @@ class QuizController extends Controller
 
         $graded = $this->quizzes->submit($this->user($request), $lecture, $answers);
 
-        return ApiResponse::data($this->result($this->quizzes->for($lecture), $graded['attempt'], $graded['recorded']));
+        $quiz = $this->quizzes->for($lecture);
+        // Learners see the key once they've passed (now or before); staff trying it always do.
+        $reveal = (bool) (! $graded['recorded'] || $this->quizzes->summary($this->user($request), $quiz)['passed']);
+
+        return ApiResponse::data($this->result($quiz, $graded['attempt'], $graded['recorded'], $reveal));
     }
 
     /**
-     * @return array{score_percent: int, correct_count: int, question_count: int, passed: bool, pass_percent: int, recorded: bool, submitted_at: string, review: list<array{question_id: int, chosen: list<int>, correct: list<int>, is_correct: bool, explanation: string|null}>}
+     * Answers are revealed once the learner has passed this quiz at least once (and always
+     * to the instructor and reviewers trying it).
+     *
+     * @return array{score_percent: int, correct_count: int, question_count: int, passed: bool, pass_percent: int, recorded: bool, answers_revealed: bool, submitted_at: string, review: list<array{question_id: int, chosen: list<int>, correct: list<int>, is_correct: bool, explanation: string|null}>}
      */
-    private function result(Quiz $quiz, QuizAttempt $attempt, bool $recorded): array
+    private function result(Quiz $quiz, QuizAttempt $attempt, bool $recorded, bool $reveal): array
     {
         return [
             'score_percent' => $attempt->score_percent,
@@ -113,9 +120,10 @@ class QuizController extends Controller
             'passed' => $attempt->passed,
             'pass_percent' => $quiz->pass_percent,
             'recorded' => $recorded,
+            'answers_revealed' => $reveal,
             'submitted_at' => $attempt->submitted_at->toIso8601String(),
             /** @var list<array{question_id: int, chosen: list<int>, correct: list<int>, is_correct: bool, explanation: string|null}> */
-            'review' => $this->quizzes->review($quiz, $attempt),
+            'review' => $this->quizzes->review($quiz, $attempt, $reveal),
         ];
     }
 

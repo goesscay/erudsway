@@ -25,11 +25,28 @@ import { PurchaseActions } from "@/components/course/purchase-actions";
 import { Rating } from "@/components/course/rating";
 import { CourseReviews } from "@/components/engagement/course-reviews";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCourse } from "@/lib/catalog/queries";
+import { getCourse, searchCourses } from "@/lib/catalog/queries";
 import { levelLabel, type CourseDetail } from "@/lib/catalog/types";
 import { formatCount, formatDuration } from "@/lib/format";
 
 type Params = Promise<{ slug: string }>;
+
+/**
+ * Prerender every live course at build time, so the page arrives complete — title,
+ * curriculum and price in the first HTML, nothing swapped in later (fast LCP, no layout
+ * shift). Courses published after the build are rendered on first visit and cached.
+ * If the API isn't reachable during the build (first deploy), nothing is prerendered.
+ */
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  const slugs: { slug: string }[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const result = await searchCourses({ sort: "newest", per_page: "48", page: String(page) }).catch(() => null);
+    if (!result) break;
+    slugs.push(...result.data.map((c) => ({ slug: c.slug })));
+    if (page >= result.meta.last_page) break;
+  }
+  return slugs;
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
@@ -89,7 +106,10 @@ async function CourseView({ params }: { params: Params }) {
       <section className="dark bg-navy-950 text-foreground">
         <div className="mx-auto grid max-w-[1340px] gap-10 px-6 py-12 lg:grid-cols-[1fr_380px]">
           <div className="max-w-3xl">
-            <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-1.5 text-sm font-semibold text-gold-400">
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-5 flex flex-wrap items-center gap-1.5 text-sm font-semibold text-gold-400"
+            >
               <Link href="/courses" className="hover:underline">
                 Courses
               </Link>
@@ -119,7 +139,10 @@ async function CourseView({ params }: { params: Params }) {
             <p className="mt-4 text-sm text-white/80">
               Created by{" "}
               {course.instructor.slug ? (
-                <Link href={`/instructors/${course.instructor.slug}`} className="font-semibold text-gold-200 underline underline-offset-2">
+                <Link
+                  href={`/instructors/${course.instructor.slug}`}
+                  className="font-semibold text-gold-200 underline underline-offset-2"
+                >
                   {course.instructor.name}
                 </Link>
               ) : (
@@ -156,13 +179,13 @@ async function CourseView({ params }: { params: Params }) {
           )}
 
           <section>
-            <h2 className="text-h3 mb-4">Course content</h2>
+            <h2 className="mb-4 text-h3">Course content</h2>
             <CurriculumList sections={course.curriculum} />
           </section>
 
           {course.requirements.length > 0 && (
             <section>
-              <h2 className="text-h3 mb-4">Requirements</h2>
+              <h2 className="mb-4 text-h3">Requirements</h2>
               <ul className="list-disc space-y-2 pl-5 text-sm text-stone-700 marker:text-gold-500">
                 {course.requirements.map((r) => (
                   <li key={r}>{r}</li>
@@ -173,7 +196,7 @@ async function CourseView({ params }: { params: Params }) {
 
           {course.description && (
             <section>
-              <h2 className="text-h3 mb-4">Description</h2>
+              <h2 className="mb-4 text-h3">Description</h2>
               {/* Sanitised server-side (HTMLPurifier allowlist) when the instructor saves it. */}
               <div
                 className="prose-content text-[0.95rem] leading-relaxed text-stone-700"
@@ -184,7 +207,7 @@ async function CourseView({ params }: { params: Params }) {
 
           {course.audience.length > 0 && (
             <section>
-              <h2 className="text-h3 mb-4">Who this course is for</h2>
+              <h2 className="mb-4 text-h3">Who this course is for</h2>
               <ul className="list-disc space-y-2 pl-5 text-sm text-stone-700 marker:text-gold-500">
                 {course.audience.map((a) => (
                   <li key={a}>{a}</li>
@@ -194,19 +217,24 @@ async function CourseView({ params }: { params: Params }) {
           )}
 
           <section id="instructor">
-            <h2 className="text-h3 mb-5">Your instructor</h2>
+            <h2 className="mb-5 text-h3">Your instructor</h2>
             <div className="flex gap-5">
               <InstructorAvatar name={course.instructor.name} className="size-20 text-2xl" />
               <div>
                 {course.instructor.slug ? (
-                  <Link href={`/instructors/${course.instructor.slug}`} className="text-lg font-bold text-navy-900 hover:underline">
+                  <Link
+                    href={`/instructors/${course.instructor.slug}`}
+                    className="text-lg font-bold text-navy-900 hover:underline"
+                  >
                     {course.instructor.name}
                   </Link>
                 ) : (
                   <p className="text-lg font-bold text-navy-900">{course.instructor.name}</p>
                 )}
                 {course.instructor.headline && <p className="text-sm text-stone-500">{course.instructor.headline}</p>}
-                {course.instructor.bio && <p className="mt-3 text-sm leading-relaxed text-stone-700">{course.instructor.bio}</p>}
+                {course.instructor.bio && (
+                  <p className="mt-3 text-sm leading-relaxed text-stone-700">{course.instructor.bio}</p>
+                )}
               </div>
             </div>
           </section>
@@ -231,7 +259,8 @@ async function CourseView({ params }: { params: Params }) {
               ) : (
                 previews > 0 && (
                   <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-sm bg-navy-950/85 px-2.5 py-1 text-xs font-semibold text-white">
-                    <PlayCircle className="size-3.5" /> {previews} free preview {previews === 1 ? "lecture" : "lectures"}
+                    <PlayCircle className="size-3.5" /> {previews} free preview{" "}
+                    {previews === 1 ? "lecture" : "lectures"}
                   </span>
                 )
               )}
@@ -254,7 +283,11 @@ async function CourseView({ params }: { params: Params }) {
                       {articles === 1 ? "1 article" : `${articles} articles`} with downloadable resources
                     </Includes>
                   )}
-                  {quizzes > 0 && <Includes icon={Check}>{quizzes === 1 ? "1 practice quiz" : `${quizzes} practice quizzes`}</Includes>}
+                  {quizzes > 0 && (
+                    <Includes icon={Check}>
+                      {quizzes === 1 ? "1 practice quiz" : `${quizzes} practice quizzes`}
+                    </Includes>
+                  )}
                   <Includes icon={Smartphone}>Access on mobile and desktop</Includes>
                   <Includes icon={InfinityIcon}>Full lifetime access</Includes>
                   <Includes icon={Award}>Certificate of completion</Includes>

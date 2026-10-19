@@ -31,7 +31,7 @@ return [
 
     /*
     | Playback. Playlists and keys come from the API per learner; segments are served by
-    | Nginx `secure_link` (see docs/deploy/nginx-hls.conf), with a PHP fallback for local dev.
+    | Nginx `secure_link` (see deploy/server/nginx/site.conf), with a PHP fallback for local dev.
     | MEDIA_SECURE_LINK_SECRET must match the secret in the Nginx config.
     */
     'stream' => [

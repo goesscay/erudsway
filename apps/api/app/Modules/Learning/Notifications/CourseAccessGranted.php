@@ -3,6 +3,7 @@
 namespace App\Modules\Learning\Notifications;
 
 use App\Modules\Catalog\Models\Course;
+use App\Support\Mail\Markdown;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -26,7 +27,7 @@ class CourseAccessGranted extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject("You now have access to {$this->course->title}")
-            ->line("The Erudsway team has added “{$this->course->title}” to your learning.")
+            ->line('The Erudsway team has added “'.Markdown::escape($this->course->title).'” to your learning.')
             ->action('Start learning', "{$frontend}/learn/{$this->course->slug}");
     }
 }

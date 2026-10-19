@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Erudsway — prove the latest backup restores (root). Restores the newest dump into a
+# throwaway database, compares row counts with the live database, checks the newest file
+# snapshot, then drops the copy. Changes nothing live. Run monthly, and before go-live.
+set -Eeuo pipefail
+DB_NAME="${DB_NAME:-erudsway}"
+ROOT=/var/backups/erudsway
+DRILL="${DB_NAME}_restore_drill"
+
+DUMP="$(ls -1t "$ROOT/db"/*.dump 2>/dev/null | head -n 1)"
+SNAP="$(ls -1dt "$ROOT"/files/*/ 2>/dev/null | head -n 1)"
+[ -n "$DUMP" ] || { echo "No database dump found in $ROOT/db." >&2; exit 1; }
+echo "Dump:     $DUMP ($(du -h "$DUMP" | cut -f1), $(date -r "$DUMP" '+%F %H:%M'))"
+echo "Snapshot: ${SNAP:-none}"
+
+sudo -u postgres dropdb --if-exists "$DRILL"
+sudo -u postgres createdb "$DRILL"
+start=$(date +%s)
+sudo -u postgres pg_restore --no-owner --role=postgres -d "$DRILL" "$DUMP"
+echo "Restored in $(( $(date +%s) - start ))s."
+
+printf '\n%-22s %10s %10s\n' table live restored
+fail=0
+for t in users courses lectures enrollments orders order_items payments refunds invoices ledger_entries payouts certificates audit_logs; do
+    live=$(sudo -u postgres psql -d "$DB_NAME" -Atc "select count(*) from $t" 2>/dev/null || echo "-")
+    back=$(sudo -u postgres psql -d "$DRILL" -Atc "select count(*) from $t" 2>/dev/null || echo "-")
+    printf '%-22s %10s %10s\n' "$t" "$live" "$back"
+    [ "$back" = "-" ] && fail=1
+done
+
+if [ -n "$SNAP" ]; then
+    echo
+    echo "Files in snapshot: $(find "$SNAP" -type f | wc -l)  ($(du -sh "$SNAP" | cut -f1))"
+fi
+
+sudo -u postgres dropdb "$DRILL"
+[ "$fail" = 0 ] && echo "Restore drill passed (rows written after the dump will differ; that's expected)." || { echo "Restore drill FAILED: tables missing." >&2; exit 1; }

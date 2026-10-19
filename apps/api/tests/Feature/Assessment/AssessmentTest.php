@@ -104,7 +104,9 @@ it('grades quizzes, completes the lecture on a pass, and keeps the instructor’
     $this->actingAs($learner)->postJson($url, $half)->assertOk()
         ->assertJsonPath('data.score_percent', 50)->assertJsonPath('data.passed', false)
         ->assertJsonPath('data.review.0.is_correct', true)->assertJsonPath('data.review.1.is_correct', false)
-        ->assertJsonPath('data.review.0.explanation', 'GSTR-1 lists outward supplies.');
+        // Not passed yet: no answer key, no explanations.
+        ->assertJsonPath('data.answers_revealed', false)
+        ->assertJsonPath('data.review.1.correct', [])->assertJsonPath('data.review.0.explanation', null);
     $this->actingAs($learner)->getJson("/api/v1/learn/{$course->slug}")->assertJsonPath('data.enrollment.completed_count', 0);
 
     // Two answers on a single-choice question, or someone else's option, are refused.
@@ -115,7 +117,8 @@ it('grades quizzes, completes the lecture on a pass, and keeps the instructor’
         ['question_id' => $q[0]['id'], 'option_ids' => [$q[0]['options'][1]]],
         ['question_id' => $q[1]['id'], 'option_ids' => [$q[1]['options'][2], $q[1]['options'][0]]],
     ]];
-    $this->actingAs($learner)->postJson($url, $right)->assertJsonPath('data.score_percent', 100)->assertJsonPath('data.passed', true);
+    $this->actingAs($learner)->postJson($url, $right)->assertJsonPath('data.score_percent', 100)->assertJsonPath('data.passed', true)
+        ->assertJsonPath('data.answers_revealed', true)->assertJsonPath('data.review.0.explanation', 'GSTR-1 lists outward supplies.');
     $this->actingAs($learner)->getJson("/api/v1/learn/{$course->slug}")->assertJsonPath('data.enrollment.completed_count', 1);
 
     // A later fail doesn't undo the pass, and quizzes can't be ticked off by hand.

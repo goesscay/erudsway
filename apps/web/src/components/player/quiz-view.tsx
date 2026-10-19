@@ -256,11 +256,18 @@ function Result({
         </div>
       </div>
       {!tracked && <PreviewNote />}
+      {!result.answers_revealed && (
+        <p className="mt-4 rounded-md bg-paper-2 px-4 py-3 text-sm text-stone-700">
+          You can see which questions you got right. The correct answers and explanations appear once you pass — have
+          another go.
+        </p>
+      )}
 
       <ol className="mt-8 space-y-6">
         {result.review.map((r, i) => {
           const q = byId.get(r.question_id);
           if (!q) return null;
+          const revealed = result.answers_revealed;
           return (
             <li key={r.question_id} className="rounded-md border border-line p-4">
               <p className="flex gap-2 text-[0.95rem] font-semibold text-ink">
@@ -277,20 +284,23 @@ function Result({
               <ul className="mt-3 space-y-1.5 pl-6 text-sm">
                 {q.options.map((o) => {
                   const chosen = r.chosen.includes(o.id);
-                  const correct = r.correct.includes(o.id);
+                  // Before a pass only the learner's own picks on a fully right question are marked.
+                  const correct = revealed ? r.correct.includes(o.id) : chosen && r.is_correct;
+                  const wrong = chosen && !correct && revealed;
                   return (
                     <li
                       key={o.id}
                       className={cn(
                         "flex items-start gap-2 rounded-sm px-2 py-1",
                         correct && "bg-[#eef6f1] text-success",
-                        chosen && !correct && "bg-destructive/5 text-destructive",
+                        wrong && "bg-destructive/5 text-destructive",
+                        chosen && !correct && !revealed && "bg-paper-2 text-ink",
                         !chosen && !correct && "text-stone-500",
                       )}
                     >
                       {correct ? (
                         <Check className="mt-0.5 size-3.5 shrink-0" />
-                      ) : chosen ? (
+                      ) : wrong ? (
                         <X className="mt-0.5 size-3.5 shrink-0" />
                       ) : (
                         <span className="size-3.5 shrink-0" />
