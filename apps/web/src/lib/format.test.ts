@@ -35,4 +35,10 @@ describe("initials", () => {
   it("takes the first two name parts", () => {
     expect(initials("Vikram Sethi, CA")).toBe("VS");
   });
+
+  it("skips professional prefixes", () => {
+    expect(initials("CA Vikram Sethi")).toBe("VS");
+    expect(initials("Adv. Farah Qureshi")).toBe("FQ");
+    expect(initials("CS Rohan Deshpande")).toBe("RD");
+  });
 });

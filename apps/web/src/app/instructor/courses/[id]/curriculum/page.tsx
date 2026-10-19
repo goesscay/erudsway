@@ -37,9 +37,9 @@ export function generateStaticParams() {
 type VideoState = "ready" | "processing" | "failed" | "none";
 
 const states: Record<string, { state: VideoState; progress?: number }> = {
-  "Thinking in components": { state: "processing", progress: 64 },
-  "Effects and when not to use them": { state: "failed" },
-  "Forms with validation": { state: "none" },
+  "Valuation rules with examples": { state: "processing", progress: 64 },
+  "Place of supply for goods and services": { state: "failed" },
+  "Reverse charge mechanism": { state: "none" },
 };
 
 const appNav = [

@@ -27,5 +27,7 @@ class DatabaseSeeder extends Seeder
         $admin->forceFill(['email_verified_at' => now()])->save();
         $admin->profile()->firstOrCreate();
         $admin->syncRoles([Role::Admin->value]);
+
+        $this->call(CatalogDemoSeeder::class);
     }
 }

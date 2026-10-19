@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             Knowledge that moves minds.
           </p>
           <p className="mt-6 text-sm text-white/60">
-            Learn from engineers, chartered accountants and designers who practise what they teach.
+            Learn GST, income tax, audit and company law from chartered accountants, company secretaries and advocates who practise what they teach.
           </p>
         </div>
         <p className="relative mt-16 text-xs text-white/40">© 2026 Erudsway Educorp LLP</p>

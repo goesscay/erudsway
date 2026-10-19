@@ -1,10 +1,12 @@
 # Erudsway — Online Learning Marketplace: Architecture & Delivery Plan
 
-**Owner:** Erudsway Educorp LLP · **Status:** Approved; Phase 0 and Phase 1 built · **Date:** 2026-10-18
+**Owner:** Erudsway Educorp LLP · **Status:** Approved; Phases 0–2 built · **Date:** 2026-10-18
 
 > **Phase 0 notes (2026-10-18):** scaffolded on Laravel 13.37 and Next.js 16.4.2 (newer than the 16.3 line verified earlier; Cache Components + Partial Prefetching enabled by default). Images on design-review screens come from Unsplash with credits. Open follow-ups for Phase 2: sticky buy bar on mobile course pages, mobile search, replacing `demo-data.ts` with API data.
 >
 > **Phase 1 notes (2026-10-19):** identity module live — register/login/logout (Sanctum SPA cookies), email verification (signed link → web app), password reset, profile and password change, roles + fine-grained staff permissions (seeded by migration), instructor applications with admin approve/reject (no self-review), user suspension that ends access immediately, rate limits, and an append-only audit log. Emails are queued. Emails are stored lower-cased instead of using `citext`, so the schema also runs on SQLite for local development. Deferred: branded email templates (Phase 7), Playwright E2E suite (needs both servers in CI), mobile navigation for the admin console.
+>
+> **Phase 2 notes (2026-10-19):** the portal is focused on **accounts, tax and finance**. Top-level course areas set by Erudsway: GST · Income Tax · TDS & TCS · Accounts & Career · Audit & Assurance · ROC & Company Law · Litigation & Appeals · FEMA & Cross-border · IPO & Capital Markets · Startup & Setup (subcategories proposed in the demo seeder). Catalog module live: categories, price tiers, courses, sections/lectures, public catalogue API with search (PostgreSQL full-text + trigram; SQLite fallback for local tests), filters with facet counts, sorting, pagination, instructor profiles, short public caching. Web pages read the API through cached server functions that never run at build time; course pages carry schema.org Course JSON-LD; sitemap.xml and robots.txt added. Still open: the PostgreSQL search path is untested until a local `erudsway` role exists or CI can run; legal pages (terms, privacy, refund policy, grievance officer) linked from the footer don't exist yet; Phase 3 must sanitise instructor-written HTML server-side.
 **Benchmark:** udemy.com (marketplace model: students buy video courses, approved instructors publish, platform keeps full control and pays commissions)
 
 > Nothing has been built yet. This document is the "before writing code" deliverable from the spec (steps 1–6). Section 14 lists the decisions that need your sign-off before Phase 0 starts.

@@ -55,6 +55,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Top-level categories with their subcategories */
+        get: operations["catalog.categories.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One category with its parent and subcategories */
+        get: operations["catalog.categories.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search and browse published courses
+         * @description `meta.facets` gives counts for each filter option, based on the search text and category.
+         */
+        get: operations["catalog.courses.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A published course's landing page data */
+        get: operations["catalog.courses.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/email/resend": {
         parameters: {
             query?: never;
@@ -81,6 +152,23 @@ export interface paths {
         };
         /** Liveness check for load balancers and uptime monitors */
         get: operations["platform.health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructors/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public instructor profile with their published courses and totals */
+        get: operations["catalog.instructors.show"];
         put?: never;
         post?: never;
         delete?: never;
@@ -331,6 +419,109 @@ export interface components {
          * @enum {string}
          */
         ApplicationStatus: "pending" | "approved" | "rejected";
+        /** CategoryResource */
+        CategoryResource: {
+            slug: string;
+            name: string;
+            description: string | null;
+            parent?: {
+                slug: string;
+                name: string;
+            } | null;
+            children?: {
+                slug: string;
+                name: string;
+            }[];
+        };
+        /** CourseCardResource */
+        CourseCardResource: {
+            id: string;
+            slug: string;
+            title: string;
+            subtitle: string | null;
+            thumbnail_url: string | null;
+            instructor: {
+                name: string;
+                slug: string | null;
+            };
+            category: {
+                slug: string;
+                name: string;
+            };
+            level: string;
+            language: string;
+            rating: number;
+            rating_count: number;
+            enrollment_count: number;
+            duration_seconds: number;
+            lecture_count: number;
+            /** @description Null when the course is free. Amount in paise. */
+            price: {
+                amount: number;
+                currency: string;
+            } | null;
+            /** @enum {string|null} */
+            badge: "bestseller" | "highest_rated" | "new" | null;
+            updated_at: string;
+        };
+        /** CourseDetailResource */
+        CourseDetailResource: {
+            id: string;
+            slug: string;
+            title: string;
+            subtitle: string | null;
+            thumbnail_url: string | null;
+            instructor: {
+                name: string;
+                slug: string | null;
+                headline: string | null;
+                bio: string | null;
+            };
+            category: {
+                slug: string;
+                name: string;
+            };
+            level: string;
+            language: string;
+            rating: number;
+            rating_count: number;
+            enrollment_count: number;
+            duration_seconds: number;
+            lecture_count: number;
+            /** @description Null when the course is free. Amount in paise. */
+            price: {
+                amount: number;
+                currency: string;
+            } | null;
+            /** @enum {string|null} */
+            badge: "bestseller" | "highest_rated" | "new" | null;
+            updated_at: string;
+            description: string | null;
+            outcomes: string[];
+            requirements: string[];
+            audience: string[];
+            published_at: string | null;
+            breadcrumb: {
+                slug: string;
+                name: string;
+            }[];
+            curriculum: {
+                title: string;
+                duration_seconds: number;
+                lectures: {
+                    title: string;
+                    /** @enum {string} */
+                    kind: "video" | "article" | "quiz" | "assignment";
+                    duration_seconds: number;
+                    is_free_preview: boolean;
+                }[];
+            }[];
+        };
+        /**
+         * CourseLevel
+         * @enum {string}
+         */
+        CourseLevel: "beginner" | "intermediate" | "advanced" | "all";
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             /** Format: email */
@@ -580,6 +771,115 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "catalog.categories.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: (components["schemas"]["CategoryResource"] & Record<string, never>)[];
+                    };
+                };
+            };
+        };
+    };
+    "catalog.categories.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CategoryResource"] & Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    "catalog.courses.index": {
+        parameters: {
+            query?: {
+                q?: string | null;
+                category?: string;
+                "level[]"?: components["schemas"]["CourseLevel"][];
+                "language[]"?: "English" | "Hindi" | "Tamil" | "Telugu" | "Kannada" | "Malayalam" | "Marathi" | "Bengali" | "Gujarati";
+                rating?: "3" | "3.5" | "4" | "4.5";
+                price?: "free" | "paid";
+                duration?: "short" | "medium" | "long" | "extra_long";
+                sort?: "relevance" | "popular" | "rating" | "newest" | "price_asc" | "price_desc";
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CourseCardResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseCardResource"][];
+                        meta: {
+                            facets: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "catalog.courses.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseDetailResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseDetailResource"];
+                    };
+                };
+            };
+        };
+    };
     "identity.verification.send": {
         parameters: {
             query?: never;
@@ -632,6 +932,42 @@ export interface operations {
                             status: "ok";
                             version: string;
                             time: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+        };
+    };
+    "catalog.instructors.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            slug: string;
+                            name: string;
+                            headline: string | null;
+                            bio: string | null;
+                            stats: {
+                                learners: number;
+                                reviews: number;
+                                rating: number;
+                                courses: number;
+                            };
+                            courses: unknown[];
                         };
                         meta: string;
                     };

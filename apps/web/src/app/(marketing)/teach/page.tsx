@@ -6,7 +6,7 @@ import { ApplySection } from "./apply-section";
 
 export const metadata: Metadata = {
   title: "Teach on Erudsway",
-  description: "Share what you know with learners across India. Apply to become an Erudsway instructor.",
+  description: "CAs, CSs, CMAs and tax advocates: teach GST, income tax, audit and compliance to learners across India. Apply to become an Erudsway instructor.",
 };
 
 const promises = [
@@ -26,8 +26,8 @@ export default function TeachPage() {
               Your expertise, a classroom of thousands.
             </h1>
             <p className="mt-6 max-w-[52ch] text-lg leading-relaxed text-white/75">
-              We work with practising professionals — engineers, chartered accountants, designers, analysts — who want to
-              teach properly. Apply below; we review every application personally.
+              We work with chartered accountants, company secretaries, cost accountants, advocates and finance leaders who
+              want to teach properly. Apply below; we review every application personally.
             </p>
           </div>
           <div>

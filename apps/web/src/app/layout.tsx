@@ -22,7 +22,8 @@ export const metadata: Metadata = {
     template: "%s · Erudsway",
   },
   description:
-    "Learn from India's practising professionals. Video courses in development, finance, design and more.",
+    "Learn GST, income tax, TDS, audit, company law, FEMA and capital markets from practising CAs, CSs and advocates.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

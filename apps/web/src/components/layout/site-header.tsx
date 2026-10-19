@@ -1,8 +1,8 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { Search } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { AuthNav, VerifyEmailBanner } from "./auth-nav";
-import { categories } from "@/lib/demo-data";
+import { CategoryNav } from "./category-nav";
 
 export function SiteHeader() {
   return (
@@ -12,16 +12,16 @@ export function SiteHeader() {
         <div className="mx-auto flex h-[72px] max-w-[1340px] items-center gap-6 px-6">
           <Logo />
 
-          <form action="/search" role="search" className="relative hidden flex-1 md:block">
-            <label htmlFor="q" className="sr-only">
+          <form action="/courses" role="search" className="relative hidden flex-1 md:block">
+            <label htmlFor="site-search" className="sr-only">
               Search courses
             </label>
             <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-stone-500" />
             <input
-              id="q"
+              id="site-search"
               name="q"
               type="search"
-              placeholder="Search for anything — React, GST, Figma…"
+              placeholder="Search GST, TDS, Form 3CD, ROC filings…"
               className="h-11 w-full rounded-full border border-input bg-paper pr-4 pl-11 text-sm placeholder:text-stone-500 focus:border-navy-900 focus:bg-white focus:outline-none"
             />
           </form>
@@ -31,19 +31,10 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <nav aria-label="Categories" className="hidden border-t border-line/70 lg:block">
-          <ul className="mx-auto flex max-w-[1340px] items-center justify-center gap-7 px-6 text-[0.8rem] text-stone-700">
-            {categories.map((c) => (
-              <li key={c}>
-                <Link
-                  href={`/courses/${c.toLowerCase().replace(/[^a-z]+/g, "-")}`}
-                  className="block py-2.5 hover:text-navy-900 hover:underline hover:decoration-gold-500 hover:decoration-2 hover:underline-offset-[10px]"
-                >
-                  {c}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <nav aria-label="Categories" className="hidden min-h-[41px] border-t border-line/70 lg:block">
+          <Suspense>
+            <CategoryNav />
+          </Suspense>
         </nav>
       </header>
     </>

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { courses } from "@/lib/demo-data";
+import { sampleCards } from "@/lib/demo-data";
 
 export const metadata: Metadata = { title: "Design system", robots: { index: false } };
 
@@ -31,8 +31,8 @@ const swatches = [
 ];
 
 const type = [
-  ["text-display", "Display · Fraunces 56", "Skills that move careers"],
-  ["text-h1", "H1 · Fraunces 40", "Financial Accounting for Managers"],
+  ["text-display", "Display · Fraunces 56", "Learned from practice"],
+  ["text-h1", "H1 · Fraunces 40", "GST Practitioner Course"],
   ["text-h2", "H2 · Fraunces 30", "Course content"],
   ["text-h3", "H3 · Fraunces 22", "What you'll learn"],
 ];
@@ -127,7 +127,7 @@ export default function DesignSystemPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="ds-err">Coupon code</Label>
-              <Input id="ds-err" defaultValue="DIWALI50" aria-invalid />
+              <Input id="ds-err" defaultValue="GSTFEST50" aria-invalid />
               <p className="text-xs text-destructive">This coupon has expired.</p>
             </div>
             <div className="space-y-2">
@@ -145,18 +145,18 @@ export default function DesignSystemPage() {
             <Rating value={4.7} count={18342} size="md" />
             <Rating value={3.4} count={120} />
             <div className="flex gap-2">
-              <CourseBadge badge="Bestseller" />
-              <CourseBadge badge="Highest rated" />
-              <CourseBadge badge="New" />
+              <CourseBadge badge="bestseller" />
+              <CourseBadge badge="highest_rated" />
+              <CourseBadge badge="new" />
             </div>
             <div className="space-y-1">
               <Progress value={62} className="h-1.5" aria-label="62% complete" />
               <p className="tabular text-xs text-stone-500">62% complete</p>
             </div>
             <div className="flex items-center gap-3">
-              <InstructorAvatar name="Ananya Raghavan" />
-              <InstructorAvatar name="Vikram Sethi" className="size-10 text-sm" />
-              <InstructorAvatar name="Meera Kulkarni" className="size-8 text-xs" />
+              <InstructorAvatar name="Vikram Sethi" />
+              <InstructorAvatar name="Nandini Iyer" className="size-10 text-sm" />
+              <InstructorAvatar name="Farah Qureshi" className="size-8 text-xs" />
             </div>
           </div>
         </div>
@@ -165,8 +165,8 @@ export default function DesignSystemPage() {
       <section>
         <SectionHeading eyebrow="Catalogue" title="Course card" />
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {courses.slice(0, 4).map((c) => (
-            <CourseCard key={c.slug} course={c} />
+          {sampleCards.map((c) => (
+            <CourseCard key={c.id} course={c} />
           ))}
         </div>
       </section>

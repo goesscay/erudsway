@@ -26,10 +26,13 @@ export function formatClock(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Professional prefixes common in Indian practice; skipped when building initials. */
+const honorifics = new Set(["ca", "cs", "cma", "adv", "adv.", "dr", "dr.", "advocate"]);
+
 export function initials(name: string): string {
   return name
     .split(/\s+/)
-    .filter(Boolean)
+    .filter((part) => part && !honorifics.has(part.toLowerCase()))
     .slice(0, 2)
     .map((p) => p[0]!.toUpperCase())
     .join("");

@@ -114,6 +114,323 @@
                 }
             }
         },
+        "/categories": {
+            "get": {
+                "operationId": "catalog.categories.index",
+                "summary": "Top-level categories with their subcategories",
+                "tags": [
+                    "Category"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CategoryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/CategoryResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "children"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/categories/{slug}": {
+            "get": {
+                "operationId": "catalog.categories.show",
+                "summary": "One category with its parent and subcategories",
+                "tags": [
+                    "Category"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CategoryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/CategoryResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "parent",
+                                                        "children"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/courses": {
+            "get": {
+                "operationId": "catalog.courses.index",
+                "description": "`meta.facets` gives counts for each filter option, based on the search text and category.",
+                "summary": "Search and browse published courses",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 80
+                        }
+                    },
+                    {
+                        "name": "level[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/CourseLevel"
+                            }
+                        }
+                    },
+                    {
+                        "name": "language[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "enum": [
+                                "English",
+                                "Hindi",
+                                "Tamil",
+                                "Telugu",
+                                "Kannada",
+                                "Malayalam",
+                                "Marathi",
+                                "Bengali",
+                                "Gujarati"
+                            ],
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "English",
+                                    "Hindi",
+                                    "Tamil",
+                                    "Telugu",
+                                    "Kannada",
+                                    "Malayalam",
+                                    "Marathi",
+                                    "Bengali",
+                                    "Gujarati"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "rating",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "enum": [
+                                "3",
+                                "3.5",
+                                "4",
+                                "4.5"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "price",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "free",
+                                "paid"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "duration",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "short",
+                                "medium",
+                                "long",
+                                "extra_long"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "relevance",
+                                "popular",
+                                "rating",
+                                "newest",
+                                "price_asc",
+                                "price_desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 48
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 500
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CourseCardResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseCardResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "facets": {
+                                                    "type": "object",
+                                                    "additionalProperties": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "facets"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/courses/{slug}": {
+            "get": {
+                "operationId": "catalog.courses.show",
+                "summary": "A published course's landing page data",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseDetailResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseDetailResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/auth/email/resend": {
             "post": {
                 "operationId": "identity.verification.send",
@@ -220,6 +537,106 @@
                                                 "status",
                                                 "version",
                                                 "time"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/instructors/{slug}": {
+            "get": {
+                "operationId": "catalog.instructors.show",
+                "summary": "Public instructor profile with their published courses and totals",
+                "tags": [
+                    "Instructor"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "slug": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "headline": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "bio": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "stats": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "learners": {
+                                                            "type": "integer"
+                                                        },
+                                                        "reviews": {
+                                                            "type": "integer"
+                                                        },
+                                                        "rating": {
+                                                            "type": "number"
+                                                        },
+                                                        "courses": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "learners",
+                                                        "reviews",
+                                                        "rating",
+                                                        "courses"
+                                                    ]
+                                                },
+                                                "courses": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "slug",
+                                                "name",
+                                                "headline",
+                                                "bio",
+                                                "stats",
+                                                "courses"
                                             ]
                                         },
                                         "meta": {
@@ -1326,6 +1743,463 @@
                     "rejected"
                 ],
                 "title": "ApplicationStatus"
+            },
+            "CategoryResource": {
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "parent": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "name"
+                        ]
+                    },
+                    "children": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "slug",
+                                "name"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "slug",
+                    "name",
+                    "description"
+                ],
+                "title": "CategoryResource"
+            },
+            "CourseCardResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "thumbnail_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "slug"
+                        ]
+                    },
+                    "category": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "name"
+                        ]
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "rating_count": {
+                        "type": "integer"
+                    },
+                    "enrollment_count": {
+                        "type": "integer"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "lecture_count": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Null when the course is free. Amount in paise.",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "badge": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "bestseller",
+                            "highest_rated",
+                            "new",
+                            null
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "subtitle",
+                    "thumbnail_url",
+                    "instructor",
+                    "category",
+                    "level",
+                    "language",
+                    "rating",
+                    "rating_count",
+                    "enrollment_count",
+                    "duration_seconds",
+                    "lecture_count",
+                    "price",
+                    "badge",
+                    "updated_at"
+                ],
+                "title": "CourseCardResource"
+            },
+            "CourseDetailResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "thumbnail_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "headline": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "bio": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "slug",
+                            "headline",
+                            "bio"
+                        ]
+                    },
+                    "category": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "name"
+                        ]
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "rating_count": {
+                        "type": "integer"
+                    },
+                    "enrollment_count": {
+                        "type": "integer"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "lecture_count": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Null when the course is free. Amount in paise.",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "badge": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "bestseller",
+                            "highest_rated",
+                            "new",
+                            null
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "outcomes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "requirements": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "audience": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "breadcrumb": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "slug",
+                                "name"
+                            ]
+                        }
+                    },
+                    "curriculum": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string"
+                                },
+                                "duration_seconds": {
+                                    "type": "integer"
+                                },
+                                "lectures": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "video",
+                                                    "article",
+                                                    "quiz",
+                                                    "assignment"
+                                                ]
+                                            },
+                                            "duration_seconds": {
+                                                "type": "integer"
+                                            },
+                                            "is_free_preview": {
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "required": [
+                                            "title",
+                                            "kind",
+                                            "duration_seconds",
+                                            "is_free_preview"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "title",
+                                "duration_seconds",
+                                "lectures"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "subtitle",
+                    "thumbnail_url",
+                    "instructor",
+                    "category",
+                    "level",
+                    "language",
+                    "rating",
+                    "rating_count",
+                    "enrollment_count",
+                    "duration_seconds",
+                    "lecture_count",
+                    "price",
+                    "badge",
+                    "updated_at",
+                    "description",
+                    "outcomes",
+                    "requirements",
+                    "audience",
+                    "published_at",
+                    "breadcrumb",
+                    "curriculum"
+                ],
+                "title": "CourseDetailResource"
+            },
+            "CourseLevel": {
+                "type": "string",
+                "enum": [
+                    "beginner",
+                    "intermediate",
+                    "advanced",
+                    "all"
+                ],
+                "title": "CourseLevel"
             },
             "ForgotPasswordRequest": {
                 "type": "object",
