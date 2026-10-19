@@ -12,6 +12,10 @@ import { ApiRequestError } from "@/lib/api/client";
 import { flattenLectures, resumeLectureId, useLearnCourse, useLectureContent, useProgress, type LearnCourse } from "@/lib/learning/api";
 import { formatDuration, plural } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { AnnouncementsPanel } from "@/components/engagement/announcements-panel";
+import { NotificationBell } from "@/components/engagement/notification-bell";
+import { MyReview } from "@/components/engagement/my-review";
+import { QaPanel } from "@/components/engagement/qa-panel";
 import { ArticleView } from "./article-view";
 import { CurriculumSidebar } from "./curriculum-sidebar";
 import { NotesPanel } from "./notes-panel";
@@ -75,7 +79,19 @@ function Player({ course }: { course: LearnCourse }) {
   const [seek, setSeek] = useState<{ to: number; at: number } | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
   const [upNext, setUpNext] = useState<number | null>(null);
-  const [tab, setTab] = useState("overview");
+  // The tab and open Q&A thread live in the URL, so notification links land on them.
+  const tab = search.get("tab") ?? "overview";
+  const questionId = Number(search.get("question")) || null;
+  const setParams = (patch: Record<string, string | null>) => {
+    const params = new URLSearchParams(search.toString());
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === null) params.delete(k);
+      else params.set(k, v);
+    }
+    params.delete("t");
+    router.replace(`${pathname}?${params}`, { scroll: false });
+  };
+  const setTab = (value: string) => setParams({ tab: value === "overview" ? null : value, question: null });
 
   const go = (lectureId: number, opts: { play?: boolean; at?: number } = {}) => {
     setUpNext(null);
@@ -85,6 +101,7 @@ function Player({ course }: { course: LearnCourse }) {
       return;
     }
     const params = new URLSearchParams({ lecture: String(lectureId) });
+    if (search.get("tab")) params.set("tab", search.get("tab")!);
     if (opts.at) params.set("t", String(opts.at));
     router.push(`${pathname}?${params}`, { scroll: false });
   };
@@ -127,6 +144,7 @@ function Player({ course }: { course: LearnCourse }) {
               <Eye className="size-3.5" /> {course.role === "instructor" ? "Instructor preview" : "Reviewer preview"} · progress isn’t saved
             </span>
           )}
+          <NotificationBell inverted />
         </div>
       </header>
 
@@ -198,9 +216,20 @@ function Player({ course }: { course: LearnCourse }) {
                 <TabsTrigger value="overview" className="flex-none px-0 text-[0.95rem] font-semibold">
                   Overview
                 </TabsTrigger>
+                <TabsTrigger value="qa" className="flex-none px-0 text-[0.95rem] font-semibold">
+                  Q&amp;A
+                </TabsTrigger>
                 <TabsTrigger value="notes" className="flex-none px-0 text-[0.95rem] font-semibold">
                   Notes
                 </TabsTrigger>
+                <TabsTrigger value="announcements" className="flex-none px-0 text-[0.95rem] font-semibold">
+                  Announcements
+                </TabsTrigger>
+                {tracked && (
+                  <TabsTrigger value="reviews" className="flex-none px-0 text-[0.95rem] font-semibold">
+                    Reviews
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="resources" className="flex-none px-0 text-[0.95rem] font-semibold">
                   Resources{current && current.resource_count > 0 && <span className="ml-1.5 text-xs text-stone-500">{current.resource_count}</span>}
                 </TabsTrigger>
@@ -226,6 +255,28 @@ function Player({ course }: { course: LearnCourse }) {
                   }}
                 />
               </TabsContent>
+
+              <TabsContent value="qa" className="pt-6">
+                <QaPanel
+                  slug={course.slug}
+                  lecture={current ? { id: current.id, title: current.title, number: current.number } : null}
+                  canModerate={!tracked}
+                  questionId={questionId}
+                  onOpenQuestion={(id) => setParams({ question: id === null ? null : String(id) })}
+                />
+              </TabsContent>
+
+              <TabsContent value="announcements" className="pt-6">
+                <AnnouncementsPanel slug={course.slug} />
+              </TabsContent>
+
+              {tracked && (
+                <TabsContent value="reviews" className="pt-6">
+                  <div className="mx-auto max-w-xl">
+                    <MyReview slug={course.slug} instructorName={course.instructor.name} />
+                  </div>
+                </TabsContent>
+              )}
 
               <TabsContent value="resources" className="pt-6">
                 {current && <Resources lectureId={current.id} count={current.resource_count} />}

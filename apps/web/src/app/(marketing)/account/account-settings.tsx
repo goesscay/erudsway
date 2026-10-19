@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
+import { NotificationPreferences } from "@/components/engagement/notification-preferences";
 import { Field, FormAlert, PasswordInput, TextInput } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +41,9 @@ export function AccountSettings() {
             <Section title="Password" description="Use a password you don't use on other sites.">
               <PasswordForm />
             </Section>
+            <Section id="notifications" title="Notifications" description="Choose what we email you about. Your Erudsway inbox follows the same choices.">
+              <NotificationPreferences instructor={!!me.instructor} />
+            </Section>
           </div>
         </div>
       )}
@@ -47,9 +51,9 @@ export function AccountSettings() {
   );
 }
 
-function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function Section({ id, title, description, children }: { id?: string; title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-6 py-10 md:grid-cols-[240px_1fr]">
+    <section id={id} className="grid scroll-mt-24 gap-6 py-10 md:grid-cols-[240px_1fr]">
       <div>
         <h2 className="font-sans text-base font-bold text-ink">{title}</h2>
         <p className="mt-1 text-sm text-stone-500">{description}</p>

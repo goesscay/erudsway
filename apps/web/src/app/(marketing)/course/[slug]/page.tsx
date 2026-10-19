@@ -23,6 +23,7 @@ import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { Price } from "@/components/course/price";
 import { PurchaseActions } from "@/components/course/purchase-actions";
 import { Rating } from "@/components/course/rating";
+import { CourseReviews } from "@/components/engagement/course-reviews";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCourse } from "@/lib/catalog/queries";
 import { levelLabel, type CourseDetail } from "@/lib/catalog/types";
@@ -108,7 +109,9 @@ async function CourseView({ params }: { params: Params }) {
               {course.rating_count > 0 && (
                 <>
                   <Rating value={course.rating} size="md" />
-                  <span className="text-gold-200">{formatCount(course.rating_count)} ratings</span>
+                  <a href="#reviews" className="text-gold-200 underline underline-offset-2">
+                    {formatCount(course.rating_count)} ratings
+                  </a>
                 </>
               )}
               <span className="text-white/80">{formatCount(course.enrollment_count)} learners</span>
@@ -207,6 +210,8 @@ async function CourseView({ params }: { params: Params }) {
               </div>
             </div>
           </section>
+
+          <CourseReviews slug={course.slug} instructorName={course.instructor.name} />
         </div>
 
         {/* Purchase card */}

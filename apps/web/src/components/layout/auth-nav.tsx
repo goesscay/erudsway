@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart, LogOut, MonitorPlay, Presentation, Receipt, Settings, ShieldCheck } from "lucide-react";
 import { CartLink } from "@/components/commerce/cart-link";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
+import { NotificationBell } from "@/components/engagement/notification-bell";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,6 +67,7 @@ export function AuthNav() {
         My learning
       </Link>
       {cart}
+      <NotificationBell />
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Account menu"

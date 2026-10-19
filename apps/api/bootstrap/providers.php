@@ -3,6 +3,7 @@
 use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Commerce\CommerceServiceProvider;
+use App\Modules\Engagement\EngagementServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Learning\LearningServiceProvider;
@@ -22,4 +23,5 @@ return [
     LearningServiceProvider::class,
     CommerceServiceProvider::class,
     FinanceServiceProvider::class,
+    EngagementServiceProvider::class,
 ];

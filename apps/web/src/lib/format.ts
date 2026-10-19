@@ -47,3 +47,13 @@ export function initials(name: string): string {
     .map((p) => p[0]!.toUpperCase())
     .join("");
 }
+
+/** "just now", "5 min ago", "3 days ago", then a date. For client-rendered lists only. */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const s = Math.max(0, Math.round((now - new Date(iso).getTime()) / 1000));
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return plural(Math.floor(s / 3600), "hour") + " ago";
+  if (s < 30 * 86400) return plural(Math.floor(s / 86400), "day") + " ago";
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookCheck, ChartColumn, ClipboardCheck, ExternalLink, Landmark, ReceiptText, RotateCcw, TicketPercent, Users } from "lucide-react";
+import { BookCheck, ChartColumn, ClipboardCheck, ExternalLink, Landmark, MessageSquareWarning, ReceiptText, RotateCcw, TicketPercent, Users } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { hasPermission, useMe } from "@/lib/auth/session";
@@ -16,6 +16,7 @@ const nav = [
     permission: "review_instructor_applications",
   },
   { href: "/admin/course-reviews", label: "Course reviews", icon: BookCheck, permission: "moderate_courses" },
+  { href: "/admin/reviews", label: "Learner reviews", icon: MessageSquareWarning, permission: "moderate_courses" },
   { href: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
   { href: "/admin/orders", label: "Orders", icon: ReceiptText, permission: "manage_finance" },
   { href: "/admin/refunds", label: "Refunds", icon: RotateCcw, permission: "manage_finance" },

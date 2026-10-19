@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ExternalLink, IndianRupee, Landmark, MonitorPlay, ShieldAlert } from "lucide-react";
+import { ExternalLink, IndianRupee, Landmark, Megaphone, MessageSquare, MonitorPlay, ShieldAlert, Star } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -44,6 +44,9 @@ export function InstructorGate({ children }: { children: React.ReactNode }) {
 
 const nav = [
   { href: "/instructor", label: "Courses", icon: MonitorPlay },
+  { href: "/instructor/qa", label: "Q&A", icon: MessageSquare },
+  { href: "/instructor/reviews", label: "Reviews", icon: Star },
+  { href: "/instructor/announcements", label: "Announcements", icon: Megaphone },
   { href: "/instructor/revenue", label: "Revenue", icon: IndianRupee },
   { href: "/instructor/payout-details", label: "Payout details", icon: Landmark },
 ];
@@ -78,7 +81,6 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
             );
           })}
         </ul>
-        <p className="mt-6 px-3 text-xs leading-relaxed text-white/40">Learner Q&amp;A and reviews arrive with the next release.</p>
         <div className="mt-auto space-y-4 border-t border-white/10 pt-4">
           <Link href="/" className="flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white">
             <ExternalLink className="size-4" /> View site

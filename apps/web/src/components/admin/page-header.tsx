@@ -25,6 +25,9 @@ export function StatusPill({ status }: { status: string }) {
     processing: "bg-gold-50 text-gold-600 ring-gold-200",
     failed: "bg-destructive/5 text-destructive ring-destructive/20",
     refunded: "bg-paper-2 text-stone-700 ring-line",
+    reported: "bg-gold-50 text-gold-600 ring-gold-200",
+    hidden: "bg-destructive/5 text-destructive ring-destructive/20",
+    visible: "bg-[#e7f1ec] text-success ring-[#cfe3d8]",
   };
   return (
     <span className={`inline-flex h-6 items-center rounded-sm px-2 text-[0.7rem] font-bold tracking-wide capitalize ring-1 ring-inset ${styles[status] ?? "bg-paper-2 text-stone-700 ring-line"}`}>
