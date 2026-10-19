@@ -38,7 +38,8 @@ say "User and directories"
 id "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --home-dir "$BASE" --shell /bin/bash "$APP_USER"
 install -d -o "$APP_USER" -g "$APP_USER" -m 755 "$BASE" "$BASE/releases" "$BASE/shared" "$BASE/bin"
 install -d -o "$APP_USER" -g "$APP_USER" -m 750 "$BASE/shared/storage" "$BASE/shared/imports"
-for d in app/public app/private framework/cache/data framework/sessions framework/views logs; do
+# Every level listed: `install -d` leaves parents it creates owned by root.
+for d in app app/public app/private framework framework/cache framework/cache/data framework/cache/htmlpurifier framework/sessions framework/views logs; do
     install -d -o "$APP_USER" -g "$APP_USER" -m 750 "$BASE/shared/storage/$d"
 done
 chmod 755 "$BASE/shared/storage" "$BASE/shared/storage/app" "$BASE/shared/storage/app/public"
