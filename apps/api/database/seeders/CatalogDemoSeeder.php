@@ -19,32 +19,6 @@ use Illuminate\Support\Facades\DB;
  */
 class CatalogDemoSeeder extends Seeder
 {
-    /** Top-level areas (as planned by Erudsway) => [description, subcategories]. */
-    private const CATEGORIES = [
-        'GST' => ['Registration, returns, input tax credit and e-invoicing — GST as practitioners apply it.',
-            ['Registration & Returns', 'Input Tax Credit', 'E-invoicing & E-way Bills']],
-        'Income Tax' => ['Return filing, capital gains and planning for individuals and businesses.',
-            ['Return Filing', 'Capital Gains', 'Tax Planning']],
-        'TDS & TCS' => ['Deduction, collection, quarterly returns and certificates without penalties.',
-            ['TDS Compliance', 'TCS']],
-        'Accounts & Career' => ['Bookkeeping, Tally, Excel and the career skills accountants need.',
-            ['Bookkeeping & Tally', 'Excel for Finance', 'Career Guidance']],
-        'Audit & Assurance' => ['Statutory, tax and internal audit — planning, evidence and reporting.',
-            ['Statutory Audit', 'Tax Audit', 'Internal Audit']],
-        'ROC & Company Law' => ['Incorporation, annual filings and ongoing compliance for companies and LLPs.',
-            ['Company Compliance', 'LLP', 'Incorporation']],
-        'Litigation & Appeals' => ['Replying to notices, drafting submissions and handling appeals.',
-            ['GST Litigation', 'Income Tax Appeals']],
-        'FEMA & Cross-border' => ['FDI, ODI, reporting to RBI and the basics of international taxation.',
-            ['FEMA Compliance', 'International Taxation']],
-        'IPO & Capital Markets' => ['How companies go public and how SEBI regulates listed entities.',
-            ['IPO & SEBI Regulations', 'Capital Markets']],
-        'Startup & Setup' => ['Choosing an entity, registering it and staying compliant in year one.',
-            ['Business Registration', 'Funding & Valuation']],
-    ];
-
-    private const PRICE_TIERS = [39900, 44900, 49900, 59900, 79900, 99900, 129900, 199900, 349900];
-
     private const INSTRUCTORS = [
         'vikram' => ['CA Vikram Sethi', 'Chartered Accountant · Indirect tax practitioner, 15 years',
             'Vikram runs a GST-focused practice in Delhi and has represented clients before the GST authorities since the law came into force. His courses follow the monthly compliance cycle exactly as his team works it.'],
@@ -64,7 +38,7 @@ class CatalogDemoSeeder extends Seeder
             // Remove demo data from earlier taxonomies so the catalogue matches this one exactly.
             Course::withTrashed()->whereNotIn('slug', array_column($this->courses(), 'slug'))->forceDelete();
             $categories = $this->categories();
-            $tiers = collect(self::PRICE_TIERS)->mapWithKeys(fn (int $amount) => [
+            $tiers = collect(ReferenceDataSeeder::PRICE_TIERS)->mapWithKeys(fn (int $amount) => [
                 $amount => PriceTier::query()->firstOrCreate(['currency' => 'INR', 'amount' => $amount])->id,
             ]);
             $instructors = collect(self::INSTRUCTORS)->map(fn (array $i, string $key) => $this->instructor($key, ...$i));
@@ -78,22 +52,15 @@ class CatalogDemoSeeder extends Seeder
     /** @return array<string, int> subcategory name => id */
     private function categories(): array
     {
-        $keep = [];
+        $this->call(ReferenceDataSeeder::class);
+
         $ids = [];
-        $position = 0;
-        foreach (self::CATEGORIES as $parentName => [$description, $children]) {
-            $parent = Category::query()->updateOrCreate(
-                ['slug' => str($parentName)->slug()->toString()],
-                ['name' => $parentName, 'description' => $description, 'parent_id' => null, 'position' => $position++, 'is_active' => true],
-            );
-            $keep[] = $parent->id;
-            foreach ($children as $j => $name) {
-                $child = Category::query()->updateOrCreate(
-                    ['slug' => str($name)->slug()->toString()],
-                    ['name' => $name, 'parent_id' => $parent->id, 'position' => $j, 'is_active' => true],
-                );
-                $ids[$name] = $child->id;
-                $keep[] = $child->id;
+        $keep = [];
+        foreach (ReferenceDataSeeder::CATEGORIES as $parentName => [, $children]) {
+            $keep[] = Category::query()->where('slug', str($parentName)->slug()->toString())->value('id');
+            foreach ($children as $name) {
+                $ids[$name] = (int) Category::query()->where('slug', str($name)->slug()->toString())->value('id');
+                $keep[] = $ids[$name];
             }
         }
         // Retire categories from earlier demo taxonomies (children first for the self-referencing FK).
