@@ -42,3 +42,10 @@ describe("initials", () => {
     expect(initials("CS Rohan Deshpande")).toBe("RD");
   });
 });
+
+describe("formatPaise exact", () => {
+  it("keeps paise for money statements", () => {
+    expect(formatPaise(53690, true)).toBe("₹536.90");
+    expect(formatPaise(53690)).toBe("₹537");
+  });
+});

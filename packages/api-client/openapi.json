@@ -3123,6 +3123,926 @@
                 }
             }
         },
+        "/admin/payouts": {
+            "get": {
+                "operationId": "finance.admin.payouts.index",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/PayoutStatus"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `PayoutResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PayoutResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payouts/generate": {
+            "post": {
+                "operationId": "finance.admin.payouts.generate",
+                "summary": "Draft payouts for everything available up to a date (default: end of last month)",
+                "tags": [
+                    "Finance"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "period_end": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "created": {
+                                                    "type": "integer"
+                                                },
+                                                "skipped": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "instructor_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer"
+                                                            },
+                                                            "reason": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "instructor_id",
+                                                            "name",
+                                                            "amount",
+                                                            "reason"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "created",
+                                                "skipped"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payouts/{payout}/approve": {
+            "post": {
+                "operationId": "finance.admin.payouts.approve",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "payout",
+                        "in": "path",
+                        "required": true,
+                        "description": "The payout UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`PayoutResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payouts/{payout}/mark-paid": {
+            "post": {
+                "operationId": "finance.admin.payouts.paid",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "payout",
+                        "in": "path",
+                        "required": true,
+                        "description": "The payout UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reference": {
+                                        "type": "string",
+                                        "minLength": 6,
+                                        "maxLength": 60
+                                    },
+                                    "paid_on": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "required": [
+                                    "reference",
+                                    "paid_on"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`PayoutResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payouts/{payout}/cancel": {
+            "post": {
+                "operationId": "finance.admin.payouts.cancel",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "payout",
+                        "in": "path",
+                        "required": true,
+                        "description": "The payout UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`PayoutResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payout-accounts": {
+            "get": {
+                "operationId": "finance.admin.accounts.index",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/PayoutAccountStatus"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `PayoutAccountResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PayoutAccountResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payout-accounts/{user}/verify": {
+            "post": {
+                "operationId": "finance.admin.accounts.verify",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`PayoutAccountResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutAccountResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/payout-accounts/{user}/reject": {
+            "post": {
+                "operationId": "finance.admin.accounts.reject",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "note": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "note"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`PayoutAccountResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutAccountResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/commission-rules": {
+            "get": {
+                "operationId": "finance.admin.rules.index",
+                "tags": [
+                    "Finance"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CommissionRuleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CommissionRuleResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "finance.admin.rules.store",
+                "summary": "Set the instructor share for a channel, for everyone or one instructor (by email)",
+                "tags": [
+                    "Finance"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "channel": {
+                                        "$ref": "#/components/schemas/SaleChannel"
+                                    },
+                                    "instructor_email": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "email"
+                                    },
+                                    "instructor_percent": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100
+                                    }
+                                },
+                                "required": [
+                                    "channel",
+                                    "instructor_percent"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CommissionRuleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CommissionRuleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/commission-rules/{rule}/end": {
+            "post": {
+                "operationId": "finance.admin.rules.end",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "rule",
+                        "in": "path",
+                        "required": true,
+                        "description": "The rule ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CommissionRuleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CommissionRuleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/finance/summary": {
+            "get": {
+                "operationId": "finance.admin.summary",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "from": {
+                                                    "type": "string"
+                                                },
+                                                "to": {
+                                                    "type": "string"
+                                                },
+                                                "sales": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "count": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "list_value": {
+                                                            "type": "integer"
+                                                        },
+                                                        "discounts": {
+                                                            "type": "integer"
+                                                        },
+                                                        "collected": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "count",
+                                                        "list_value",
+                                                        "discounts",
+                                                        "collected"
+                                                    ]
+                                                },
+                                                "refunds": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "count": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "amount": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "count",
+                                                        "amount"
+                                                    ]
+                                                },
+                                                "split": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "instructor": {
+                                                            "type": "integer"
+                                                        },
+                                                        "platform": {
+                                                            "type": "integer"
+                                                        },
+                                                        "tax": {
+                                                            "type": "integer"
+                                                        },
+                                                        "gateway_fee": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "instructor",
+                                                        "platform",
+                                                        "tax",
+                                                        "gateway_fee"
+                                                    ]
+                                                },
+                                                "instructors": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "sales": {
+                                                                "type": "integer"
+                                                            },
+                                                            "collected": {
+                                                                "type": "integer"
+                                                            },
+                                                            "earnings": {
+                                                                "type": "integer"
+                                                            },
+                                                            "pending": {
+                                                                "type": "integer"
+                                                            },
+                                                            "available": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "sales",
+                                                            "collected",
+                                                            "earnings",
+                                                            "pending",
+                                                            "available"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "from",
+                                                "to",
+                                                "sales",
+                                                "refunds",
+                                                "split",
+                                                "instructors"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/finance/ledger.csv": {
+            "get": {
+                "operationId": "finance.admin.ledger.csv",
+                "summary": "The ledger for a period as CSV, for the accountants",
+                "tags": [
+                    "Finance"
+                ],
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/csv": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "operationId": "platform.health",
@@ -5222,6 +6142,574 @@
                 }
             }
         },
+        "/instructor/revenue": {
+            "get": {
+                "operationId": "finance.revenue",
+                "tags": [
+                    "Revenue"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "balances": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "pending": {
+                                                            "type": "integer"
+                                                        },
+                                                        "available": {
+                                                            "type": "integer"
+                                                        },
+                                                        "in_payout": {
+                                                            "type": "integer"
+                                                        },
+                                                        "paid": {
+                                                            "type": "integer"
+                                                        },
+                                                        "lifetime": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "pending",
+                                                        "available",
+                                                        "in_payout",
+                                                        "paid",
+                                                        "lifetime"
+                                                    ]
+                                                },
+                                                "monthly": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "month": {
+                                                                "type": "string"
+                                                            },
+                                                            "earnings": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "month",
+                                                            "earnings"
+                                                        ]
+                                                    }
+                                                },
+                                                "courses": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "slug": {
+                                                                "type": "string"
+                                                            },
+                                                            "title": {
+                                                                "type": "string"
+                                                            },
+                                                            "sales": {
+                                                                "type": "integer"
+                                                            },
+                                                            "refunds": {
+                                                                "type": "integer"
+                                                            },
+                                                            "earnings": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "slug",
+                                                            "title",
+                                                            "sales",
+                                                            "refunds",
+                                                            "earnings"
+                                                        ]
+                                                    }
+                                                },
+                                                "next_release_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "hold_days": {
+                                                    "type": "integer"
+                                                },
+                                                "payout_minimum": {
+                                                    "type": "integer"
+                                                },
+                                                "tds": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "section": {
+                                                            "type": "string"
+                                                        },
+                                                        "rate_bps": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "section",
+                                                        "rate_bps"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "balances",
+                                                "monthly",
+                                                "courses",
+                                                "next_release_at",
+                                                "hold_days",
+                                                "payout_minimum",
+                                                "tds"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/statement": {
+            "get": {
+                "operationId": "finance.statement",
+                "summary": "Every earning and reversal, newest first",
+                "tags": [
+                    "Revenue"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `LedgerLineResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/LedgerLineResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/payouts": {
+            "get": {
+                "operationId": "finance.payouts",
+                "tags": [
+                    "Revenue"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `PayoutResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PayoutResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/payout-account": {
+            "get": {
+                "operationId": "finance.payout-account.show",
+                "tags": [
+                    "Revenue"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "submitted",
+                                                        "verified",
+                                                        "rejected"
+                                                    ]
+                                                },
+                                                "legal_name": {
+                                                    "type": "string"
+                                                },
+                                                "pan_masked": {
+                                                    "type": "string"
+                                                },
+                                                "gstin": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "account_holder": {
+                                                    "type": "string"
+                                                },
+                                                "account_masked": {
+                                                    "type": "string"
+                                                },
+                                                "ifsc": {
+                                                    "type": "string"
+                                                },
+                                                "review_note": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string"
+                                                },
+                                                "verified_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "instructor": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "email"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "status",
+                                                "legal_name",
+                                                "pan_masked",
+                                                "gstin",
+                                                "account_holder",
+                                                "account_masked",
+                                                "ifsc",
+                                                "review_note",
+                                                "submitted_at",
+                                                "verified_at",
+                                                "instructor"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "finance.payout-account.save",
+                "summary": "Submit or change payout details; any change goes back for verification",
+                "tags": [
+                    "Revenue"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "legal_name": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 160
+                                    },
+                                    "pan": {
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{5}[0-9]{4}[A-Z]$"
+                                    },
+                                    "gstin": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "pattern": "^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$"
+                                    },
+                                    "account_holder": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 160
+                                    },
+                                    "account_number": {
+                                        "type": "string",
+                                        "pattern": "^\\d{9,18}$"
+                                    },
+                                    "ifsc": {
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{4}0[A-Z0-9]{6}$"
+                                    },
+                                    "account_number_confirmation": {
+                                        "type": "string",
+                                        "pattern": "^\\d{9,18}$"
+                                    }
+                                },
+                                "required": [
+                                    "legal_name",
+                                    "pan",
+                                    "account_holder",
+                                    "account_number",
+                                    "ifsc",
+                                    "account_number_confirmation"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`PayoutAccountResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PayoutAccountResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/orders": {
             "get": {
                 "operationId": "commerce.admin.orders.index",
@@ -6712,6 +8200,65 @@
                     "description"
                 ],
                 "title": "CategoryResource"
+            },
+            "CommissionRuleResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "organic",
+                            "instructor_referral",
+                            "platform_promoted"
+                        ]
+                    },
+                    "instructor": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name"
+                        ]
+                    },
+                    "instructor_percent": {
+                        "type": "number"
+                    },
+                    "effective_from": {
+                        "type": "string"
+                    },
+                    "effective_to": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "active": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "channel",
+                    "instructor",
+                    "instructor_percent",
+                    "effective_from",
+                    "effective_to",
+                    "active"
+                ],
+                "title": "CommissionRuleResource"
             },
             "CouponKind": {
                 "type": "string",
@@ -8278,6 +9825,54 @@
                 ],
                 "title": "LectureContentResource"
             },
+            "LedgerLineResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "available",
+                            "paid"
+                        ]
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "refund",
+                            "sale"
+                        ]
+                    },
+                    "available_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "description",
+                    "amount",
+                    "status",
+                    "kind",
+                    "available_at",
+                    "created_at"
+                ],
+                "title": "LedgerLineResource"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -8557,6 +10152,237 @@
                     "invoice"
                 ],
                 "title": "OrderResource"
+            },
+            "PayoutAccountResource": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "submitted",
+                            "verified",
+                            "rejected"
+                        ]
+                    },
+                    "legal_name": {
+                        "type": "string"
+                    },
+                    "pan_masked": {
+                        "type": "string"
+                    },
+                    "gstin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "account_holder": {
+                        "type": "string"
+                    },
+                    "account_masked": {
+                        "type": "string"
+                    },
+                    "ifsc": {
+                        "type": "string"
+                    },
+                    "review_note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_at": {
+                        "type": "string"
+                    },
+                    "verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "email"
+                        ]
+                    }
+                },
+                "required": [
+                    "status",
+                    "legal_name",
+                    "pan_masked",
+                    "gstin",
+                    "account_holder",
+                    "account_masked",
+                    "ifsc",
+                    "review_note",
+                    "submitted_at",
+                    "verified_at",
+                    "instructor"
+                ],
+                "title": "PayoutAccountResource"
+            },
+            "PayoutAccountStatus": {
+                "type": "string",
+                "enum": [
+                    "submitted",
+                    "verified",
+                    "rejected"
+                ],
+                "title": "PayoutAccountStatus"
+            },
+            "PayoutResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "approved",
+                            "paid",
+                            "cancelled"
+                        ]
+                    },
+                    "period_end": {
+                        "type": "string"
+                    },
+                    "gross": {
+                        "type": "integer"
+                    },
+                    "tds": {
+                        "type": "integer"
+                    },
+                    "tds_section": {
+                        "type": "string"
+                    },
+                    "tds_rate_bps": {
+                        "type": "integer"
+                    },
+                    "net": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "bank": {
+                        "type": "object",
+                        "properties": {
+                            "account_holder": {
+                                "type": "string"
+                            },
+                            "account_last4": {
+                                "type": "string"
+                            },
+                            "ifsc": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "account_holder",
+                            "account_last4",
+                            "ifsc"
+                        ]
+                    },
+                    "reference": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "entries_count": {
+                        "type": "integer"
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "email"
+                        ]
+                    },
+                    "generated_by_me": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "approved_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "paid_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "period_end",
+                    "gross",
+                    "tds",
+                    "tds_section",
+                    "tds_rate_bps",
+                    "net",
+                    "currency",
+                    "bank",
+                    "reference",
+                    "note",
+                    "entries_count",
+                    "instructor",
+                    "generated_by_me",
+                    "created_at",
+                    "approved_at",
+                    "paid_at"
+                ],
+                "title": "PayoutResource"
+            },
+            "PayoutStatus": {
+                "type": "string",
+                "enum": [
+                    "draft",
+                    "approved",
+                    "paid",
+                    "cancelled"
+                ],
+                "title": "PayoutStatus"
             },
             "PriceTierResource": {
                 "type": "object",

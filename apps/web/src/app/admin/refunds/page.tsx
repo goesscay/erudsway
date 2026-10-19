@@ -40,7 +40,7 @@ function Queue() {
     <>
       <AdminPageHeader title="Refunds" description="Requests within 30 days are approved automatically below 30% progress; the rest wait here." />
       <div className="px-8 py-6">
-        <div role="tablist" aria-label="Refund status" className="mb-6 flex gap-6 overflow-x-auto border-b border-line">
+        <div role="tablist" aria-label="Refund status" className="mb-6 flex gap-6 overflow-x-auto overflow-y-hidden border-b border-line">
           {tabs.map((t) => (
             <button
               key={t.value}

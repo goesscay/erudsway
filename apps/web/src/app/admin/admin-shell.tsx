@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookCheck, ClipboardCheck, ExternalLink, ReceiptText, RotateCcw, TicketPercent, Users } from "lucide-react";
+import { BookCheck, ChartColumn, ClipboardCheck, ExternalLink, Landmark, ReceiptText, RotateCcw, TicketPercent, Users } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { hasPermission, useMe } from "@/lib/auth/session";
@@ -20,6 +20,8 @@ const nav = [
   { href: "/admin/orders", label: "Orders", icon: ReceiptText, permission: "manage_finance" },
   { href: "/admin/refunds", label: "Refunds", icon: RotateCcw, permission: "manage_finance" },
   { href: "/admin/coupons", label: "Coupons", icon: TicketPercent, permission: "manage_finance" },
+  { href: "/admin/payouts", label: "Payouts", icon: Landmark, permission: "manage_finance" },
+  { href: "/admin/finance", label: "Finance", icon: ChartColumn, permission: "manage_finance" },
 ];
 
 /**

@@ -5,6 +5,7 @@ namespace App\Modules\Commerce\Services;
 use App\Models\User;
 use App\Modules\Commerce\Enums\OrderStatus;
 use App\Modules\Commerce\Enums\RefundStatus;
+use App\Modules\Commerce\Events\RefundProcessed;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\OrderItem;
 use App\Modules\Commerce\Models\Payment;
@@ -96,6 +97,7 @@ class RefundService
             $item = OrderItem::query()->lockForUpdate()->findOrFail($locked->order_item_id);
             $item->forceFill(['refunded_amount' => min($item->amount, $item->refunded_amount + $locked->amount)])->save();
             $this->syncOrderStatus($item->order);
+            RefundProcessed::dispatch($locked);
         });
 
         $refund->refresh()->requester->notify(new RefundUpdated($refund));

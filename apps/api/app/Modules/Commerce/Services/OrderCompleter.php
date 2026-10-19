@@ -3,6 +3,7 @@
 namespace App\Modules\Commerce\Services;
 
 use App\Modules\Commerce\Enums\OrderStatus;
+use App\Modules\Commerce\Events\OrderPaid;
 use App\Modules\Commerce\Jobs\IssueInvoice;
 use App\Modules\Commerce\Models\CouponRedemption;
 use App\Modules\Commerce\Models\Order;
@@ -128,6 +129,7 @@ class OrderCompleter
         }
 
         $this->carts->forget($order->user, $order->items->pluck('course_id'));
+        OrderPaid::dispatch($order);
         $this->audit->record('order.paid', $order, null, ['total' => $order->total, 'number' => $order->number], $order->user);
     }
 }

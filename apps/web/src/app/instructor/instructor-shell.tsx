@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ExternalLink, MonitorPlay, ShieldAlert } from "lucide-react";
+import { ExternalLink, IndianRupee, Landmark, MonitorPlay, ShieldAlert } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -42,6 +42,12 @@ export function InstructorGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const nav = [
+  { href: "/instructor", label: "Courses", icon: MonitorPlay },
+  { href: "/instructor/revenue", label: "Revenue", icon: IndianRupee },
+  { href: "/instructor/payout-details", label: "Payout details", icon: Landmark },
+];
+
 /** Sidebar chrome for the instructor dashboard pages (the course builder has its own). */
 export function InstructorDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -52,22 +58,27 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
       <nav aria-label="Instructor" className="dark sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-navy-950 px-4 py-5 text-foreground md:flex">
         <Logo inverted />
         <p className="mt-8 mb-2 px-3 text-[0.65rem] font-bold tracking-[0.2em] text-white/40 uppercase">Instructor</p>
-        <ul>
-          <li>
-            <Link
-              href="/instructor"
-              aria-current={pathname === "/instructor" ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm",
-                pathname === "/instructor" ? "bg-white/10 font-semibold text-white" : "text-white/65 hover:bg-white/5 hover:text-white",
-              )}
-            >
-              <MonitorPlay className={cn("size-4", pathname === "/instructor" && "text-gold-400")} />
-              Courses
-            </Link>
-          </li>
+        <ul className="space-y-0.5">
+          {nav.map(({ href, label, icon: Icon }) => {
+            const active = href === "/instructor" ? pathname === href : pathname.startsWith(href);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm",
+                    active ? "bg-white/10 font-semibold text-white" : "text-white/65 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  <Icon className={cn("size-4", active && "text-gold-400")} />
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
-        <p className="mt-6 px-3 text-xs leading-relaxed text-white/40">Performance, revenue and learner Q&amp;A arrive with checkout and reviews.</p>
+        <p className="mt-6 px-3 text-xs leading-relaxed text-white/40">Learner Q&amp;A and reviews arrive with the next release.</p>
         <div className="mt-auto space-y-4 border-t border-white/10 pt-4">
           <Link href="/" className="flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white">
             <ExternalLink className="size-4" /> View site
@@ -83,7 +94,25 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
           )}
         </div>
       </nav>
-      <main className="min-w-0 flex-1 bg-paper">{children}</main>
+      <main className="min-w-0 flex-1 bg-paper">
+        {/* Phones: the sidebar is hidden, so the sections become tabs. */}
+        <nav aria-label="Instructor sections" className="flex gap-5 overflow-x-auto border-b border-line bg-white px-4 md:hidden">
+          {nav.map(({ href, label }) => {
+            const active = href === "/instructor" ? pathname === href : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn("-mb-px shrink-0 border-b-2 py-3 text-sm font-semibold", active ? "border-gold-500 text-navy-900" : "border-transparent text-stone-500")}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+        {children}
+      </main>
     </div>
   );
 }

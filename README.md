@@ -26,9 +26,9 @@ pnpm dev:web
 
 - Web: http://localhost:3000 — design review screens: `/`, `/course/complete-full-stack-web-development`, `/learn/complete-full-stack-web-development`, `/instructor/courses/demo/curriculum`, `/design-system`
 - API health: http://localhost:8000/api/v1/health
-- Local accounts (created by `php artisan db:seed`, local only, password `password`): `admin@erudsway.test` (admin), `instructor@erudsway.test` (instructor), `learner@erudsway.test` (student)
+- Local accounts (created by `php artisan db:seed`, local only, password `password`): `admin@erudsway.test` (admin), `instructor@erudsway.test` (instructor), `learner@erudsway.test` (student), `finance@erudsway.test` (finance staff — payouts need a second approver)
 - Video processing runs on the queue: `cd apps/api && php -d opcache.enable_cli=0 artisan queue:work --queue=critical,default,media` (needs ffmpeg on PATH)
-- Payments: without Razorpay keys the API uses a local test gateway (checkout shows a "Test payment" dialog; refused in production). With test keys set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`, and point the Razorpay webhook at `/api/v1/webhooks/razorpay` (events: payment.captured, order.paid, refund.processed, refund.failed). Run `php artisan schedule:work` locally for the daily reconciliation.
+- Payments: without Razorpay keys the API uses a local test gateway (checkout shows a "Test payment" dialog; refused in production). With test keys set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET`, and point the Razorpay webhook at `/api/v1/webhooks/razorpay` (events: payment.captured, order.paid, refund.processed, refund.failed). Run `php artisan schedule:work` locally for the scheduled jobs (payment reconciliation, releasing instructor earnings after the 30-day hold, drafting monthly payouts).
 - Video playback: segments are served by Nginx `secure_link` in production (`docs/deploy/nginx-hls.conf`; set `MEDIA_SECURE_LINK_SECRET` to the same secret). Locally the API serves them itself.
 - API docs (OpenAPI UI): http://localhost:8000/docs/api
 

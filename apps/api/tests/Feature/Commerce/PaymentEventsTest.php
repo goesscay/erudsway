@@ -3,7 +3,6 @@
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Commerce\Jobs\IssueInvoice;
 use App\Modules\Commerce\Jobs\ProcessWebhookEvent;
-use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\Payment;
 use App\Modules\Commerce\Models\Refund;
 use App\Modules\Commerce\Models\WebhookEvent;
@@ -18,7 +17,6 @@ use App\Modules\Platform\Models\AuditLog;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 beforeEach(function () {
     Notification::fake();
@@ -26,42 +24,6 @@ beforeEach(function () {
     Category::query()->create(['slug' => 'registration-returns', 'name' => 'Registration & Returns', 'parent_id' => $gst->id]);
     useRazorpay();
 });
-
-/** A pending Razorpay order for a fresh buyer. */
-function pendingOrder(): Order
-{
-    Queue::fake();
-    $course = paidCourse();
-    $buyer = makeUser();
-    test()->actingAs($buyer)->postJson('/api/v1/cart/items', ['course' => $course->slug]);
-    fakeRazorpay(orderId: 'order_'.Str::random(10));
-    $uuid = test()->actingAs($buyer)->postJson('/api/v1/checkout', billing())->json('data.order.id');
-
-    return Order::query()->where('uuid', $uuid)->firstOrFail();
-}
-
-function paidOrder(): Order
-{
-    $order = pendingOrder();
-    $gatewayOrder = (string) $order->gateway_order_id;
-    fakeRazorpay(['pay_TEST1' => razorpayPayment($order)], $gatewayOrder);
-    test()->actingAs($order->user)->postJson("/api/v1/orders/{$order->uuid}/verify", [
-        'razorpay_payment_id' => 'pay_TEST1', 'razorpay_order_id' => $gatewayOrder, 'razorpay_signature' => signatureFor($gatewayOrder, 'pay_TEST1'),
-    ])->assertOk();
-
-    return $order->refresh();
-}
-
-function sendWebhook(array $payload, string $eventId = 'evt_1', ?string $signature = null)
-{
-    $body = json_encode($payload);
-
-    return test()->call('POST', '/api/v1/webhooks/razorpay', [], [], [], [
-        'CONTENT_TYPE' => 'application/json',
-        'HTTP_X_RAZORPAY_SIGNATURE' => $signature ?? hash_hmac('sha256', $body, 'webhook_secret'),
-        'HTTP_X_RAZORPAY_EVENT_ID' => $eventId,
-    ], $body);
-}
 
 it('completes an order from the payment.captured webhook, once', function () {
     $order = pendingOrder();

@@ -9,6 +9,7 @@ use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Payments\GatewayException;
 use App\Modules\Commerce\Payments\PaymentGateway;
 use App\Modules\Commerce\Support\Gst;
+use App\Modules\Finance\Services\CommissionRules;
 use App\Support\Http\DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class Checkout
         private readonly Pricing $pricing,
         private readonly PaymentGateway $gateway,
         private readonly OrderCompleter $completer,
+        private readonly CommissionRules $commission,
     ) {}
 
     /**
@@ -82,7 +84,7 @@ class Checkout
                     'net_amount' => $line->netAmount,
                     'coupon_id' => $line->coupon?->id,
                     'channel' => $line->channel,
-                    'commission_rate_bps' => (int) config("commerce.commission.{$line->channel->value}"),
+                    'commission_rate_bps' => $this->commission->rateFor($line->channel, $line->course->instructor_id),
                 ]);
             }
 

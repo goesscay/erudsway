@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Identity\Enums\Permission;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Models\InstructorProfile;
 use Illuminate\Database\Seeder;
@@ -43,6 +44,16 @@ class DatabaseSeeder extends Seeder
             'headline' => 'Test account for local development',
             'approved_at' => now(),
         ]);
+
+        // A second finance person: payouts need one person to generate and another to approve.
+        $finance = User::query()->firstOrCreate(
+            ['email' => 'finance@erudsway.test'],
+            ['name' => 'Local Finance', 'password' => 'password'],
+        );
+        $finance->forceFill(['email_verified_at' => now()])->save();
+        $finance->profile()->firstOrCreate();
+        $finance->syncRoles([Role::Student->value]);
+        $finance->syncPermissions([Permission::ManageFinance->value]);
 
         // A local learner for trying enrollment and the course player.
         $learner = User::query()->firstOrCreate(
