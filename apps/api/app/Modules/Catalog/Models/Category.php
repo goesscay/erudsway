@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property-read Category|null $parent
  * @property-read Collection<int, Category> $children
+ * @property-read Collection<int, Category> $allChildren
+ * @property-read int|null $courses_count
+ * @property-read int|null $published_courses_count
  */
 class Category extends Model
 {
@@ -46,6 +49,16 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->where('is_active', true)->orderBy('position');
+    }
+
+    /**
+     * Subcategories including hidden ones (for the admin tree).
+     *
+     * @return HasMany<Category, $this>
+     */
+    public function allChildren(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->orderBy('position')->orderBy('id');
     }
 
     /** @return HasMany<Course, $this> */

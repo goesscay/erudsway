@@ -443,6 +443,7 @@ HTTPS + HSTS · Secure/HttpOnly/SameSite cookies · CSRF via Sanctum · bcrypt/a
 
 ---
 
+> **Catalogue management (2026-10-19, added during Phase 10 at the operator's request):** two new staff permissions, held by admins. **`manage_courses`** — Admin › Courses lists every course in any state (search by title, address, instructor or email; filter by status, category, featured), and staff can open any course in the normal builder (each change to someone else's course is audited as `course.edited_by_staff`; staff may edit while a course awaits review; archived courses are read-only for everyone), publish a ready course without review (same checklist; not while a review is pending), unpublish, archive with a reason and restore, hand a course to another approved instructor (past sales stay credited to the previous instructor), and feature live courses (pinned first in the default "popular" order on the homepage and category pages, newest pin on top). **`manage_categories`** — Admin › Categories edits the two-level tree: add, rename, change address, describe, reorder, move a subcategory to another area, hide/show (a hidden area hides its subcategories' pages too), and delete only when empty. `ReferenceDataSeeder` now only adds missing categories, so admin edits survive a re-run. Changes reach the public site within the catalogue cache window (minutes).
 ## 14. Delivery phases
 
 Each phase ends with: passing tests, deployed to staging, demo to you, sign-off before the next.

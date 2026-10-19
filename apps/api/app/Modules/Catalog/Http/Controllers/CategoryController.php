@@ -28,7 +28,12 @@ class CategoryController extends Controller
      */
     public function show(string $slug): CategoryResource
     {
-        $category = Category::query()->active()->where('slug', $slug)->with(['parent', 'children'])->firstOrFail();
+        $category = Category::query()
+            ->active()
+            ->where('slug', $slug)
+            ->where(fn ($q) => $q->whereNull('parent_id')->orWhereHas('parent', fn ($p) => $p->where('is_active', true)))
+            ->with(['parent', 'children'])
+            ->firstOrFail();
 
         return new CategoryResource($category);
     }

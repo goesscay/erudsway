@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
-import { Check, ChevronLeft, CircleAlert, Clock3, ExternalLink, Eye, Lock, X } from "lucide-react";
+import { Check, ChevronLeft, CircleAlert, Clock3, ExternalLink, Eye, Lock, Rocket, ShieldCheck, X } from "lucide-react";
 import { FormAlert } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiRequestError, unwrap } from "@/lib/api/client";
+import { hasPermission, useMe } from "@/lib/auth/session";
 import { statusLabel, statusStyle, useCourseEditor, useEditorAction, type CourseEditor } from "@/lib/authoring/editor";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +35,13 @@ const steps = [
 export function BuilderHeader() {
   const { id } = useParams<{ id: string }>();
   const { data: course, isError, error } = useCourseEditor(id);
+  const { data: me } = useMe();
   const [submitOpen, setSubmitOpen] = useState(false);
+  // Erudsway staff publish directly instead of submitting for review.
+  const manager = hasPermission(me, "manage_courses");
+  const owner = !!course && course.instructor.id === me?.id;
+  const back =
+    manager && !owner ? { href: "/admin/courses", label: "All courses" } : { href: "/instructor", label: "Courses" };
 
   if (isError) {
     const notFound = error instanceof ApiRequestError && error.status === 404;
@@ -35,7 +49,7 @@ export function BuilderHeader() {
       <div className="fixed inset-0 z-40 bg-paper">
         <div className="mx-auto max-w-md px-6 py-24 text-center">
           <h1 className="text-h3">{notFound ? "Course not found" : "We couldn’t load this course"}</h1>
-          <Link href="/instructor" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
+          <Link href={back.href} className={buttonVariants({ variant: "outline", className: "mt-6" })}>
             Back to courses
           </Link>
         </div>
@@ -46,29 +60,53 @@ export function BuilderHeader() {
   return (
     <>
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-white px-4 sm:px-6">
-        <Link href="/instructor" className="flex items-center gap-1 text-sm font-semibold text-stone-700 hover:text-navy-900">
-          <ChevronLeft className="size-4" /> <span className="hidden sm:inline">Courses</span>
+        <Link
+          href={back.href}
+          className="flex items-center gap-1 text-sm font-semibold text-stone-700 hover:text-navy-900"
+        >
+          <ChevronLeft className="size-4" /> <span className="hidden sm:inline">{back.label}</span>
         </Link>
         <span className="h-6 w-px bg-line" />
         {course ? (
           <>
             <p className="min-w-0 truncate font-sans text-base font-bold text-ink">{course.title}</p>
-            <span className={cn("hidden h-6 shrink-0 items-center rounded-sm px-2 text-[0.7rem] font-bold tracking-wide ring-1 ring-inset sm:inline-flex", statusStyle[course.status])}>
+            <span
+              className={cn(
+                "hidden h-6 shrink-0 items-center rounded-sm px-2 text-[0.7rem] font-bold tracking-wide ring-1 ring-inset sm:inline-flex",
+                statusStyle[course.status],
+              )}
+            >
               {statusLabel[course.status]}
             </span>
             <span className="ml-auto" />
             {course.lecture_count > 0 && (
-              <Link href={`/learn/${course.slug}`} target="_blank" className={buttonVariants({ variant: "ghost", className: "hidden md:inline-flex" })}>
+              <Link
+                href={`/learn/${course.slug}`}
+                target="_blank"
+                className={buttonVariants({ variant: "ghost", className: "hidden md:inline-flex" })}
+              >
                 <Eye /> Preview
               </Link>
             )}
             {course.status === "published" && (
-              <Link href={`/course/${course.slug}`} target="_blank" className={buttonVariants({ variant: "outline", className: "hidden sm:inline-flex" })}>
+              <Link
+                href={`/course/${course.slug}`}
+                target="_blank"
+                className={buttonVariants({ variant: "outline", className: "hidden sm:inline-flex" })}
+              >
                 <ExternalLink /> View live
               </Link>
             )}
             {["draft", "changes_requested", "unpublished"].includes(course.status) && (
-              <Button onClick={() => setSubmitOpen(true)}>Submit for review</Button>
+              <Button onClick={() => setSubmitOpen(true)}>
+                {manager ? (
+                  <>
+                    <Rocket /> Publish now
+                  </>
+                ) : (
+                  "Submit for review"
+                )}
+              </Button>
             )}
           </>
         ) : (
@@ -76,8 +114,11 @@ export function BuilderHeader() {
         )}
       </header>
 
-      {course && <StatusBanner course={course} />}
-      {course && <SubmitDialog course={course} open={submitOpen} onClose={() => setSubmitOpen(false)} />}
+      {course && me && !owner && <StaffBanner course={course} />}
+      {course && <StatusBanner course={course} manager={manager} />}
+      {course && (
+        <SubmitDialog course={course} publish={manager} open={submitOpen} onClose={() => setSubmitOpen(false)} />
+      )}
     </>
   );
 }
@@ -104,10 +145,17 @@ export function BuilderNav() {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-center gap-2.5 rounded-sm py-1.5 pr-3 pl-2 text-sm lg:-ml-px lg:rounded-none lg:border-l-2 lg:pl-4",
-                active ? "font-semibold text-navy-900 lg:border-gold-500" : "text-stone-700 hover:text-navy-900 lg:border-transparent",
+                active
+                  ? "font-semibold text-navy-900 lg:border-gold-500"
+                  : "text-stone-700 hover:text-navy-900 lg:border-transparent",
               )}
             >
-              <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-full ring-1", done ? "bg-success ring-success" : "ring-stone-500/50")}>
+              <span
+                className={cn(
+                  "flex size-4 shrink-0 items-center justify-center rounded-full ring-1",
+                  done ? "bg-success ring-success" : "ring-stone-500/50",
+                )}
+              >
                 {done && <Check className="size-2.5 text-white" strokeWidth={3.5} />}
               </span>
               {s.label}
@@ -140,14 +188,38 @@ export function StepSkeleton() {
   );
 }
 
-function StatusBanner({ course }: { course: CourseEditor }) {
+function StaffBanner({ course }: { course: CourseEditor }) {
+  return (
+    <div className="border-b border-navy-900/10 bg-navy-900/[0.04] px-6 py-3 text-sm text-stone-700">
+      <div className="mx-auto flex max-w-6xl items-center gap-2">
+        <ShieldCheck className="size-4 shrink-0 text-navy-800" />
+        <p>
+          You&rsquo;re editing <strong className="text-ink">{course.instructor.name}</strong>&rsquo;s course as Erudsway
+          staff. Changes save straight away{course.status === "published" ? " and show on the live course" : ""}, and
+          each one is recorded in the audit log.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StatusBanner({ course, manager }: { course: CourseEditor; manager: boolean }) {
   const feedback = course.latest_submission;
   if (course.status === "in_review") {
     return (
       <div className="border-b border-gold-200 bg-gold-50 px-6 py-3 text-sm text-stone-700">
         <div className="mx-auto flex max-w-6xl items-center gap-2">
           <Lock className="size-4 text-gold-600" />
-          Submitted for review — editing is paused until our team responds, usually within three working days.
+          {manager ? (
+            <span>
+              Waiting for review — the instructor can&rsquo;t edit it meanwhile, but you can.{" "}
+              <Link href="/admin/course-reviews" className="font-semibold text-navy-800 hover:underline">
+                Open Course reviews
+              </Link>
+            </span>
+          ) : (
+            "Submitted for review — editing is paused until our team responds, usually within three working days."
+          )}
         </div>
       </div>
     );
@@ -167,11 +239,25 @@ function StatusBanner({ course }: { course: CourseEditor }) {
   return null;
 }
 
-function SubmitDialog({ course, open, onClose }: { course: CourseEditor; open: boolean; onClose: () => void }) {
+/** Instructors submit for review; Erudsway staff (`publish`) put the course live directly. */
+function SubmitDialog({
+  course,
+  publish,
+  open,
+  onClose,
+}: {
+  course: CourseEditor;
+  publish: boolean;
+  open: boolean;
+  onClose: () => void;
+}) {
   const [error, setError] = useState<string | null>(null);
-  const submit = useEditorAction(course.id, () =>
-    unwrap(api.POST("/instructor/courses/{course}/submit", { params: { path: { course: course.id } } })),
-  );
+  const submit = useEditorAction(course.id, async () => {
+    const path = { params: { path: { course: course.id } } };
+    if (!publish) return unwrap(api.POST("/instructor/courses/{course}/submit", path));
+    await unwrap(api.POST("/admin/courses/{course}/publish", { ...path, body: {} }));
+    return unwrap(api.GET("/instructor/courses/{course}", path));
+  });
   const ready = course.checklist.every((c) => c.ok);
   const stepFor = (group: string) => steps.find((s) => s.group === group)?.slug ?? "curriculum";
 
@@ -179,11 +265,13 @@ function SubmitDialog({ course, open, onClose }: { course: CourseEditor; open: b
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Submit for review</DialogTitle>
+          <DialogTitle>{publish ? "Publish now" : "Submit for review"}</DialogTitle>
           <DialogDescription>
-            {ready
-              ? "Everything is in place. Our team will review the course and email you with a decision."
-              : "A few things still need attention before you can submit."}
+            {!ready
+              ? `A few things still need attention before you can ${publish ? "publish" : "submit"}.`
+              : publish
+                ? "Everything is in place. The course goes live straight away, without a review."
+                : "Everything is in place. Our team will review the course and email you with a decision."}
           </DialogDescription>
         </DialogHeader>
         {error && <FormAlert>{error}</FormAlert>}
@@ -198,7 +286,11 @@ function SubmitDialog({ course, open, onClose }: { course: CourseEditor; open: b
               <span className={item.ok ? "text-stone-500" : "text-ink"}>
                 {item.label}
                 {!item.ok && (
-                  <Link href={`/instructor/courses/${course.id}/${stepFor(item.group)}`} onClick={onClose} className="ml-2 font-semibold text-navy-800 hover:underline">
+                  <Link
+                    href={`/instructor/courses/${course.id}/${stepFor(item.group)}`}
+                    onClick={onClose}
+                    className="ml-2 font-semibold text-navy-800 hover:underline"
+                  >
                     Fix
                   </Link>
                 )}
@@ -220,7 +312,15 @@ function SubmitDialog({ course, open, onClose }: { course: CourseEditor; open: b
             }
           >
             {submit.isPending ? (
-              "Submitting…"
+              publish ? (
+                "Publishing…"
+              ) : (
+                "Submitting…"
+              )
+            ) : publish ? (
+              <>
+                <Rocket /> Publish now
+              </>
             ) : (
               <>
                 <Clock3 /> Submit for review
@@ -247,6 +347,9 @@ export function useEditableCourse() {
   const { id } = useParams<{ id: string }>();
   const query = useCourseEditor(id);
   const course = query.data;
-  const locked = course?.status === "in_review" || course?.status === "archived";
+  const { data: me } = useMe();
+  // Staff can keep editing while a course waits for review; archived courses are read-only for everyone.
+  const locked =
+    course?.status === "archived" || (course?.status === "in_review" && !hasPermission(me, "manage_courses"));
   return { id, course, locked };
 }

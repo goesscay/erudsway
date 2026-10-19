@@ -29,6 +29,8 @@ class CourseEditorResource extends JsonResource
             /** @var 'draft'|'in_review'|'changes_requested'|'published'|'unpublished'|'archived' */
             'status' => $this->status->value,
             'title' => $this->title,
+            // Who owns it: the builder shows a notice when Erudsway staff open someone else's course.
+            'instructor' => ['id' => $this->instructor->uuid, 'name' => $this->instructor->name],
             'subtitle' => $this->subtitle,
             'description' => $this->description,
             'language' => $this->language,
@@ -90,7 +92,7 @@ class CourseEditorResource extends JsonResource
     public static function load(Course $course): self
     {
         return new self($course->load([
-            'category.parent', 'priceTier', 'latestSubmission',
+            'instructor', 'category.parent', 'priceTier', 'latestSubmission',
             'sections.lectures.videoAsset', 'sections.lectures.resources', 'lectures.videoAsset',
         ]));
     }

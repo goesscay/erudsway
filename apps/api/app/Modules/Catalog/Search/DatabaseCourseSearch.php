@@ -91,7 +91,10 @@ class DatabaseCourseSearch implements CourseSearchEngine
             'price_asc', 'price_desc' => $q
                 ->leftJoin('price_tiers', 'price_tiers.id', '=', 'courses.price_tier_id')
                 ->orderByRaw('coalesce(price_tiers.amount, 0) '.($sort === 'price_asc' ? 'asc' : 'desc')),
-            default => $q->orderByDesc('courses.enrollment_count'),
+            // The default browse order (homepage, category pages): pinned courses first, newest pin on top.
+            default => $q->orderByRaw('case when courses.featured_at is null then 1 else 0 end')
+                ->orderByDesc('courses.featured_at')
+                ->orderByDesc('courses.enrollment_count'),
         };
 
         $q->orderBy('courses.id'); // stable pagination

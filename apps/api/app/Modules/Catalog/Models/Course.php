@@ -39,6 +39,7 @@ use Illuminate\Support\Str;
  * @property list<string> $requirements
  * @property list<string> $audience
  * @property Carbon|null $published_at
+ * @property Carbon|null $featured_at
  * @property Carbon|null $pricing_confirmed_at
  * @property float $rating_avg
  * @property int $rating_count
@@ -92,6 +93,7 @@ class Course extends Model
             'requirements' => 'array',
             'audience' => 'array',
             'published_at' => 'datetime',
+            'featured_at' => 'datetime',
             'pricing_confirmed_at' => 'datetime',
             'rating_avg' => 'float',
             'rating_count' => 'integer',

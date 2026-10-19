@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Data every environment needs, production included: the ten course areas with their
- * subcategories, and the price tiers instructors pick from. Safe to run again — it only
- * adds and updates, never deletes:
+ * subcategories, and the price tiers instructors pick from. Safe to run again — it only adds
+ * what's missing, so names, order and visibility changed in the admin are left alone:
  *
  *   php artisan db:seed --class=ReferenceDataSeeder --force
  */
@@ -48,12 +48,12 @@ class ReferenceDataSeeder extends Seeder
         DB::transaction(function () {
             $position = 0;
             foreach (self::CATEGORIES as $parentName => [$description, $children]) {
-                $parent = Category::query()->updateOrCreate(
+                $parent = Category::query()->firstOrCreate(
                     ['slug' => str($parentName)->slug()->toString()],
                     ['name' => $parentName, 'description' => $description, 'parent_id' => null, 'position' => $position++, 'is_active' => true],
                 );
                 foreach ($children as $j => $name) {
-                    Category::query()->updateOrCreate(
+                    Category::query()->firstOrCreate(
                         ['slug' => str($name)->slug()->toString()],
                         ['name' => $name, 'parent_id' => $parent->id, 'position' => $j, 'is_active' => true],
                     );

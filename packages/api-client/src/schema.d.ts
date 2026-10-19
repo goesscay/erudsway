@@ -407,6 +407,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The whole tree, hidden categories included, with course counts */
+        get: operations["admin.categories.index"];
+        put?: never;
+        post: operations["admin.categories.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/categories/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the order of one level: all areas, or the subcategories of one area */
+        put: operations["admin.categories.reorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/categories/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Only empty categories can be deleted; anything with courses or subcategories is hidden instead */
+        delete: operations["admin.categories.destroy"];
+        options?: never;
+        head?: never;
+        /** Rename, re-describe, move a subcategory to another area, or hide/show */
+        patch: operations["admin.categories.update"];
+        trace?: never;
+    };
     "/certificates/{code}": {
         parameters: {
             query?: never;
@@ -666,6 +718,114 @@ export interface paths {
         put?: never;
         /** Send the course to the Erudsway team for review */
         post: operations["authoring.courses.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search all courses. Most recently edited first unless another order is asked for */
+        get: operations["admin.courses.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put a course live without a review — for courses the team built or has checked. The
+         *     course must still pass the same readiness checklist instructors see
+         */
+        post: operations["admin.courses.publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retire a course: gone from the catalogue and read-only. Enrolled learners keep access */
+        post: operations["admin.courses.archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bring an archived course back for editing: unpublished if it was ever live, else a draft */
+        post: operations["admin.courses.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/instructor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Hand the course to another approved instructor. Sales already made stay credited to
+         *     the previous instructor; new sales, Q&A and announcements go to the new one
+         */
+        put: operations["admin.courses.instructor"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/featured": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Pin a live course to the top of the homepage and its category pages, or unpin it */
+        put: operations["admin.courses.featured"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2391,6 +2551,48 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminCategoryResource */
+        AdminCategoryResource: {
+            id: number;
+            slug: string;
+            name: string;
+            description: string | null;
+            parent_id: number | null;
+            position: number;
+            is_active: boolean;
+            course_count: number;
+            published_count: number;
+            children: components["schemas"]["AdminCategoryResource"][];
+        };
+        /** AdminCourseResource */
+        AdminCourseResource: {
+            id: string;
+            slug: string;
+            title: string;
+            status: string;
+            thumbnail_url: string | null;
+            category: {
+                slug: string;
+                name: string;
+                parent: string | null;
+            };
+            instructor: {
+                id: string;
+                name: string;
+                email: string;
+            };
+            price: {
+                amount: number;
+                currency: string;
+            } | null;
+            lecture_count: number;
+            enrollment_count: number;
+            rating: number;
+            rating_count: number;
+            featured: boolean;
+            published_at: string | null;
+            updated_at: string;
+        };
         /** AdminUserResource */
         AdminUserResource: {
             id: string;
@@ -2628,6 +2830,11 @@ export interface components {
             /** @enum {string} */
             status: "draft" | "in_review" | "changes_requested" | "published" | "unpublished" | "archived";
             title: string;
+            /** @description Who owns it: the builder shows a notice when Erudsway staff open someone else's course. */
+            instructor: {
+                id: string;
+                name: string;
+            };
             subtitle: string | null;
             description: string | null;
             language: string;
@@ -2700,6 +2907,11 @@ export interface components {
          * @enum {string}
          */
         CourseLevel: "beginner" | "intermediate" | "advanced" | "all";
+        /**
+         * CourseStatus
+         * @enum {string}
+         */
+        CourseStatus: "draft" | "in_review" | "changes_requested" | "published" | "unpublished" | "archived";
         /** CourseSubmissionResource */
         CourseSubmissionResource: {
             id: number;
@@ -3006,7 +3218,7 @@ export interface components {
          * @description Fine-grained staff permissions. The admin role holds all of them; support staff can be given a subset (e.g. moderation without finance).
          * @enum {string}
          */
-        Permission: "review_instructor_applications" | "moderate_courses" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
+        Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
         /** PriceTierResource */
         PriceTierResource: {
             id: number;
@@ -4231,6 +4443,155 @@ export interface operations {
             };
         };
     };
+    "admin.categories.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AdminCategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: (components["schemas"]["AdminCategoryResource"] & Record<string, never>)[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "admin.categories.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    slug?: string | null;
+                    description?: string | null;
+                    parent_id?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCategoryResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.categories.reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    parent_id: number | null;
+                    ids: number[];
+                };
+            };
+        };
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.categories.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The category ID */
+                category: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.categories.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The category ID */
+                category: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    name?: string;
+                    slug?: string;
+                    description?: string | null;
+                    parent_id?: number | null;
+                    is_active?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCategoryResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "certificates.show": {
         parameters: {
             query?: never;
@@ -4852,6 +5213,232 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.courses.index": {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: components["schemas"]["CourseStatus"];
+                category?: string;
+                featured?: boolean;
+                sort?: "updated" | "newest" | "enrollments" | "title";
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.courses.instructor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.featured": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    featured: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description `AdminCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "admin.courses.submissions.index": {

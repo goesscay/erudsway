@@ -5,6 +5,7 @@ namespace App\Modules\Authoring;
 use App\Models\User;
 use App\Modules\Authoring\Policies\CoursePolicy;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Identity\Enums\Permission;
 use App\Modules\Media\Models\UploadSession;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -25,7 +26,8 @@ class AuthoringServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         Gate::policy(Course::class, CoursePolicy::class);
-        Gate::define('author-courses', fn (User $user) => $user->isInstructor());
+        // Instructors, plus catalogue managers who build or fix courses on someone's behalf.
+        Gate::define('author-courses', fn (User $user) => $user->isInstructor() || $user->can(Permission::ManageCourses->value));
 
         // A 4 GB video is ~500 chunks of 8 MB; allow steady uploading without opening the floodgates.
         RateLimiter::for('upload-chunks', fn (Request $r) => Limit::perMinute(300)->by($r->user()?->getAuthIdentifier() ?? $r->ip()));

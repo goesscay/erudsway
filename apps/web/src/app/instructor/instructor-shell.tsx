@@ -3,11 +3,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ClipboardList, ExternalLink, IndianRupee, Landmark, Megaphone, MessageSquare, MonitorPlay, ShieldAlert, Star } from "lucide-react";
+import {
+  ClipboardList,
+  ExternalLink,
+  IndianRupee,
+  Landmark,
+  Megaphone,
+  MessageSquare,
+  MonitorPlay,
+  ShieldAlert,
+  Star,
+} from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { buttonVariants } from "@/components/ui/button";
-import { useMe } from "@/lib/auth/session";
+import { hasPermission, useMe } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,12 +36,15 @@ export function InstructorGate({ children }: { children: React.ReactNode }) {
     if (!isPending && me === null) router.replace(`/login?next=${encodeURIComponent(window.location.pathname)}`);
   }, [isPending, me, router]);
 
-  if (!isPending && me && !me.instructor) {
+  // Erudsway staff who manage courses use the same builder for any course.
+  if (!isPending && me && !me.instructor && !hasPermission(me, "manage_courses")) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center px-6 py-24 text-center">
         <ShieldAlert className="size-10 text-gold-600" strokeWidth={1.5} />
-        <h1 className="text-h3 mt-4">This area is for approved instructors</h1>
-        <p className="mt-2 text-sm text-stone-700">Apply to teach on Erudsway — once approved, you can build and publish courses here.</p>
+        <h1 className="mt-4 text-h3">This area is for approved instructors</h1>
+        <p className="mt-2 text-sm text-stone-700">
+          Apply to teach on Erudsway — once approved, you can build and publish courses here.
+        </p>
         <Link href="/teach" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
           Apply to teach
         </Link>
@@ -59,7 +72,10 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
 
   return (
     <div className="flex min-h-dvh">
-      <nav aria-label="Instructor" className="dark sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-navy-950 px-4 py-5 text-foreground md:flex">
+      <nav
+        aria-label="Instructor"
+        className="dark sticky top-0 hidden h-dvh w-60 shrink-0 flex-col bg-navy-950 px-4 py-5 text-foreground md:flex"
+      >
         <Logo inverted />
         <p className="mt-8 mb-2 px-3 text-[0.65rem] font-bold tracking-[0.2em] text-white/40 uppercase">Instructor</p>
         <ul className="space-y-0.5">
@@ -90,7 +106,9 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
             <div className="flex items-center gap-3 px-3">
               <InstructorAvatar name={me.name} className="size-9 text-xs" />
               <span className="min-w-0 text-sm">
-                <span className="block truncate font-semibold text-white">{me.instructor?.display_name ?? me.name}</span>
+                <span className="block truncate font-semibold text-white">
+                  {me.instructor?.display_name ?? me.name}
+                </span>
                 <span className="block truncate text-xs text-white/50">Instructor</span>
               </span>
             </div>
@@ -99,7 +117,10 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
       </nav>
       <main className="min-w-0 flex-1 bg-paper">
         {/* Phones: the sidebar is hidden, so the sections become tabs. */}
-        <nav aria-label="Instructor sections" className="flex gap-5 overflow-x-auto border-b border-line bg-white px-4 md:hidden">
+        <nav
+          aria-label="Instructor sections"
+          className="flex gap-5 overflow-x-auto border-b border-line bg-white px-4 md:hidden"
+        >
           {nav.map(({ href, label }) => {
             const active = href === "/instructor" ? pathname === href : pathname.startsWith(href);
             return (
@@ -107,7 +128,10 @@ export function InstructorDashboardShell({ children }: { children: React.ReactNo
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={cn("-mb-px shrink-0 border-b-2 py-3 text-sm font-semibold", active ? "border-gold-500 text-navy-900" : "border-transparent text-stone-500")}
+                className={cn(
+                  "-mb-px shrink-0 border-b-2 py-3 text-sm font-semibold",
+                  active ? "border-gold-500 text-navy-900" : "border-transparent text-stone-500",
+                )}
               >
                 {label}
               </Link>

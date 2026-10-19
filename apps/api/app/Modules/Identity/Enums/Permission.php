@@ -10,6 +10,8 @@ enum Permission: string
 {
     case ReviewInstructorApplications = 'review_instructor_applications';
     case ModerateCourses = 'moderate_courses';
+    case ManageCourses = 'manage_courses';
+    case ManageCategories = 'manage_categories';
     case ManageUsers = 'manage_users';
     case ManageFinance = 'manage_finance';
     case ViewReports = 'view_reports';

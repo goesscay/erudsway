@@ -34,6 +34,16 @@ const PERMISSIONS: { key: StaffPermission; label: string; help: string }[] = [
     label: "Course and review moderation",
     help: "Review courses before they go live; hide reported reviews and Q&A.",
   },
+  {
+    key: "manage_courses",
+    label: "Course management",
+    help: "Edit any course in the builder, publish, archive or feature it, and change its instructor.",
+  },
+  {
+    key: "manage_categories",
+    label: "Categories",
+    help: "Add, rename, reorder, hide and delete catalogue categories.",
+  },
   { key: "manage_users", label: "Users", help: "Find users, suspend them, grant or revoke course access." },
   { key: "manage_finance", label: "Finance", help: "Orders, refunds, coupons, payouts and the ledger." },
   { key: "view_reports", label: "Reports", help: "The dashboard numbers and every report, with CSV exports." },

@@ -1,17 +1,19 @@
 <?php
 
+use App\Modules\Authoring\Http\Controllers\Admin\CourseManagementController;
 use App\Modules\Authoring\Http\Controllers\Admin\CourseReviewController;
 use App\Modules\Authoring\Http\Controllers\CourseController;
 use App\Modules\Authoring\Http\Controllers\CurriculumController;
 use App\Modules\Authoring\Http\Controllers\ResourceController;
 use App\Modules\Authoring\Http\Controllers\VideoUploadController;
+use App\Modules\Authoring\Http\Middleware\AuditStaffCourseEdits;
 use App\Modules\Identity\Enums\Permission;
 use App\Modules\Identity\Http\Middleware\EnsureAccountActive;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function () {
     // Instructors (approved instructor role required)
-    Route::middleware('can:author-courses')->prefix('instructor')->name('authoring.')->group(function () {
+    Route::middleware(['can:author-courses', AuditStaffCourseEdits::class])->prefix('instructor')->name('authoring.')->group(function () {
         Route::get('price-tiers', [CourseController::class, 'priceTiers'])->name('price-tiers');
 
         Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
@@ -49,5 +51,15 @@ Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function 
         Route::post('course-submissions/{submission}/reject', [CourseReviewController::class, 'reject'])->name('submissions.reject');
         Route::get('courses/{course:uuid}', [CourseReviewController::class, 'show'])->name('show');
         Route::post('courses/{course:uuid}/unpublish', [CourseReviewController::class, 'unpublish'])->name('unpublish');
+    });
+
+    // Catalogue management (any course, any state)
+    Route::middleware('can:'.Permission::ManageCourses->value)->prefix('admin')->name('admin.courses.')->group(function () {
+        Route::get('courses', [CourseManagementController::class, 'index'])->name('index');
+        Route::post('courses/{course:uuid}/publish', [CourseManagementController::class, 'publish'])->name('publish');
+        Route::post('courses/{course:uuid}/archive', [CourseManagementController::class, 'archive'])->name('archive');
+        Route::post('courses/{course:uuid}/restore', [CourseManagementController::class, 'restore'])->name('restore');
+        Route::put('courses/{course:uuid}/instructor', [CourseManagementController::class, 'changeInstructor'])->name('instructor');
+        Route::put('courses/{course:uuid}/featured', [CourseManagementController::class, 'feature'])->name('featured');
     });
 });
