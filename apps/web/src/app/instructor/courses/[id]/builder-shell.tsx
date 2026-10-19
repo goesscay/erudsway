@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
-import { Check, ChevronLeft, CircleAlert, Clock3, ExternalLink, Lock, X } from "lucide-react";
+import { Check, ChevronLeft, CircleAlert, Clock3, ExternalLink, Eye, Lock, X } from "lucide-react";
 import { FormAlert } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -57,6 +57,11 @@ export function BuilderHeader() {
               {statusLabel[course.status]}
             </span>
             <span className="ml-auto" />
+            {course.lecture_count > 0 && (
+              <Link href={`/learn/${course.slug}`} target="_blank" className={buttonVariants({ variant: "ghost", className: "hidden md:inline-flex" })}>
+                <Eye /> Preview
+              </Link>
+            )}
             {course.status === "published" && (
               <Link href={`/course/${course.slug}`} target="_blank" className={buttonVariants({ variant: "outline", className: "hidden sm:inline-flex" })}>
                 <ExternalLink /> View live

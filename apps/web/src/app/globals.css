@@ -287,3 +287,46 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Video player sliders: invisible native track (the seek bar draws its own) and a round gold thumb. */
+.player-range {
+  appearance: none;
+  background: transparent;
+  height: 1rem;
+}
+.player-range::-webkit-slider-runnable-track {
+  height: 1rem;
+  background: transparent;
+}
+.player-range::-moz-range-track {
+  height: 1rem;
+  background: transparent;
+}
+.player-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-top: 0.1rem;
+  border-radius: 9999px;
+  background: var(--gold-400);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 0.25);
+}
+.player-range::-moz-range-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--gold-400);
+}
+.player-range:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+}
+/* The volume slider has no drawn track behind it. */
+input[aria-label="Volume"].player-range::-webkit-slider-runnable-track {
+  background: linear-gradient(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.35)) center / 100% 3px no-repeat;
+}
+input[aria-label="Volume"].player-range::-moz-range-track {
+  height: 3px;
+  background: rgb(255 255 255 / 0.35);
+}

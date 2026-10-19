@@ -1,5 +1,6 @@
 import { API_URL, ApiRequestError, ensureCsrfCookie } from "@/lib/api/client";
-import { parseResponse, readXsrf } from "./editor";
+import { readXsrfCookie } from "@/lib/api/client";
+import { parseResponse } from "./editor";
 
 interface UploadSession {
   id: string;
@@ -108,7 +109,7 @@ async function call<T = unknown>(path: string, init: RequestInit): Promise<T> {
     res = await fetch(`${API_URL}/api/v1${path}`, {
       ...init,
       credentials: "include",
-      headers: { Accept: "application/json", "X-XSRF-TOKEN": readXsrf(), ...(init.headers ?? {}) },
+      headers: { Accept: "application/json", "X-XSRF-TOKEN": readXsrfCookie(), ...(init.headers ?? {}) },
     });
   } catch (e) {
     if (init.signal?.aborted) throw e;

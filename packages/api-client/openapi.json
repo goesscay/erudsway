@@ -1796,6 +1796,341 @@
                 }
             }
         },
+        "/me/enrollments": {
+            "get": {
+                "operationId": "learning.enrollments.index",
+                "summary": "My Learning: active courses, most recently studied first",
+                "tags": [
+                    "Enrollment"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `EnrollmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EnrollmentResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/courses/{slug}/enrollment": {
+            "get": {
+                "operationId": "learning.enrollments.status",
+                "summary": "Whether the signed-in user can open this course in the player (for course page buttons)",
+                "tags": [
+                    "Enrollment"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "enrolled": {
+                                                    "type": "boolean"
+                                                },
+                                                "role": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "enum": [
+                                                        "reviewer",
+                                                        "learner",
+                                                        "instructor",
+                                                        null
+                                                    ]
+                                                },
+                                                "progress_percent": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "enrolled",
+                                                "role",
+                                                "progress_percent"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/courses/{slug}/enroll": {
+            "post": {
+                "operationId": "learning.enrollments.store",
+                "summary": "Enroll in a free course. Idempotent",
+                "tags": [
+                    "Enrollment"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/users/{user}/enrollments": {
+            "get": {
+                "operationId": "learning.admin.enrollments.index",
+                "tags": [
+                    "Enrollment"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `EnrollmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EnrollmentResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "learning.admin.enrollments.store",
+                "tags": [
+                    "Enrollment"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "course": {
+                                        "type": "string"
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "course",
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`EnrollmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnrollmentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/enrollments/{enrollment}/revoke": {
+            "post": {
+                "operationId": "learning.admin.enrollments.revoke",
+                "tags": [
+                    "Enrollment"
+                ],
+                "parameters": [
+                    {
+                        "name": "enrollment",
+                        "in": "path",
+                        "required": true,
+                        "description": "The enrollment ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 500
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`EnrollmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnrollmentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "operationId": "platform.health",
@@ -2440,6 +2775,146 @@
                 }
             }
         },
+        "/learn/{slug}": {
+            "get": {
+                "operationId": "learning.course",
+                "summary": "The course player outline. Open to enrolled learners, the course's instructor and\ncourse reviewers; others get NOT_ENROLLED (live course) or a 404",
+                "tags": [
+                    "Learn"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`LearnCourseResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/LearnCourseResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/learn/lectures/{lecture}": {
+            "get": {
+                "operationId": "learning.lecture",
+                "summary": "One lecture's article text and downloadable files",
+                "tags": [
+                    "Learn"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`LectureContentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/LectureContentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/learn/resources/{resource}/download": {
+            "get": {
+                "operationId": "learning.resources.download",
+                "tags": [
+                    "Learn"
+                ],
+                "parameters": [
+                    {
+                        "name": "resource",
+                        "in": "path",
+                        "required": true,
+                        "description": "The resource ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "operationId": "identity.me",
@@ -2540,6 +3015,216 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/learn/{slug}/notes": {
+            "get": {
+                "operationId": "learning.notes.index",
+                "tags": [
+                    "Note"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `NoteResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/NoteResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/lectures/{lecture}/notes": {
+            "post": {
+                "operationId": "learning.notes.store",
+                "tags": [
+                    "Note"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "maxLength": 2000
+                                    },
+                                    "at_seconds": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    }
+                                },
+                                "required": [
+                                    "body"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`NoteResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/NoteResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/notes/{note}": {
+            "patch": {
+                "operationId": "learning.notes.update",
+                "tags": [
+                    "Note"
+                ],
+                "parameters": [
+                    {
+                        "name": "note",
+                        "in": "path",
+                        "required": true,
+                        "description": "The note ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "maxLength": 2000
+                                    }
+                                },
+                                "required": [
+                                    "body"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`NoteResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/NoteResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "learning.notes.destroy",
+                "tags": [
+                    "Note"
+                ],
+                "parameters": [
+                    {
+                        "name": "note",
+                        "in": "path",
+                        "required": true,
+                        "description": "The note ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -2655,6 +3340,522 @@
                     }
                 },
                 "security": []
+            }
+        },
+        "/lectures/{lecture}/playback": {
+            "post": {
+                "operationId": "learning.playback",
+                "summary": "Start (or refresh) playback of a video lecture. Free previews work signed out",
+                "tags": [
+                    "Playback"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "playlist_url": {
+                                                    "type": "string"
+                                                },
+                                                "poster_url": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "duration_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string"
+                                                },
+                                                "watermark": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Shown faintly over the video to discourage screen recording."
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "playlist_url",
+                                                "poster_url",
+                                                "duration_seconds",
+                                                "expires_at",
+                                                "watermark"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/stream/{asset}/master.m3u8": {
+            "get": {
+                "operationId": "learning.stream.master",
+                "tags": [
+                    "Playback"
+                ],
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/vnd.apple.mpegurl": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string",
+                                    "const": "no-store, private"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/stream/{asset}/{height}p.m3u8": {
+            "get": {
+                "operationId": "learning.stream.variant",
+                "tags": [
+                    "Playback"
+                ],
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "height",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/vnd.apple.mpegurl": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string",
+                                    "const": "no-store, private"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/stream/{asset}/key": {
+            "get": {
+                "operationId": "learning.stream.key",
+                "summary": "The 16-byte AES-128 key, only after re-checking that the viewer may still watch",
+                "tags": [
+                    "Playback"
+                ],
+                "parameters": [
+                    {
+                        "name": "asset",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": [
+                                        "string",
+                                        "object"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Cache-Control": {
+                                "schema": {
+                                    "type": "string",
+                                    "const": "no-store, private"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        },
+        "/lectures/{lecture}/progress": {
+            "put": {
+                "operationId": "learning.progress.update",
+                "summary": "Save the playback position (the player calls this every ~15 s and on pause)",
+                "tags": [
+                    "Progress"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "position_seconds": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 86400
+                                    }
+                                },
+                                "required": [
+                                    "position_seconds"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "tracked": {
+                                                    "type": "boolean"
+                                                },
+                                                "completed": {
+                                                    "type": "boolean"
+                                                },
+                                                "last_position_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "enrollment": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "progress_percent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "completed_count": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "progress_percent",
+                                                        "completed_count"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "tracked",
+                                                "completed",
+                                                "last_position_seconds",
+                                                "enrollment"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/lectures/{lecture}/completion": {
+            "post": {
+                "operationId": "learning.progress.complete",
+                "summary": "Tick a lecture as done (articles, or a video the learner skimmed)",
+                "tags": [
+                    "Progress"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "tracked": {
+                                                    "type": "boolean"
+                                                },
+                                                "completed": {
+                                                    "type": "boolean"
+                                                },
+                                                "last_position_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "enrollment": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "progress_percent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "completed_count": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "progress_percent",
+                                                        "completed_count"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "tracked",
+                                                "completed",
+                                                "last_position_seconds",
+                                                "enrollment"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "learning.progress.uncomplete",
+                "tags": [
+                    "Progress"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "lecture_id": {
+                                                    "type": "integer"
+                                                },
+                                                "tracked": {
+                                                    "type": "boolean"
+                                                },
+                                                "completed": {
+                                                    "type": "boolean"
+                                                },
+                                                "last_position_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "enrollment": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "progress_percent": {
+                                                            "type": "integer"
+                                                        },
+                                                        "completed_count": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "progress_percent",
+                                                        "completed_count"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "lecture_id",
+                                                "tracked",
+                                                "completed",
+                                                "last_position_seconds",
+                                                "enrollment"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/instructor/lectures/{lecture}/resources": {
@@ -4016,6 +5217,9 @@
                                     "items": {
                                         "type": "object",
                                         "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
                                             "title": {
                                                 "type": "string"
                                             },
@@ -4036,6 +5240,7 @@
                                             }
                                         },
                                         "required": [
+                                            "id",
                                             "title",
                                             "kind",
                                             "duration_seconds",
@@ -4564,6 +5769,123 @@
                 ],
                 "title": "CourseSubmissionResource"
             },
+            "EnrollmentResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "refunded",
+                            "revoked"
+                        ]
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "purchase",
+                            "free",
+                            "coupon",
+                            "admin_grant"
+                        ]
+                    },
+                    "progress_percent": {
+                        "type": "integer"
+                    },
+                    "completed_count": {
+                        "type": "integer"
+                    },
+                    "last_lecture_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "granted_at": {
+                        "type": "string"
+                    },
+                    "last_accessed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "completed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "revoked_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "course": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "thumbnail_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "instructor_name": {
+                                "type": "string"
+                            },
+                            "lecture_count": {
+                                "type": "integer"
+                            },
+                            "duration_seconds": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "slug",
+                            "title",
+                            "thumbnail_url",
+                            "instructor_name",
+                            "lecture_count",
+                            "duration_seconds"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "source",
+                    "progress_percent",
+                    "completed_count",
+                    "last_lecture_id",
+                    "granted_at",
+                    "last_accessed_at",
+                    "completed_at",
+                    "revoked_at",
+                    "reason",
+                    "course"
+                ],
+                "title": "EnrollmentResource"
+            },
             "ForgotPasswordRequest": {
                 "type": "object",
                 "properties": {
@@ -4779,6 +6101,260 @@
                 ],
                 "title": "InstructorCourseResource"
             },
+            "LearnCourseResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "thumbnail_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "lecture_count": {
+                        "type": "integer"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "is_published": {
+                        "type": "boolean"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "learner",
+                            "instructor",
+                            "reviewer"
+                        ]
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "headline": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "slug",
+                            "headline"
+                        ]
+                    },
+                    "enrollment": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "progress_percent": {
+                                "type": "integer"
+                            },
+                            "completed_count": {
+                                "type": "integer"
+                            },
+                            "last_lecture_id": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "completed_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "progress_percent",
+                            "completed_count",
+                            "last_lecture_id",
+                            "completed_at"
+                        ]
+                    },
+                    "curriculum": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "lectures": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "video",
+                                                    "article",
+                                                    "quiz",
+                                                    "assignment"
+                                                ]
+                                            },
+                                            "duration_seconds": {
+                                                "type": "integer"
+                                            },
+                                            "is_free_preview": {
+                                                "type": "boolean"
+                                            },
+                                            "has_video": {
+                                                "type": "boolean"
+                                            },
+                                            "resource_count": {
+                                                "type": "integer"
+                                            },
+                                            "completed": {
+                                                "type": "boolean"
+                                            },
+                                            "last_position_seconds": {
+                                                "type": "integer"
+                                            }
+                                        },
+                                        "required": [
+                                            "id",
+                                            "title",
+                                            "kind",
+                                            "duration_seconds",
+                                            "is_free_preview",
+                                            "has_video",
+                                            "resource_count",
+                                            "completed",
+                                            "last_position_seconds"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "title",
+                                "lectures"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "subtitle",
+                    "description",
+                    "thumbnail_url",
+                    "lecture_count",
+                    "duration_seconds",
+                    "is_published",
+                    "role",
+                    "instructor",
+                    "enrollment",
+                    "curriculum"
+                ],
+                "title": "LearnCourseResource"
+            },
+            "LectureContentResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "video",
+                            "article",
+                            "quiz",
+                            "assignment"
+                        ]
+                    },
+                    "article_html": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Sanitised with HTMLPurifier when the instructor saved it."
+                    },
+                    "resources": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "size_bytes": {
+                                    "type": "integer"
+                                },
+                                "download_url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name",
+                                "size_bytes",
+                                "download_url"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "kind",
+                    "article_html",
+                    "resources"
+                ],
+                "title": "LectureContentResource"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -4798,6 +6374,42 @@
                     "password"
                 ],
                 "title": "LoginRequest"
+            },
+            "NoteResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "lecture_id": {
+                        "type": "integer"
+                    },
+                    "lecture_title": {
+                        "type": "string"
+                    },
+                    "at_seconds": {
+                        "type": "integer"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "lecture_id",
+                    "lecture_title",
+                    "at_seconds",
+                    "body",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "NoteResource"
             },
             "PriceTierResource": {
                 "type": "object",

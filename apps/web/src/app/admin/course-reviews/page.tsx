@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, CircleAlert, FileText, MonitorPlay, X } from "lucide-react";
@@ -8,7 +9,7 @@ import type { components } from "@erudsway/api-client";
 import { AdminPageHeader, formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { FormAlert } from "@/components/forms/field";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -153,6 +154,10 @@ function Review({ submission, onDone }: { submission: Submission; onDone: () => 
               {c.category.parent?.name} › {c.category.name} · {c.language} · {levelLabel[c.level]} · {c.price ? formatPaise(c.price.amount) : "Free"}
             </span>
           </div>
+
+          <Link href={`/learn/${c.slug}`} target="_blank" className={buttonVariants({ variant: "outline", className: "w-full" })}>
+            <MonitorPlay /> Watch in the course player
+          </Link>
 
           {c.thumbnail_url && (
             <div className="relative aspect-video w-full overflow-hidden rounded-md bg-paper-2">

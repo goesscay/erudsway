@@ -17,6 +17,7 @@ export function StatusPill({ status }: { status: string }) {
     active: "bg-[#e7f1ec] text-success ring-[#cfe3d8]",
     rejected: "bg-destructive/5 text-destructive ring-destructive/20",
     suspended: "bg-destructive/5 text-destructive ring-destructive/20",
+    revoked: "bg-destructive/5 text-destructive ring-destructive/20",
   };
   return (
     <span className={`inline-flex h-6 items-center rounded-sm px-2 text-[0.7rem] font-bold tracking-wide capitalize ring-1 ring-inset ${styles[status] ?? "bg-paper-2 text-stone-700 ring-line"}`}>

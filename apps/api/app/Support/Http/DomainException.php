@@ -6,7 +6,7 @@ use RuntimeException;
 
 /**
  * Throw from services when a business rule fails; rendered as the API error envelope.
- * Example: throw new DomainException('COURSE_NOT_PURCHASED', 'Enrol in this course to watch it.', 403);
+ * Example: throw new DomainException('COURSE_NOT_PURCHASED', 'Enroll in this course to watch it.', 403);
  */
 class DomainException extends RuntimeException
 {

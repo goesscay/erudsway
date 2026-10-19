@@ -44,6 +44,15 @@ class DatabaseSeeder extends Seeder
             'approved_at' => now(),
         ]);
 
+        // A local learner for trying enrollment and the course player.
+        $learner = User::query()->firstOrCreate(
+            ['email' => 'learner@erudsway.test'],
+            ['name' => 'Local Learner', 'password' => 'password'],
+        );
+        $learner->forceFill(['email_verified_at' => now()])->save();
+        $learner->profile()->firstOrCreate();
+        $learner->syncRoles([Role::Student->value]);
+
         $this->call(CatalogDemoSeeder::class);
     }
 }

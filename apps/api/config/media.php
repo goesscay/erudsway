@@ -29,6 +29,17 @@ return [
         ['height' => 1080, 'video_kbps' => 5000],
     ],
 
+    /*
+    | Playback. Playlists and keys come from the API per learner; segments are served by
+    | Nginx `secure_link` (see docs/deploy/nginx-hls.conf), with a PHP fallback for local dev.
+    | MEDIA_SECURE_LINK_SECRET must match the secret in the Nginx config.
+    */
+    'stream' => [
+        'token_ttl_minutes' => (int) env('MEDIA_PLAYBACK_TTL_MINUTES', 120),
+        'secure_link_secret' => env('MEDIA_SECURE_LINK_SECRET'),
+        'segment_url' => env('MEDIA_SEGMENT_URL', env('APP_URL', 'http://localhost:8000')),
+    ],
+
     'resources' => [
         'max_kb' => 50 * 1024,
         'mimes' => ['pdf', 'xlsx', 'xls', 'csv', 'docx', 'doc', 'pptx', 'zip', 'txt'],

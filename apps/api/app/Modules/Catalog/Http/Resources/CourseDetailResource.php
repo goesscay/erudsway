@@ -40,11 +40,13 @@ class CourseDetailResource extends JsonResource
                 'headline' => $profile?->headline,
                 'bio' => $profile?->bio,
             ],
-            /** @var list<array{title: string, duration_seconds: int, lectures: list<array{title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool}>}> */
+            /** @var list<array{title: string, duration_seconds: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool}>}> */
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [
                 'title' => $section->title,
                 'duration_seconds' => (int) $section->lectures->sum('duration_seconds'),
                 'lectures' => $section->lectures->map(fn (Lecture $lecture) => [
+                    // Used to play free previews; the content itself stays behind playback checks.
+                    'id' => $lecture->id,
                     'title' => $lecture->title,
                     'kind' => $lecture->kind->value,
                     'duration_seconds' => $lecture->duration_seconds,

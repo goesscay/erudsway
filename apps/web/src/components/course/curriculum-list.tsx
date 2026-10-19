@@ -1,7 +1,9 @@
 import { ChevronDown, ClipboardList, FileText, ListChecks, PlayCircle } from "lucide-react";
 import { formatClock, formatDuration, plural } from "@/lib/format";
+import { PreviewTrigger } from "./course-preview";
 
 export interface CurriculumLecture {
+  id?: number;
   title: string;
   kind: string;
   duration_seconds: number;
@@ -48,7 +50,14 @@ export function CurriculumList({ sections }: { sections: CurriculumSection[] }) 
                     <li key={`${j}-${l.title}`} className="flex items-center gap-3 py-2 text-sm">
                       <Icon className="size-4 shrink-0 text-stone-500" strokeWidth={1.75} />
                       <span className="flex-1 text-stone-700">{l.title}</span>
-                      {l.is_free_preview && <span className="text-xs font-semibold text-navy-800">Free preview</span>}
+                      {l.is_free_preview &&
+                        (l.kind === "video" && l.id ? (
+                          <PreviewTrigger lectureId={l.id} className="text-xs font-semibold text-navy-800 underline underline-offset-2 hover:text-navy-900">
+                            Preview
+                          </PreviewTrigger>
+                        ) : (
+                          <span className="text-xs font-semibold text-navy-800">Free preview</span>
+                        ))}
                       <span className="tabular w-12 text-right text-xs text-stone-500">{formatClock(l.duration_seconds)}</span>
                     </li>
                   );

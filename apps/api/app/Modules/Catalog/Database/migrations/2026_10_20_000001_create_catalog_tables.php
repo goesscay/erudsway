@@ -52,7 +52,7 @@ return new class extends Migration
             $table->json('audience');
             $table->timestamp('published_at')->nullable();
 
-            // Denormalised for listing/sorting; maintained by enrolment, review and curriculum code.
+            // Denormalised for listing/sorting; maintained by enrollment, review and curriculum code.
             $table->decimal('rating_avg', 3, 2)->default(0);
             $table->unsignedInteger('rating_count')->default(0);
             $table->unsignedInteger('enrollment_count')->default(0);

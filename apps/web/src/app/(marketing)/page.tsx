@@ -102,7 +102,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1340px] px-6 py-16">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading eyebrow="Most enrolled" title="Courses professionals finish — and recommend">
-            Ranked by enrolments and reviews.
+            Ranked by enrollments and reviews.
           </SectionHeading>
           <Link href="/courses?sort=popular" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-navy-900">
             View all courses
@@ -145,7 +145,7 @@ export default function HomePage() {
             <h2 className="text-h1 max-w-[16ch]">Teach what you practise. We handle the rest.</h2>
             <p className="mt-5 max-w-[50ch] leading-relaxed text-white/75">
               Chartered accountants, company secretaries, cost accountants and advocates publish courses on Erudsway. We take
-              care of payments, GST invoicing, hosting and learner support — you focus on teaching and earn on every enrolment.
+              care of payments, GST invoicing, hosting and learner support — you focus on teaching and earn on every enrollment.
             </p>
             <ol className="mt-8 space-y-4">
               {[

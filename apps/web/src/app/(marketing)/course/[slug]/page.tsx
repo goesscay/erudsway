@@ -17,6 +17,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { CourseBadge } from "@/components/course/course-badge";
+import { CoursePreview, PreviewTrigger } from "@/components/course/course-preview";
 import { CurriculumList } from "@/components/course/curriculum-list";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { Price } from "@/components/course/price";
@@ -75,11 +76,12 @@ async function CourseView({ params }: { params: Params }) {
   const lectures = course.curriculum.flatMap((s) => s.lectures);
   const articles = lectures.filter((l) => l.kind === "article").length;
   const quizzes = lectures.filter((l) => l.kind === "quiz").length;
+  const previewVideos = lectures.filter((l) => l.is_free_preview && l.kind === "video");
   const previews = lectures.filter((l) => l.is_free_preview).length;
   const updated = new Date(course.updated_at).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
   return (
-    <>
+    <CoursePreview courseTitle={course.title} lectures={previewVideos}>
       <CourseJsonLd course={course} />
 
       {/* Header band */}
@@ -210,19 +212,28 @@ async function CourseView({ params }: { params: Params }) {
         {/* Purchase card */}
         <aside className="relative pb-12 lg:-mt-64 lg:pb-0">
           <div className="sticky top-28 overflow-hidden rounded-md bg-white shadow-[0_24px_60px_-28px_rgb(0_27_64/0.5)] ring-1 ring-line">
-            <div className="relative aspect-video w-full bg-paper-2">
+            <PreviewTrigger className="group relative block aspect-video w-full bg-paper-2 text-left">
               {course.thumbnail_url && (
                 <Image src={course.thumbnail_url} alt="" fill sizes="380px" className="object-cover" preload />
               )}
-              {previews > 0 && (
-                <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-sm bg-navy-950/85 px-2.5 py-1 text-xs font-semibold text-white">
-                  <PlayCircle className="size-3.5" /> {previews} free preview {previews === 1 ? "lecture" : "lectures"}
+              {previewVideos.length > 0 ? (
+                <span className="absolute inset-0 flex flex-col items-center justify-end gap-3 bg-gradient-to-t from-navy-950/85 via-navy-950/20 to-transparent pb-4 text-white">
+                  <span className="flex size-14 items-center justify-center rounded-full bg-white text-navy-900 shadow-lg transition-transform group-hover:scale-105">
+                    <PlayCircle className="size-7" strokeWidth={1.5} />
+                  </span>
+                  <span className="text-sm font-bold">Preview this course</span>
                 </span>
+              ) : (
+                previews > 0 && (
+                  <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-sm bg-navy-950/85 px-2.5 py-1 text-xs font-semibold text-white">
+                    <PlayCircle className="size-3.5" /> {previews} free preview {previews === 1 ? "lecture" : "lectures"}
+                  </span>
+                )
               )}
-            </div>
+            </PreviewTrigger>
             <div className="space-y-4 p-6">
               <Price price={course.price} className="font-serif text-3xl font-semibold" />
-              <PurchaseActions free={!course.price} />
+              <PurchaseActions slug={course.slug} free={!course.price} />
               {course.price && (
                 <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
                   <RotateCcw className="size-3.5" /> 30-day money-back guarantee
@@ -248,7 +259,7 @@ async function CourseView({ params }: { params: Params }) {
           </div>
         </aside>
       </div>
-    </>
+    </CoursePreview>
   );
 }
 

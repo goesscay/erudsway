@@ -395,6 +395,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Learning: active courses, most recently studied first */
+        get: operations["learning.enrollments.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/courses/{slug}/enrollment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the signed-in user can open this course in the player (for course page buttons) */
+        get: operations["learning.enrollments.status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{slug}/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enroll in a free course. Idempotent */
+        post: operations["learning.enrollments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["learning.admin.enrollments.index"];
+        put?: never;
+        post: operations["learning.admin.enrollments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/enrollments/{enrollment}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["learning.admin.enrollments.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -528,6 +611,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learn/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The course player outline. Open to enrolled learners, the course's instructor and
+         *     course reviewers; others get NOT_ENROLLED (live course) or a 404
+         */
+        get: operations["learning.course"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learn/lectures/{lecture}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One lecture's article text and downloadable files */
+        get: operations["learning.lecture"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learn/resources/{resource}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["learning.resources.download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -563,6 +699,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learn/{slug}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["learning.notes.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lectures/{lecture}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["learning.notes.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notes/{note}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["learning.notes.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["learning.notes.update"];
+        trace?: never;
+    };
     "/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -595,6 +779,106 @@ export interface paths {
         /** Set a new password using the emailed token */
         post: operations["identity.password.update"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lectures/{lecture}/playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start (or refresh) playback of a video lecture. Free previews work signed out */
+        post: operations["learning.playback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stream/{asset}/master.m3u8": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["learning.stream.master"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stream/{asset}/{height}p.m3u8": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["learning.stream.variant"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stream/{asset}/key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The 16-byte AES-128 key, only after re-checking that the viewer may still watch */
+        get: operations["learning.stream.key"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lectures/{lecture}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the playback position (the player calls this every ~15 s and on pause) */
+        put: operations["learning.progress.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lectures/{lecture}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tick a lecture as done (articles, or a video the learner skimmed) */
+        post: operations["learning.progress.complete"];
+        delete: operations["learning.progress.uncomplete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -891,6 +1175,7 @@ export interface components {
                 title: string;
                 duration_seconds: number;
                 lectures: {
+                    id: number;
                     title: string;
                     /** @enum {string} */
                     kind: "video" | "article" | "quiz" | "assignment";
@@ -1004,6 +1289,31 @@ export interface components {
                 name: string;
             } | null;
         };
+        /** EnrollmentResource */
+        EnrollmentResource: {
+            id: number;
+            /** @enum {string} */
+            status: "active" | "refunded" | "revoked";
+            /** @enum {string} */
+            source: "purchase" | "free" | "coupon" | "admin_grant";
+            progress_percent: number;
+            completed_count: number;
+            last_lecture_id: number | null;
+            granted_at: string;
+            last_accessed_at: string | null;
+            completed_at: string | null;
+            revoked_at: string | null;
+            reason: string | null;
+            course: {
+                id: string;
+                slug: string;
+                title: string;
+                thumbnail_url: string | null;
+                instructor_name: string;
+                lecture_count: number;
+                duration_seconds: number;
+            };
+        };
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             /** Format: email */
@@ -1055,12 +1365,78 @@ export interface components {
             published_at: string | null;
             updated_at: string;
         };
+        /** LearnCourseResource */
+        LearnCourseResource: {
+            id: string;
+            slug: string;
+            title: string;
+            subtitle: string | null;
+            description: string | null;
+            thumbnail_url: string | null;
+            lecture_count: number;
+            duration_seconds: number;
+            is_published: boolean;
+            /** @enum {string} */
+            role: "learner" | "instructor" | "reviewer";
+            instructor: {
+                name: string;
+                slug: string | null;
+                headline: string | null;
+            };
+            enrollment: {
+                progress_percent: number;
+                completed_count: number;
+                last_lecture_id: number | null;
+                completed_at: string | null;
+            } | null;
+            curriculum: {
+                id: number;
+                title: string;
+                lectures: {
+                    id: number;
+                    title: string;
+                    /** @enum {string} */
+                    kind: "video" | "article" | "quiz" | "assignment";
+                    duration_seconds: number;
+                    is_free_preview: boolean;
+                    has_video: boolean;
+                    resource_count: number;
+                    completed: boolean;
+                    last_position_seconds: number;
+                }[];
+            }[];
+        };
+        /** LectureContentResource */
+        LectureContentResource: {
+            id: number;
+            title: string;
+            /** @enum {string} */
+            kind: "video" | "article" | "quiz" | "assignment";
+            /** @description Sanitised with HTMLPurifier when the instructor saved it. */
+            article_html: string | null;
+            resources: {
+                id: number;
+                name: string;
+                size_bytes: number;
+                download_url: string;
+            }[];
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Format: email */
             email: string;
             password: string;
             remember?: boolean;
+        };
+        /** NoteResource */
+        NoteResource: {
+            id: number;
+            lecture_id: number;
+            lecture_title: string;
+            at_seconds: number;
+            body: string;
+            created_at: string;
+            updated_at: string;
         };
         /** PriceTierResource */
         PriceTierResource: {
@@ -2101,6 +2477,180 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "learning.enrollments.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `EnrollmentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EnrollmentResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "learning.enrollments.status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            enrolled: boolean;
+                            /** @enum {string|null} */
+                            role: "reviewer" | "learner" | "instructor" | null;
+                            progress_percent: number;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "learning.enrollments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "learning.admin.enrollments.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `EnrollmentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EnrollmentResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.admin.enrollments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    course: string;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `EnrollmentResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EnrollmentResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "learning.admin.enrollments.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The enrollment ID */
+                enrollment: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `EnrollmentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EnrollmentResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "platform.health": {
         parameters: {
             query?: never;
@@ -2366,6 +2916,84 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "learning.course": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `LearnCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LearnCourseResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.lecture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `LectureContentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LectureContentResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.resources.download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The resource ID */
+                resource: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "identity.me": {
         parameters: {
             query?: never;
@@ -2441,6 +3069,123 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "learning.notes.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `NoteResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NoteResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "learning.notes.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                    at_seconds?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description `NoteResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NoteResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "learning.notes.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The note ID */
+                note: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.notes.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The note ID */
+                note: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `NoteResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["NoteResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "identity.password.email": {
         parameters: {
             query?: never;
@@ -2499,6 +3244,229 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "learning.playback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            playlist_url: string;
+                            poster_url: string | null;
+                            duration_seconds: number;
+                            expires_at: string;
+                            /** @description Shown faintly over the video to discourage screen recording. */
+                            watermark: string | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.stream.master": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Cache-Control"?: "no-store, private";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.apple.mpegurl": string;
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "learning.stream.variant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset: string;
+                height: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Cache-Control"?: "no-store, private";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.apple.mpegurl": string;
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "learning.stream.key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Cache-Control"?: "no-store, private";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string | Record<string, never>;
+                };
+            };
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.progress.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    position_seconds: number;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            tracked: boolean;
+                            completed: boolean;
+                            last_position_seconds: number;
+                            enrollment: {
+                                progress_percent: number;
+                                completed_count: number;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "learning.progress.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            tracked: boolean;
+                            completed: boolean;
+                            last_position_seconds: number;
+                            enrollment: {
+                                progress_percent: number;
+                                completed_count: number;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "learning.progress.uncomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            lecture_id: number;
+                            tracked: boolean;
+                            completed: boolean;
+                            last_position_seconds: number;
+                            enrollment: {
+                                progress_percent: number;
+                                completed_count: number;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "authoring.resources.store": {

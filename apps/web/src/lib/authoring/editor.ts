@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { components } from "@erudsway/api-client";
-import { api, API_URL, ApiRequestError, ensureCsrfCookie, unwrap } from "@/lib/api/client";
+import { api, API_URL, ApiRequestError, ensureCsrfCookie, readXsrfCookie, unwrap } from "@/lib/api/client";
 
 export type CourseEditor = components["schemas"]["CourseEditorResource"];
 export type EditorSection = CourseEditor["curriculum"][number];
@@ -49,14 +49,9 @@ export async function postForm<T>(path: string, form: FormData): Promise<T> {
     method: "POST",
     body: form,
     credentials: "include",
-    headers: { Accept: "application/json", "X-XSRF-TOKEN": readXsrf() },
+    headers: { Accept: "application/json", "X-XSRF-TOKEN": readXsrfCookie() },
   });
   return parseResponse<T>(res);
-}
-
-export function readXsrf(): string {
-  const match = typeof document !== "undefined" ? document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) : null;
-  return match ? decodeURIComponent(match[1]!) : "";
 }
 
 export async function parseResponse<T>(res: Response): Promise<T> {

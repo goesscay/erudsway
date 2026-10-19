@@ -30,6 +30,12 @@ export function ensureCsrfCookie(): Promise<void> {
   return csrfReady;
 }
 
+/** The XSRF token Sanctum set, for requests made with plain fetch (uploads, keepalive). */
+export function readXsrfCookie(): string {
+  const match = typeof document !== "undefined" ? document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) : null;
+  return match ? decodeURIComponent(match[1]!) : "";
+}
+
 /** Session ended or rotated (login/logout): the next write must fetch a fresh token. */
 export function resetCsrf() {
   csrfReady = null;

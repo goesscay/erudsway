@@ -3,6 +3,7 @@
 use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
+use App\Modules\Learning\LearningServiceProvider;
 use App\Modules\Media\MediaServiceProvider;
 use App\Modules\Platform\PlatformServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -16,4 +17,5 @@ return [
     CatalogServiceProvider::class,
     MediaServiceProvider::class,
     AuthoringServiceProvider::class,
+    LearningServiceProvider::class,
 ];

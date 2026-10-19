@@ -75,7 +75,7 @@ function LandingForm({ course }: { course: CourseEditor }) {
       }}
     >
       <StepHeader title="Landing page">
-        This is what learners see before they enrol. Lead with the outcome, not with yourself.
+        This is what learners see before they enroll. Lead with the outcome, not with yourself.
       </StepHeader>
 
       <fieldset disabled={locked} className="max-w-2xl space-y-6">

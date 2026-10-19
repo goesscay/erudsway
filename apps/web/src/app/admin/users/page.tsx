@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { api, ApiRequestError, mutate, unwrap } from "@/lib/api/client";
 import { useMe } from "@/lib/auth/session";
+import { CourseAccessSheet } from "./course-access";
 
 type AdminUser = components["schemas"]["AdminUserResource"];
 
@@ -33,6 +34,7 @@ function UsersTable() {
   const [role, setRole] = useState("");
   const [page, setPage] = useState(1);
   const [target, setTarget] = useState<AdminUser | null>(null);
+  const [accessFor, setAccessFor] = useState<AdminUser | null>(null);
   const deferredQ = useDeferredValue(q.trim());
   const { data: me } = useMe();
   const queryClient = useQueryClient();
@@ -139,7 +141,10 @@ function UsersTable() {
                     </td>
                     <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">{formatDate(u.created_at)}</td>
                     <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">{formatDate(u.last_login_at)}</td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="space-x-1 px-5 py-3 text-right whitespace-nowrap">
+                      <Button size="sm" variant="outline" onClick={() => setAccessFor(u)}>
+                        Courses
+                      </Button>
                       {u.id !== me?.id && !u.roles.includes("admin") &&
                         (u.status === "suspended" ? (
                           <Button size="sm" variant="outline" onClick={() => reactivate(u)}>
@@ -174,6 +179,7 @@ function UsersTable() {
       </div>
 
       <SuspendDialog user={target} onClose={() => setTarget(null)} />
+      <CourseAccessSheet user={accessFor} onClose={() => setAccessFor(null)} />
     </>
   );
 }
