@@ -125,7 +125,7 @@ it('keeps upload sessions private to their owner', function () {
 
 it('marks garbage uploads as failed instead of processing them', function () {
     $lecture = videoLecture();
-    $id = sendChunks($this, $lecture, random_bytes(150 * 1024), 'fake.mp4');
+    $id = sendChunks($this, $lecture, str_repeat('This is a spreadsheet export, not a video. ', 3500), 'fake.mp4');
 
     if (! app(Ffmpeg::class)->available()) {
         $this->markTestSkipped('ffmpeg is not installed');

@@ -4,17 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Heart } from "lucide-react";
 import { FormAlert } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiRequestError, mutate } from "@/lib/api/client";
 import { useMe } from "@/lib/auth/session";
+import { useCart, useCartActions, useWishlist, useWishlistToggle } from "@/lib/commerce/api";
 import { myLearningKey, useEnrollmentStatus } from "@/lib/learning/api";
 import { useHydrated } from "@/lib/use-hydrated";
+import { cn } from "@/lib/utils";
 
 /**
  * The course page's call to action. Learners who already have access go straight to the
- * course; free courses enroll in one click. Paid checkout arrives in Phase 5.
+ * course; free courses enroll in one click; paid courses go through the cart.
  */
 export function PurchaseActions({ slug, free }: { slug: string; free: boolean }) {
   const hydrated = useHydrated();
@@ -24,7 +27,10 @@ export function PurchaseActions({ slug, free }: { slug: string; free: boolean })
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState(false);
+  const cart = useCart();
+  const { add } = useCartActions();
+  const wishlist = useWishlist(!!me);
+  const toggleWish = useWishlistToggle();
 
   if (!hydrated || mePending || (me && status.isPending)) return <Skeleton className="h-12 w-full" />;
 
@@ -40,6 +46,26 @@ export function PurchaseActions({ slug, free }: { slug: string; free: boolean })
       </div>
     );
   }
+
+  const inCart = !!cart.data?.items.some((i) => i.course.slug === slug);
+  const saved = !!wishlist.data?.some((c) => c.slug === slug);
+
+  /** Add, then optionally go straight on (Buy now → checkout, which asks guests to sign in). */
+  const addToCart = async (then?: string) => {
+    setError(null);
+    if (!inCart) {
+      setBusy(true);
+      try {
+        await add.mutateAsync(slug);
+      } catch (e) {
+        setError(e instanceof ApiRequestError ? e.message : "Something went wrong. Please try again.");
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
+    }
+    if (then) router.push(me ? then : `/login?next=${encodeURIComponent(then)}`);
+  };
 
   const enroll = async () => {
     if (!me) {
@@ -67,18 +93,34 @@ export function PurchaseActions({ slug, free }: { slug: string; free: boolean })
         </Button>
       ) : (
         <>
-          <Button size="lg" className="w-full" onClick={() => setNotice(true)}>
-            Add to cart
-          </Button>
-          <Button size="lg" variant="outline" className="w-full" onClick={() => setNotice(true)}>
+          <div className="flex gap-2">
+            {inCart ? (
+              <Link href="/cart" className={buttonVariants({ size: "lg", className: "flex-1" })}>
+                Go to cart
+              </Link>
+            ) : (
+              <Button size="lg" className="flex-1" onClick={() => addToCart()} disabled={busy}>
+                {busy ? "Adding…" : "Add to cart"}
+              </Button>
+            )}
+            {me && (
+              <Button
+                size="lg"
+                variant="outline"
+                aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={saved}
+                onClick={() => toggleWish.mutate({ slug, saved })}
+                disabled={toggleWish.isPending}
+                className="px-3"
+              >
+                <Heart className={cn("size-5", saved && "fill-current text-destructive")} />
+              </Button>
+            )}
+          </div>
+          <Button size="lg" variant="outline" className="w-full" onClick={() => addToCart("/checkout")} disabled={busy}>
             Buy now
           </Button>
         </>
-      )}
-      {notice && (
-        <p role="status" className="rounded-md bg-navy-100/60 px-3 py-2 text-center text-xs text-navy-800">
-          Checkout opens soon — we&rsquo;re finishing secure payments.
-        </p>
       )}
     </div>
   );

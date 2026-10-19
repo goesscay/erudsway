@@ -16,7 +16,9 @@ export default function AdminHome() {
         ? "/admin/course-reviews"
         : hasPermission(me, "review_instructor_applications")
           ? "/admin/instructor-applications"
-          : "/admin/users",
+          : hasPermission(me, "manage_users")
+            ? "/admin/users"
+            : "/admin/orders",
     );
   }, [me, router]);
 

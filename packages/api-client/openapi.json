@@ -114,6 +114,253 @@
                 }
             }
         },
+        "/cart": {
+            "get": {
+                "operationId": "commerce.cart.show",
+                "tags": [
+                    "Cart"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/items": {
+            "post": {
+                "operationId": "commerce.cart.add",
+                "summary": "Add a course to the cart (creates the cart, and for guests its token)",
+                "tags": [
+                    "Cart"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "course": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "course"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/cart/items/{slug}": {
+            "delete": {
+                "operationId": "commerce.cart.remove",
+                "tags": [
+                    "Cart"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/coupon": {
+            "post": {
+                "operationId": "commerce.cart.coupon.apply",
+                "summary": "Apply a coupon code; an unusable code is kept with a message so the learner sees why",
+                "tags": [
+                    "Cart"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 40
+                                    }
+                                },
+                                "required": [
+                                    "code"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "commerce.cart.coupon.remove",
+                "tags": [
+                    "Cart"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/merge": {
+            "post": {
+                "operationId": "commerce.cart.merge",
+                "summary": "After sign-in: fold the guest cart into the user's",
+                "tags": [
+                    "Cart"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "maxLength": 64
+                                    }
+                                },
+                                "required": [
+                                    "token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CartResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CartResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/categories": {
             "get": {
                 "operationId": "catalog.categories.index",
@@ -206,6 +453,751 @@
                     }
                 },
                 "security": []
+            }
+        },
+        "/checkout/states": {
+            "get": {
+                "operationId": "commerce.checkout.states",
+                "summary": "States for the billing form (GST place of supply)",
+                "tags": [
+                    "Checkout"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "type": "string"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "code",
+                                                    "name"
+                                                ]
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/checkout": {
+            "post": {
+                "operationId": "commerce.checkout",
+                "summary": "Create the order from the cart and open payment. The response carries what the\nRazorpay checkout widget needs; access is granted only after verification",
+                "tags": [
+                    "Checkout"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 120
+                                    },
+                                    "state_code": {
+                                        "type": "string",
+                                        "enum": [
+                                            "01",
+                                            "02",
+                                            "03",
+                                            "04",
+                                            "05",
+                                            "06",
+                                            "07",
+                                            "08",
+                                            "09",
+                                            "10",
+                                            "11",
+                                            "12",
+                                            "13",
+                                            "14",
+                                            "15",
+                                            "16",
+                                            "17",
+                                            "18",
+                                            "19",
+                                            "20",
+                                            "21",
+                                            "22",
+                                            "23",
+                                            "24",
+                                            "26",
+                                            "27",
+                                            "29",
+                                            "30",
+                                            "31",
+                                            "32",
+                                            "33",
+                                            "34",
+                                            "35",
+                                            "36",
+                                            "37",
+                                            "38",
+                                            "97"
+                                        ]
+                                    },
+                                    "gstin": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "minLength": 15,
+                                        "maxLength": 15
+                                    },
+                                    "business_name": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 160
+                                    },
+                                    "address": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 300
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "state_code"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "order": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "number": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "enum": [
+                                                                "pending",
+                                                                "paid",
+                                                                "failed",
+                                                                "cancelled",
+                                                                "partially_refunded",
+                                                                "refunded"
+                                                            ]
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "subtotal": {
+                                                            "type": "integer"
+                                                        },
+                                                        "discount_total": {
+                                                            "type": "integer"
+                                                        },
+                                                        "tax_total": {
+                                                            "type": "integer"
+                                                        },
+                                                        "total": {
+                                                            "type": "integer"
+                                                        },
+                                                        "coupon_code": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string"
+                                                        },
+                                                        "paid_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "refund_window_ends_at": {
+                                                            "type": "null"
+                                                        },
+                                                        "billing": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "state_code": {
+                                                                    "type": "string"
+                                                                },
+                                                                "state": {
+                                                                    "type": "string"
+                                                                },
+                                                                "gstin": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "business_name": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "address": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "email",
+                                                                "state_code",
+                                                                "state",
+                                                                "gstin",
+                                                                "business_name",
+                                                                "address"
+                                                            ]
+                                                        },
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "course": {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "slug": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "title": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "thumbnail_url": {
+                                                                                "type": [
+                                                                                    "string",
+                                                                                    "null"
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "slug",
+                                                                            "title",
+                                                                            "thumbnail_url"
+                                                                        ]
+                                                                    },
+                                                                    "list_price": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "discount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "refund": {
+                                                                        "type": [
+                                                                            "object",
+                                                                            "null"
+                                                                        ],
+                                                                        "properties": {
+                                                                            "status": {
+                                                                                "type": "string",
+                                                                                "enum": [
+                                                                                    "requested",
+                                                                                    "rejected",
+                                                                                    "processing",
+                                                                                    "processed",
+                                                                                    "failed"
+                                                                                ]
+                                                                            },
+                                                                            "amount": {
+                                                                                "type": "integer"
+                                                                            },
+                                                                            "decision_note": {
+                                                                                "type": [
+                                                                                    "string",
+                                                                                    "null"
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "status",
+                                                                            "amount",
+                                                                            "decision_note"
+                                                                        ]
+                                                                    },
+                                                                    "refundable": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "id",
+                                                                    "course",
+                                                                    "list_price",
+                                                                    "discount",
+                                                                    "amount",
+                                                                    "refund",
+                                                                    "refundable"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "invoice": {
+                                                            "type": [
+                                                                "object",
+                                                                "null"
+                                                            ],
+                                                            "properties": {
+                                                                "number": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "download_url": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "number",
+                                                                "download_url"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "number",
+                                                        "status",
+                                                        "currency",
+                                                        "subtotal",
+                                                        "discount_total",
+                                                        "tax_total",
+                                                        "total",
+                                                        "coupon_code",
+                                                        "created_at",
+                                                        "paid_at",
+                                                        "refund_window_ends_at",
+                                                        "billing",
+                                                        "items",
+                                                        "invoice"
+                                                    ]
+                                                },
+                                                "payment": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "gateway": {
+                                                            "type": "string"
+                                                        },
+                                                        "key": {
+                                                            "type": "string"
+                                                        },
+                                                        "gateway_order_id": {
+                                                            "type": "string"
+                                                        },
+                                                        "amount": {
+                                                            "type": "integer"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        },
+                                                        "prefill": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "email"
+                                                            ]
+                                                        },
+                                                        "fake_signature": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "gateway",
+                                                        "key",
+                                                        "gateway_order_id",
+                                                        "amount",
+                                                        "currency",
+                                                        "name",
+                                                        "description",
+                                                        "prefill",
+                                                        "fake_signature"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "order",
+                                                "payment"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/orders/{order}/verify": {
+            "post": {
+                "operationId": "commerce.orders.verify",
+                "summary": "Confirm a payment the checkout widget reported as successful",
+                "tags": [
+                    "Checkout"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "description": "The order UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "razorpay_payment_id": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "razorpay_order_id": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "razorpay_signature": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                    }
+                                },
+                                "required": [
+                                    "razorpay_payment_id",
+                                    "razorpay_order_id",
+                                    "razorpay_signature"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/coupons": {
+            "get": {
+                "operationId": "commerce.admin.coupons.index",
+                "tags": [
+                    "Coupon"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CouponResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CouponResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "commerce.admin.coupons.store",
+                "tags": [
+                    "Coupon"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "pattern": "^[A-Za-z0-9_-]{4,40}$"
+                                    },
+                                    "kind": {
+                                        "$ref": "#/components/schemas/CouponKind"
+                                    },
+                                    "value": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "channel": {
+                                        "$ref": "#/components/schemas/SaleChannel"
+                                    },
+                                    "course": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "max_redemptions": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 1
+                                    },
+                                    "per_user_limit": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 100
+                                    },
+                                    "starts_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "ends_at": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    }
+                                },
+                                "required": [
+                                    "code",
+                                    "kind",
+                                    "value"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CouponResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CouponResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/coupons/{coupon}": {
+            "patch": {
+                "operationId": "commerce.admin.coupons.update",
+                "summary": "Switch a coupon on or off (codes are never edited once people may have them)",
+                "tags": [
+                    "Coupon"
+                ],
+                "parameters": [
+                    {
+                        "name": "coupon",
+                        "in": "path",
+                        "required": true,
+                        "description": "The coupon ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "is_active"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CouponResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CouponResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/courses": {
@@ -3229,6 +4221,205 @@
                 }
             }
         },
+        "/orders": {
+            "get": {
+                "operationId": "commerce.orders.index",
+                "summary": "Purchase history: paid and refunded orders, newest first",
+                "tags": [
+                    "Order"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OrderResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/orders/{order}": {
+            "get": {
+                "operationId": "commerce.orders.show",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "description": "The order UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/orders/{order}/invoice": {
+            "get": {
+                "operationId": "commerce.orders.invoice",
+                "summary": "The GST invoice PDF (issued on the spot if the background job hasn't run yet)",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "required": true,
+                        "description": "The order UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/order-items/{item}/refund-request": {
+            "post": {
+                "operationId": "commerce.refunds.request",
+                "summary": "Ask for a refund of one course (decision D4)",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                    {
+                        "name": "item",
+                        "in": "path",
+                        "required": true,
+                        "description": "The item ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 1000
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`RefundResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RefundResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/auth/forgot-password": {
             "post": {
                 "operationId": "identity.password.email",
@@ -4031,6 +5222,392 @@
                 }
             }
         },
+        "/admin/orders": {
+            "get": {
+                "operationId": "commerce.admin.orders.index",
+                "tags": [
+                    "Sales"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "pending",
+                                "paid",
+                                "failed",
+                                "cancelled",
+                                "partially_refunded",
+                                "refunded",
+                                null
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OrderResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/refunds": {
+            "get": {
+                "operationId": "commerce.admin.refunds.index",
+                "tags": [
+                    "Sales"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/RefundStatus"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `RefundResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/RefundResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/refunds/{refund}/approve": {
+            "post": {
+                "operationId": "commerce.admin.refunds.approve",
+                "tags": [
+                    "Sales"
+                ],
+                "parameters": [
+                    {
+                        "name": "refund",
+                        "in": "path",
+                        "required": true,
+                        "description": "The refund ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "note": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 1000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`RefundResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RefundResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/refunds/{refund}/reject": {
+            "post": {
+                "operationId": "commerce.admin.refunds.reject",
+                "tags": [
+                    "Sales"
+                ],
+                "parameters": [
+                    {
+                        "name": "refund",
+                        "in": "path",
+                        "required": true,
+                        "description": "The refund ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "note": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 1000
+                                    }
+                                },
+                                "required": [
+                                    "note"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`RefundResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RefundResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "operationId": "admin.users.index",
@@ -4775,6 +6352,126 @@
                     }
                 }
             }
+        },
+        "/webhooks/razorpay": {
+            "post": {
+                "operationId": "commerce.webhooks.razorpay",
+                "tags": [
+                    "Webhook"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string",
+                                    "const": "Invalid signature"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wishlist": {
+            "get": {
+                "operationId": "commerce.wishlist.index",
+                "summary": "Saved courses that are still live, most recently saved first",
+                "tags": [
+                    "Wishlist"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CourseCardResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseCardResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "commerce.wishlist.store",
+                "tags": [
+                    "Wishlist"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "course": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "course"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/wishlist/{slug}": {
+            "delete": {
+                "operationId": "commerce.wishlist.destroy",
+                "tags": [
+                    "Wishlist"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -4834,6 +6531,129 @@
                 ],
                 "title": "ApplicationStatus"
             },
+            "CartLineResource": {
+                "type": "object",
+                "properties": {
+                    "course": {
+                        "$ref": "#/components/schemas/CourseCardResource"
+                    },
+                    "list_price": {
+                        "type": "integer"
+                    },
+                    "discount": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "problem": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Why this course can't be bought now (it is then left out of the totals)."
+                    },
+                    "problem_message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "This course is no longer available.",
+                            "This course is free \u2014 enroll from the course page.",
+                            "You can\u2019t buy your own course.",
+                            "You already have this course.",
+                            "This course can\u2019t be bought right now.",
+                            null
+                        ]
+                    }
+                },
+                "required": [
+                    "course",
+                    "list_price",
+                    "discount",
+                    "amount",
+                    "problem",
+                    "problem_message"
+                ],
+                "title": "CartLineResource"
+            },
+            "CartResource": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "count": {
+                        "type": "integer"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CartLineResource"
+                        }
+                    },
+                    "coupon": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "applied": {
+                                "type": "boolean"
+                            },
+                            "message": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "code",
+                            "applied",
+                            "message"
+                        ]
+                    },
+                    "totals": {
+                        "type": "object",
+                        "properties": {
+                            "subtotal": {
+                                "type": "integer"
+                            },
+                            "discount": {
+                                "type": "integer"
+                            },
+                            "tax": {
+                                "type": "integer"
+                            },
+                            "total": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "subtotal",
+                            "discount",
+                            "tax",
+                            "total"
+                        ]
+                    }
+                },
+                "required": [
+                    "token",
+                    "count",
+                    "items",
+                    "coupon",
+                    "totals"
+                ],
+                "title": "CartResource"
+            },
             "CategoryResource": {
                 "type": "object",
                 "properties": {
@@ -4892,6 +6712,109 @@
                     "description"
                 ],
                 "title": "CategoryResource"
+            },
+            "CouponKind": {
+                "type": "string",
+                "enum": [
+                    "percent",
+                    "fixed",
+                    "fixed_price"
+                ],
+                "title": "CouponKind"
+            },
+            "CouponResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "percent",
+                            "fixed",
+                            "fixed_price"
+                        ]
+                    },
+                    "value": {
+                        "type": "integer"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "organic",
+                            "instructor_referral",
+                            "platform_promoted"
+                        ]
+                    },
+                    "course": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "title"
+                        ]
+                    },
+                    "max_redemptions": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "per_user_limit": {
+                        "type": "integer"
+                    },
+                    "redemptions": {
+                        "type": "integer"
+                    },
+                    "starts_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "value",
+                    "channel",
+                    "course",
+                    "max_redemptions",
+                    "per_user_limit",
+                    "redemptions",
+                    "starts_at",
+                    "ends_at",
+                    "is_active",
+                    "created_at"
+                ],
+                "title": "CouponResource"
             },
             "CourseCardResource": {
                 "type": "object",
@@ -6411,6 +8334,230 @@
                 ],
                 "title": "NoteResource"
             },
+            "OrderResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "paid",
+                            "failed",
+                            "cancelled",
+                            "partially_refunded",
+                            "refunded"
+                        ]
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "subtotal": {
+                        "type": "integer"
+                    },
+                    "discount_total": {
+                        "type": "integer"
+                    },
+                    "tax_total": {
+                        "type": "integer"
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "coupon_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "paid_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "refund_window_ends_at": {
+                        "type": "null"
+                    },
+                    "billing": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "state_code": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string"
+                            },
+                            "gstin": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "business_name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "email",
+                            "state_code",
+                            "state",
+                            "gstin",
+                            "business_name",
+                            "address"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "course": {
+                                    "type": "object",
+                                    "properties": {
+                                        "slug": {
+                                            "type": "string"
+                                        },
+                                        "title": {
+                                            "type": "string"
+                                        },
+                                        "thumbnail_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "slug",
+                                        "title",
+                                        "thumbnail_url"
+                                    ]
+                                },
+                                "list_price": {
+                                    "type": "integer"
+                                },
+                                "discount": {
+                                    "type": "integer"
+                                },
+                                "amount": {
+                                    "type": "integer"
+                                },
+                                "refund": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "requested",
+                                                "rejected",
+                                                "processing",
+                                                "processed",
+                                                "failed"
+                                            ]
+                                        },
+                                        "amount": {
+                                            "type": "integer"
+                                        },
+                                        "decision_note": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "amount",
+                                        "decision_note"
+                                    ]
+                                },
+                                "refundable": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "course",
+                                "list_price",
+                                "discount",
+                                "amount",
+                                "refund",
+                                "refundable"
+                            ]
+                        }
+                    },
+                    "invoice": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "number": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "download_url": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "number",
+                            "download_url"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "number",
+                    "status",
+                    "currency",
+                    "subtotal",
+                    "discount_total",
+                    "tax_total",
+                    "total",
+                    "coupon_code",
+                    "created_at",
+                    "paid_at",
+                    "refund_window_ends_at",
+                    "billing",
+                    "items",
+                    "invoice"
+                ],
+                "title": "OrderResource"
+            },
             "PriceTierResource": {
                 "type": "object",
                 "properties": {
@@ -6430,6 +8577,129 @@
                     "currency"
                 ],
                 "title": "PriceTierResource"
+            },
+            "RefundResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "requested",
+                            "rejected",
+                            "processing",
+                            "processed",
+                            "failed"
+                        ]
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "reason": {
+                        "type": "string"
+                    },
+                    "auto_approved": {
+                        "type": "boolean"
+                    },
+                    "decision_note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "processed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "order": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "string"
+                            },
+                            "paid_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "number",
+                            "paid_at"
+                        ]
+                    },
+                    "course": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "title"
+                        ]
+                    },
+                    "learner": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "email"
+                        ]
+                    },
+                    "progress_percent": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "amount",
+                    "reason",
+                    "auto_approved",
+                    "decision_note",
+                    "created_at",
+                    "processed_at",
+                    "order",
+                    "course",
+                    "learner",
+                    "progress_percent"
+                ],
+                "title": "RefundResource"
+            },
+            "RefundStatus": {
+                "type": "string",
+                "enum": [
+                    "requested",
+                    "rejected",
+                    "processing",
+                    "processed",
+                    "failed"
+                ],
+                "title": "RefundStatus"
             },
             "RegisterRequest": {
                 "type": "object",
@@ -6539,6 +8809,15 @@
                     "admin"
                 ],
                 "title": "Role"
+            },
+            "SaleChannel": {
+                "type": "string",
+                "enum": [
+                    "organic",
+                    "instructor_referral",
+                    "platform_promoted"
+                ],
+                "title": "SaleChannel"
             },
             "StoreInstructorApplicationRequest": {
                 "type": "object",

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, ShieldCheck, ShoppingCart, MonitorPlay, Presentation } from "lucide-react";
+import { Heart, LogOut, MonitorPlay, Presentation, Receipt, Settings, ShieldCheck } from "lucide-react";
+import { CartLink } from "@/components/commerce/cart-link";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -23,11 +24,7 @@ export function AuthNav() {
   const session = useSession();
   const router = useRouter();
 
-  const cart = (
-    <Link href="/cart" aria-label="Cart" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "text-stone-700")}>
-      <ShoppingCart className="size-5" />
-    </Link>
-  );
+  const cart = <CartLink />;
 
   if (isPending) {
     return (
@@ -92,6 +89,12 @@ export function AuthNav() {
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href={instructor ? "/instructor" : "/teach"} />}>
             <Presentation /> {instructor ? "Instructor dashboard" : "Teach on Erudsway"}
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/wishlist" />}>
+            <Heart /> Wishlist
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/account/purchases" />}>
+            <Receipt /> Purchase history
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href="/account" />}>
             <Settings /> Account settings

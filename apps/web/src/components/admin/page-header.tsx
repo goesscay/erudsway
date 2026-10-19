@@ -18,6 +18,13 @@ export function StatusPill({ status }: { status: string }) {
     rejected: "bg-destructive/5 text-destructive ring-destructive/20",
     suspended: "bg-destructive/5 text-destructive ring-destructive/20",
     revoked: "bg-destructive/5 text-destructive ring-destructive/20",
+    paid: "bg-[#e7f1ec] text-success ring-[#cfe3d8]",
+    processed: "bg-[#e7f1ec] text-success ring-[#cfe3d8]",
+    "auto-approved": "bg-[#e7f1ec] text-success ring-[#cfe3d8]",
+    requested: "bg-gold-50 text-gold-600 ring-gold-200",
+    processing: "bg-gold-50 text-gold-600 ring-gold-200",
+    failed: "bg-destructive/5 text-destructive ring-destructive/20",
+    refunded: "bg-paper-2 text-stone-700 ring-line",
   };
   return (
     <span className={`inline-flex h-6 items-center rounded-sm px-2 text-[0.7rem] font-bold tracking-wide capitalize ring-1 ring-inset ${styles[status] ?? "bg-paper-2 text-stone-700 ring-line"}`}>

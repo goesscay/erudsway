@@ -2,6 +2,7 @@
 
 use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
+use App\Modules\Commerce\CommerceServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Learning\LearningServiceProvider;
 use App\Modules\Media\MediaServiceProvider;
@@ -18,4 +19,5 @@ return [
     MediaServiceProvider::class,
     AuthoringServiceProvider::class,
     LearningServiceProvider::class,
+    CommerceServiceProvider::class,
 ];

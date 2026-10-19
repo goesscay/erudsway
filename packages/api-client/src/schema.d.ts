@@ -55,6 +55,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["commerce.cart.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a course to the cart (creates the cart, and for guests its token) */
+        post: operations["commerce.cart.add"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/items/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["commerce.cart.remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/coupon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a coupon code; an unusable code is kept with a message so the learner sees why */
+        post: operations["commerce.cart.coupon.apply"];
+        delete: operations["commerce.cart.coupon.remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** After sign-in: fold the guest cart into the user's */
+        post: operations["commerce.cart.merge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categories": {
         parameters: {
             query?: never;
@@ -87,6 +170,93 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/checkout/states": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** States for the billing form (GST place of supply) */
+        get: operations["commerce.checkout.states"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create the order from the cart and open payment. The response carries what the
+         *     Razorpay checkout widget needs; access is granted only after verification
+         */
+        post: operations["commerce.checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a payment the checkout widget reported as successful */
+        post: operations["commerce.orders.verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/coupons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["commerce.admin.coupons.index"];
+        put?: never;
+        post: operations["commerce.admin.coupons.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/coupons/{coupon}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Switch a coupon on or off (codes are never edited once people may have them) */
+        patch: operations["commerce.admin.coupons.update"];
         trace?: never;
     };
     "/courses": {
@@ -747,6 +917,73 @@ export interface paths {
         patch: operations["learning.notes.update"];
         trace?: never;
     };
+    "/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Purchase history: paid and refunded orders, newest first */
+        get: operations["commerce.orders.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["commerce.orders.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{order}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The GST invoice PDF (issued on the spot if the background job hasn't run yet) */
+        get: operations["commerce.orders.invoice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/order-items/{item}/refund-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask for a refund of one course (decision D4) */
+        post: operations["commerce.refunds.request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -933,6 +1170,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["commerce.admin.orders.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["commerce.admin.refunds.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/refunds/{refund}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["commerce.admin.refunds.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/refunds/{refund}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["commerce.admin.refunds.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -1065,6 +1366,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/razorpay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["commerce.webhooks.razorpay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wishlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved courses that are still live, most recently saved first */
+        get: operations["commerce.wishlist.index"];
+        put?: never;
+        post: operations["commerce.wishlist.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/wishlist/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["commerce.wishlist.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1085,6 +1435,34 @@ export interface components {
          * @enum {string}
          */
         ApplicationStatus: "pending" | "approved" | "rejected";
+        /** CartLineResource */
+        CartLineResource: {
+            course: components["schemas"]["CourseCardResource"];
+            list_price: number;
+            discount: number;
+            amount: number;
+            /** @description Why this course can't be bought now (it is then left out of the totals). */
+            problem: string | null;
+            /** @enum {string|null} */
+            problem_message: "This course is no longer available." | "This course is free — enroll from the course page." | "You can’t buy your own course." | "You already have this course." | "This course can’t be bought right now." | null;
+        };
+        /** CartResource */
+        CartResource: {
+            token: string | null;
+            count: number;
+            items: components["schemas"]["CartLineResource"][];
+            coupon: {
+                code: string | null;
+                applied: boolean;
+                message: string | null;
+            };
+            totals: {
+                subtotal: number;
+                discount: number;
+                tax: number;
+                total: number;
+            };
+        };
         /** CategoryResource */
         CategoryResource: {
             slug: string;
@@ -1098,6 +1476,32 @@ export interface components {
                 slug: string;
                 name: string;
             }[];
+        };
+        /**
+         * CouponKind
+         * @enum {string}
+         */
+        CouponKind: "percent" | "fixed" | "fixed_price";
+        /** CouponResource */
+        CouponResource: {
+            id: number;
+            code: string;
+            /** @enum {string} */
+            kind: "percent" | "fixed" | "fixed_price";
+            value: number;
+            /** @enum {string} */
+            channel: "organic" | "instructor_referral" | "platform_promoted";
+            course: {
+                slug: string;
+                title: string;
+            } | null;
+            max_redemptions: number | null;
+            per_user_limit: number;
+            redemptions: number;
+            starts_at: string | null;
+            ends_at: string | null;
+            is_active: boolean;
+            created_at: string;
         };
         /** CourseCardResource */
         CourseCardResource: {
@@ -1438,12 +1842,90 @@ export interface components {
             created_at: string;
             updated_at: string;
         };
+        /** OrderResource */
+        OrderResource: {
+            id: string;
+            number: string;
+            /** @enum {string} */
+            status: "pending" | "paid" | "failed" | "cancelled" | "partially_refunded" | "refunded";
+            currency: string;
+            subtotal: number;
+            discount_total: number;
+            tax_total: number;
+            total: number;
+            coupon_code: string | null;
+            created_at: string;
+            paid_at: string | null;
+            refund_window_ends_at: null;
+            billing: {
+                name: string;
+                email: string;
+                state_code: string;
+                state: string;
+                gstin: string | null;
+                business_name: string | null;
+                address: string | null;
+            };
+            items: {
+                id: number;
+                course: {
+                    slug: string;
+                    title: string;
+                    thumbnail_url: string | null;
+                };
+                list_price: number;
+                discount: number;
+                amount: number;
+                refund: {
+                    /** @enum {string} */
+                    status: "requested" | "rejected" | "processing" | "processed" | "failed";
+                    amount: number;
+                    decision_note: string | null;
+                } | null;
+                refundable: boolean;
+            }[];
+            invoice: {
+                number: string | null;
+                download_url: string;
+            } | null;
+        };
         /** PriceTierResource */
         PriceTierResource: {
             id: number;
             amount: number;
             currency: string;
         };
+        /** RefundResource */
+        RefundResource: {
+            id: number;
+            /** @enum {string} */
+            status: "requested" | "rejected" | "processing" | "processed" | "failed";
+            amount: number;
+            reason: string;
+            auto_approved: boolean;
+            decision_note: string | null;
+            created_at: string;
+            processed_at: string | null;
+            order: {
+                id: string;
+                number: string;
+                paid_at: string | null;
+            };
+            course: {
+                slug: string;
+                title: string;
+            };
+            learner: {
+                name: string;
+                email: string;
+            };
+            progress_percent: number;
+        };
+        /**
+         * RefundStatus
+         * @enum {string}
+         */
+        RefundStatus: "requested" | "rejected" | "processing" | "processed" | "failed";
         /** RegisterRequest */
         RegisterRequest: {
             name: string;
@@ -1480,6 +1962,11 @@ export interface components {
          * @enum {string}
          */
         Role: "student" | "instructor" | "admin";
+        /**
+         * SaleChannel
+         * @enum {string}
+         */
+        SaleChannel: "organic" | "instructor_referral" | "platform_promoted";
         /** StoreInstructorApplicationRequest */
         StoreInstructorApplicationRequest: {
             headline: string;
@@ -1685,6 +2172,162 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
         };
     };
+    "commerce.cart.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+        };
+    };
+    "commerce.cart.add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    course: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.cart.remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+        };
+    };
+    "commerce.cart.coupon.apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.cart.coupon.remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+        };
+    };
+    "commerce.cart.merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CartResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CartResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "catalog.categories.index": {
         parameters: {
             query?: never;
@@ -1729,6 +2372,263 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "commerce.checkout.states": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            code: string;
+                            name: string;
+                        }[];
+                        meta: string;
+                    };
+                };
+            };
+        };
+    };
+    "commerce.checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** @enum {string} */
+                    state_code: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08" | "09" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21" | "22" | "23" | "24" | "26" | "27" | "29" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "97";
+                    gstin?: string | null;
+                    business_name?: string | null;
+                    address?: string | null;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            order: {
+                                id: string;
+                                number: string;
+                                /** @enum {string} */
+                                status: "pending" | "paid" | "failed" | "cancelled" | "partially_refunded" | "refunded";
+                                currency: string;
+                                subtotal: number;
+                                discount_total: number;
+                                tax_total: number;
+                                total: number;
+                                coupon_code: string | null;
+                                created_at: string;
+                                paid_at: string | null;
+                                refund_window_ends_at: null;
+                                billing: {
+                                    name: string;
+                                    email: string;
+                                    state_code: string;
+                                    state: string;
+                                    gstin: string | null;
+                                    business_name: string | null;
+                                    address: string | null;
+                                };
+                                items: {
+                                    id: number;
+                                    course: {
+                                        slug: string;
+                                        title: string;
+                                        thumbnail_url: string | null;
+                                    };
+                                    list_price: number;
+                                    discount: number;
+                                    amount: number;
+                                    refund: {
+                                        /** @enum {string} */
+                                        status: "requested" | "rejected" | "processing" | "processed" | "failed";
+                                        amount: number;
+                                        decision_note: string | null;
+                                    } | null;
+                                    refundable: boolean;
+                                }[];
+                                invoice: {
+                                    number: string | null;
+                                    download_url: string;
+                                } | null;
+                            };
+                            payment: {
+                                gateway: string;
+                                key: string;
+                                gateway_order_id: string;
+                                amount: number;
+                                currency: string;
+                                name: string;
+                                description: string;
+                                prefill: {
+                                    name: string;
+                                    email: string;
+                                };
+                                fake_signature: string | null;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.orders.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The order UUID */
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    razorpay_payment_id: string;
+                    razorpay_order_id: string;
+                    razorpay_signature: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.coupons.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CouponResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CouponResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "commerce.admin.coupons.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    kind: components["schemas"]["CouponKind"];
+                    value: number;
+                    channel?: components["schemas"]["SaleChannel"];
+                    course?: string | null;
+                    max_redemptions?: number | null;
+                    per_user_limit?: number;
+                    /** Format: date-time */
+                    starts_at?: string | null;
+                    /** Format: date-time */
+                    ends_at?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `CouponResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CouponResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.coupons.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The coupon ID */
+                coupon: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    is_active: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description `CouponResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CouponResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "catalog.courses.index": {
@@ -3186,6 +4086,115 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "commerce.orders.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "commerce.orders.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The order UUID */
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "commerce.orders.invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The order UUID */
+                order: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "commerce.refunds.request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The item ID */
+                item: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `RefundResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RefundResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "identity.password.email": {
         parameters: {
             query?: never;
@@ -3562,6 +4571,156 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
+    "commerce.admin.orders.index": {
+        parameters: {
+            query?: {
+                q?: string | null;
+                status?: "pending" | "paid" | "failed" | "cancelled" | "partially_refunded" | "refunded" | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.refunds.index": {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["RefundStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `RefundResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RefundResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.refunds.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The refund ID */
+                refund: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `RefundResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RefundResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.refunds.reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The refund ID */
+                refund: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `RefundResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RefundResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "admin.users.index": {
         parameters: {
             query?: {
@@ -3855,6 +5014,102 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "commerce.webhooks.razorpay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": "Invalid signature";
+                };
+            };
+        };
+    };
+    "commerce.wishlist.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `CourseCardResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseCardResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "commerce.wishlist.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    course: string;
+                };
+            };
+        };
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.wishlist.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
 }

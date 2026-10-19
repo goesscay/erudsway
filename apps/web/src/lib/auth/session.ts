@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { components } from "@erudsway/api-client";
 import { api, ApiRequestError, mutate, resetCsrf, unwrap } from "@/lib/api/client";
+import { cartKey, forgetCartToken, mergeGuestCart } from "@/lib/commerce/api";
 
 export type CurrentUser = components["schemas"]["UserResource"];
 
@@ -28,18 +29,26 @@ export function useMe() {
 
 export function useSession() {
   const queryClient = useQueryClient();
+  // A guest's cart follows them into their account.
+  const adoptGuestCart = async () => {
+    const cart = await mergeGuestCart();
+    if (cart) queryClient.setQueryData(cartKey, cart);
+    else void queryClient.invalidateQueries({ queryKey: cartKey });
+  };
 
   return {
     async login(body: { email: string; password: string; remember?: boolean }) {
       const res = await mutate(() => api.POST("/auth/login", { body }));
       resetCsrf(); // session id rotated
       queryClient.setQueryData(meKey, res.data);
+      await adoptGuestCart();
       return res.data;
     },
     async register(body: { name: string; email: string; password: string; password_confirmation: string }) {
       const res = await mutate(() => api.POST("/auth/register", { body }));
       resetCsrf();
       queryClient.setQueryData(meKey, res.data);
+      await adoptGuestCart();
       return res.data;
     },
     async logout() {
@@ -47,6 +56,7 @@ export function useSession() {
         await mutate(() => api.POST("/auth/logout"));
       } finally {
         resetCsrf();
+        forgetCartToken();
         queryClient.setQueryData(meKey, null);
         queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== meKey[0] });
       }

@@ -36,6 +36,25 @@ class Enroller
         return $this->activate($user, $course, EnrollmentSource::Free);
     }
 
+    /** Access bought through an order item (Phase 5). A purchase restores revoked access. */
+    public function enrollPurchase(User $user, Course $course, int $orderItemId): Enrollment
+    {
+        return $this->activate($user, $course, EnrollmentSource::Purchase, orderItemId: $orderItemId);
+    }
+
+    /** Remove access because the purchase was refunded. */
+    public function markRefunded(User $user, Course $course): void
+    {
+        DB::transaction(function () use ($user, $course) {
+            $enrollment = Enrollment::query()->lockForUpdate()
+                ->where('user_id', $user->id)->where('course_id', $course->id)->first();
+            if ($enrollment?->isActive()) {
+                $enrollment->forceFill(['status' => EnrollmentStatus::Refunded, 'revoked_at' => now()])->save();
+                Course::query()->whereKey($course->id)->where('enrollment_count', '>', 0)->decrement('enrollment_count');
+            }
+        });
+    }
+
     public function grant(User $learner, Course $course, User $admin, string $reason): Enrollment
     {
         if (! in_array($course->status, [CourseStatus::Published, CourseStatus::Unpublished], true)) {
@@ -67,11 +86,11 @@ class Enroller
 
     /**
      * Learners re-enrolling get their existing active enrollment back unchanged. An admin
-     * grant can restore revoked access; a learner can't undo a revocation themselves.
+     * grant or a purchase can restore revoked access; a free re-enroll can't.
      */
-    private function activate(User $user, Course $course, EnrollmentSource $source, ?User $grantor = null, ?string $reason = null): Enrollment
+    private function activate(User $user, Course $course, EnrollmentSource $source, ?User $grantor = null, ?string $reason = null, ?int $orderItemId = null): Enrollment
     {
-        return DB::transaction(function () use ($user, $course, $source, $grantor, $reason) {
+        return DB::transaction(function () use ($user, $course, $source, $grantor, $reason, $orderItemId) {
             $existing = Enrollment::query()->lockForUpdate()
                 ->where('user_id', $user->id)->where('course_id', $course->id)->first();
 
@@ -82,7 +101,7 @@ class Enroller
 
                 return $existing;
             }
-            if ($existing?->status === EnrollmentStatus::Revoked && $grantor === null) {
+            if ($existing?->status === EnrollmentStatus::Revoked && $grantor === null && $orderItemId === null) {
                 throw new DomainException('ENROLLMENT_REVOKED', 'Your access to this course was removed. Contact support if you think this is a mistake.', 403);
             }
 
@@ -92,6 +111,7 @@ class Enroller
                 'status' => EnrollmentStatus::Active,
                 'granted_by' => $grantor?->id,
                 'reason' => $reason,
+                'order_item_id' => $orderItemId,
                 'granted_at' => now(),
                 'revoked_at' => null,
             ])->save();
