@@ -18,7 +18,8 @@ exec > >(tee -a "$LOG") 2>&1
 
 STAMP="$(date +%Y%m%d-%H%M%S)"
 REL="$BASE/releases/$STAMP"
-PREV="$(readlink -f "$BASE/current" 2>/dev/null || true)"
+# -e: empty when there is no current release yet (first deploy), so there is nothing to fall back to.
+PREV="$(readlink -e "$BASE/current" 2>/dev/null || true)"
 SHA="$(git --git-dir="$BASE/repo.git" rev-parse --verify "$REF^{commit}")"
 echo "=== release $STAMP ($REF @ ${SHA:0:9}) ==="
 

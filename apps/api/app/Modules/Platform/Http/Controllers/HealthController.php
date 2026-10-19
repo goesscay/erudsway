@@ -22,9 +22,10 @@ class HealthController extends Controller
         $checks = [
             'database' => $this->check(fn () => DB::select('select 1')),
             'cache' => $this->check(function () {
-                Cache::put('health:ping', 1, 10);
+                // A string: Redis hands numbers back as strings, which a strict check would fail.
+                Cache::put('health:ping', 'ok', 10);
 
-                return Cache::get('health:ping') === 1 ?: throw new \RuntimeException('cache read failed');
+                return Cache::get('health:ping') === 'ok' ?: throw new \RuntimeException('cache read failed');
             }),
         ];
         $ok = ! in_array(false, $checks, true);
