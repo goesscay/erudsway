@@ -31,11 +31,15 @@ import { formatCount, formatDuration } from "@/lib/format";
 
 type Params = Promise<{ slug: string }>;
 
+/** Placeholder param for builds with no reachable catalogue; never fetched. */
+const NO_COURSES = "__no-courses-yet";
+
 /**
  * Prerender every live course at build time, so the page arrives complete — title,
  * curriculum and price in the first HTML, nothing swapped in later (fast LCP, no layout
  * shift). Courses published after the build are rendered on first visit and cached.
- * If the API isn't reachable during the build (first deploy), nothing is prerendered.
+ * If the API isn't reachable during the build (first deploy, empty catalogue), a single
+ * placeholder is returned — Cache Components requires at least one — which renders as 404.
  */
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const slugs: { slug: string }[] = [];
@@ -45,12 +49,12 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
     slugs.push(...result.data.map((c) => ({ slug: c.slug })));
     if (page >= result.meta.last_page) break;
   }
-  return slugs;
+  return slugs.length > 0 ? slugs : [{ slug: NO_COURSES }];
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const course = await getCourse(slug).catch(() => null);
+  const course = slug === NO_COURSES ? null : await getCourse(slug).catch(() => null);
   if (!course) return { title: "Course not found" };
 
   return {
@@ -88,6 +92,7 @@ function CourseSkeleton() {
 
 async function CourseView({ params }: { params: Params }) {
   const { slug } = await params;
+  if (slug === NO_COURSES) notFound();
   const course = await getCourse(slug);
   if (!course) notFound();
 
