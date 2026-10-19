@@ -13,6 +13,11 @@ export function formatCount(n: number): string {
   return new Intl.NumberFormat("en-IN", { notation: n >= 100000 ? "compact" : "standard" }).format(n);
 }
 
+/** "1 lecture", "12 lectures". */
+export function plural(n: number, word: string): string {
+  return `${formatCount(n)} ${word}${n === 1 ? "" : "s"}`;
+}
+
 export function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.round((seconds % 3600) / 60);

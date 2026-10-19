@@ -15,12 +15,15 @@ import { hasPermission, isStaff, useMe, type CurrentUser } from "@/lib/auth/sess
 export function RequireAuth({
   permission,
   staff,
+  instructor,
   children,
 }: {
   /** Require a specific permission (e.g. "review_instructor_applications"). */
   permission?: string;
   /** Require any staff permission. */
   staff?: boolean;
+  /** Require an approved instructor. */
+  instructor?: boolean;
   children: (user: CurrentUser) => React.ReactNode;
 }) {
   const { data: me, isPending, isError } = useMe();
@@ -51,17 +54,28 @@ export function RequireAuth({
     return <Notice title="You don't have access to this page" body="Ask an administrator if you think you should." />;
   }
 
+  if (instructor && !me.instructor) {
+    return (
+      <Notice
+        title="This area is for approved instructors"
+        body="Apply to teach on Erudsway — once approved, you can build and publish courses here."
+        href="/teach"
+        cta="Apply to teach"
+      />
+    );
+  }
+
   return <>{children(me)}</>;
 }
 
-function Notice({ title, body }: { title: string; body: string }) {
+function Notice({ title, body, href = "/", cta = "Back to home" }: { title: string; body: string; href?: string; cta?: string }) {
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-6 py-24 text-center">
       <ShieldAlert className="size-10 text-gold-600" strokeWidth={1.5} />
       <h1 className="text-h3 mt-4">{title}</h1>
       <p className="mt-2 text-sm text-stone-700">{body}</p>
-      <Link href="/" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
-        Back to home
+      <Link href={href} className={buttonVariants({ variant: "outline", className: "mt-6" })}>
+        {cta}
       </Link>
     </div>
   );

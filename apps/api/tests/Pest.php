@@ -6,6 +6,8 @@ use App\Modules\Identity\Enums\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+require_once __DIR__.'/Support/authoring.php';
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

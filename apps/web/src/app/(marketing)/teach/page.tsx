@@ -32,7 +32,7 @@ export default function TeachPage() {
           </div>
           <div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-              <Image src={photos.teach.src} alt={photos.teach.alt} fill priority sizes="(min-width: 1024px) 560px, 100vw" className="object-cover" />
+              <Image src={photos.teach.src} alt={photos.teach.alt} fill preload sizes="(min-width: 1024px) 560px, 100vw" className="object-cover" />
             </div>
             <PhotoCredit photo={photos.teach} className="mt-2 text-right text-white/40" />
           </div>

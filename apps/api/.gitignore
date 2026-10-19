@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local SQLite database (DB_CONNECTION=sqlite with DB_DATABASE=erudsway in a local .env)
+/erudsway

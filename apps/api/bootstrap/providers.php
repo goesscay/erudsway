@@ -1,7 +1,9 @@
 <?php
 
+use App\Modules\Authoring\AuthoringServiceProvider;
 use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
+use App\Modules\Media\MediaServiceProvider;
 use App\Modules\Platform\PlatformServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\HorizonServiceProvider;
@@ -12,4 +14,6 @@ return [
     PlatformServiceProvider::class,
     IdentityServiceProvider::class,
     CatalogServiceProvider::class,
+    MediaServiceProvider::class,
+    AuthoringServiceProvider::class,
 ];

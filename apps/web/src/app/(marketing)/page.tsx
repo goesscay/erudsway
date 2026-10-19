@@ -62,7 +62,7 @@ export default function HomePage() {
                 src={photos.hero.src}
                 alt={photos.hero.alt}
                 fill
-                priority
+                preload
                 sizes="(min-width: 1024px) 620px, 100vw"
                 className="object-cover"
               />

@@ -1,5 +1,5 @@
 import { ChevronDown, ClipboardList, FileText, ListChecks, PlayCircle } from "lucide-react";
-import { formatClock, formatDuration } from "@/lib/format";
+import { formatClock, formatDuration, plural } from "@/lib/format";
 
 export interface CurriculumLecture {
   title: string;
@@ -27,7 +27,7 @@ export function CurriculumList({ sections }: { sections: CurriculumSection[] }) 
   return (
     <div>
       <p className="mb-3 text-sm text-stone-700">
-        {sections.length} sections · {lectures.length} lectures · {formatDuration(total)} total length
+        {plural(sections.length, "section")} · {plural(lectures.length, "lecture")} · {formatDuration(total)} total length
       </p>
       <div className="divide-y divide-line overflow-hidden rounded-md border border-line bg-white">
         {sections.map((section, i) => {
@@ -38,7 +38,7 @@ export function CurriculumList({ sections }: { sections: CurriculumSection[] }) 
                 <ChevronDown className="size-4 text-stone-500 transition-transform group-open:rotate-180" />
                 <span className="flex-1 font-semibold text-ink">{section.title}</span>
                 <span className="tabular text-xs text-stone-500">
-                  {section.lectures.length} lectures · {formatDuration(secs)}
+                  {plural(section.lectures.length, "lecture")} · {formatDuration(secs)}
                 </span>
               </summary>
               <ul className="space-y-0.5 px-5 py-3">

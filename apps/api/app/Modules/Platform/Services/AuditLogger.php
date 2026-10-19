@@ -10,9 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 class AuditLogger
 {
-    public function __construct(private readonly Request $request) {}
-
     /**
+     * Record an action. The actor defaults to whoever is signed in on the *current* request
+     * (read at call time, never cached), falling back to the session guard for console use.
+     *
      * @param  array<string, mixed>|null  $before
      * @param  array<string, mixed>|null  $after
      */
@@ -23,8 +24,9 @@ class AuditLogger
         ?array $after = null,
         ?User $actor = null,
     ): AuditLog {
-        // Resolve from the guard, not the request: works in controllers, jobs and console commands alike.
-        $actorId = $actor?->getKey() ?? Auth::guard('web')->id();
+        /** @var Request $request */
+        $request = app('request');
+        $actorId = $actor?->getKey() ?? $request->user()?->getAuthIdentifier() ?? Auth::guard('web')->id();
 
         return AuditLog::create([
             'actor_id' => $actorId,
@@ -33,8 +35,8 @@ class AuditLogger
             'subject_id' => $subject ? (string) $subject->getKey() : null,
             'before' => $before,
             'after' => $after,
-            'ip' => $this->request->ip(),
-            'user_agent' => mb_substr((string) $this->request->userAgent(), 0, 500),
+            'ip' => $request->ip(),
+            'user_agent' => mb_substr((string) $request->userAgent(), 0, 500),
         ]);
     }
 }

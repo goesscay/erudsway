@@ -48,9 +48,14 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException|AccessDeniedHttpException $e, Request $request) use ($isApi) {
-            return $isApi($request)
-                ? ApiResponse::error('FORBIDDEN', 'You do not have permission to do this.', 403)
-                : null;
+            if (! $isApi($request)) {
+                return null;
+            }
+            // Policies may explain a denial ("This course is being reviewed…"); keep that message.
+            $message = $e->getMessage();
+            $generic = $message === '' || $message === 'This action is unauthorized.';
+
+            return ApiResponse::error('FORBIDDEN', $generic ? 'You do not have permission to do this.' : $message, 403);
         });
 
         $exceptions->render(function (ModelNotFoundException|NotFoundHttpException $e, Request $request) use ($isApi) {

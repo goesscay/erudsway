@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { levelLabel, type CourseCard as CourseCardData } from "@/lib/catalog/types";
-import { formatDuration } from "@/lib/format";
+import { formatDuration, plural } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CourseBadge } from "./course-badge";
 import { Price } from "./price";
@@ -26,7 +26,7 @@ function Thumb({ course, sizes, className }: { course: CourseCardData; sizes: st
 function Meta({ course }: { course: CourseCardData }) {
   return (
     <p className="text-xs text-muted-foreground">
-      {formatDuration(course.duration_seconds)} total · {course.lecture_count} lectures · {levelLabel[course.level] ?? course.level}
+      {formatDuration(course.duration_seconds)} total · {plural(course.lecture_count, "lecture")} · {levelLabel[course.level] ?? course.level}
       {course.language !== "English" && <> · {course.language}</>}
     </p>
   );

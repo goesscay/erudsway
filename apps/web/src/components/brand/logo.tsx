@@ -11,7 +11,7 @@ export function Logo({ className, inverted = false }: { className?: string; inve
         alt=""
         width={173}
         height={158}
-        priority
+        preload
         className={cn("h-9 w-auto", inverted && "brightness-0 invert")}
       />
       <span className="flex flex-col leading-none">

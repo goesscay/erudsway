@@ -169,9 +169,9 @@ async function CourseView({ params }: { params: Params }) {
           {course.description && (
             <section>
               <h2 className="text-h3 mb-4">Description</h2>
-              {/* Trusted today (seeded data only). Phase 3 must sanitise instructor HTML on save, server-side. */}
+              {/* Sanitised server-side (HTMLPurifier allowlist) when the instructor saves it. */}
               <div
-                className="space-y-4 text-[0.95rem] leading-relaxed text-stone-700 [&_a]:text-navy-800 [&_a]:underline [&_li]:ml-5 [&_ul]:list-disc"
+                className="prose-content text-[0.95rem] leading-relaxed text-stone-700"
                 dangerouslySetInnerHTML={{ __html: course.description }}
               />
             </section>
@@ -212,7 +212,7 @@ async function CourseView({ params }: { params: Params }) {
           <div className="sticky top-28 overflow-hidden rounded-md bg-white shadow-[0_24px_60px_-28px_rgb(0_27_64/0.5)] ring-1 ring-line">
             <div className="relative aspect-video w-full bg-paper-2">
               {course.thumbnail_url && (
-                <Image src={course.thumbnail_url} alt="" fill sizes="380px" className="object-cover" priority />
+                <Image src={course.thumbnail_url} alt="" fill sizes="380px" className="object-cover" preload />
               )}
               {previews > 0 && (
                 <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-sm bg-navy-950/85 px-2.5 py-1 text-xs font-semibold text-white">

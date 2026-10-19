@@ -165,6 +165,7 @@ class CatalogDemoSeeder extends Seeder
         $course->forceFill([
             'status' => CourseStatus::Published,
             'published_at' => now()->subDays($c['age_days']),
+            'pricing_confirmed_at' => now()->subDays($c['age_days']),
             'enrollment_count' => $c['learners'],
             'rating_count' => (int) round($c['learners'] * 0.17),
             'rating_avg' => $c['rating'],

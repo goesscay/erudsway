@@ -53,6 +53,8 @@ jobs:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('apps/api/composer.lock') }}
 
+      - name: Install ffmpeg (video processing tests)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate
       - name: Code style (Pint)

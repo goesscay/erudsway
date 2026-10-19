@@ -12,7 +12,11 @@ export default function AdminHome() {
   useEffect(() => {
     if (!me) return;
     router.replace(
-      hasPermission(me, "review_instructor_applications") ? "/admin/instructor-applications" : "/admin/users",
+      hasPermission(me, "moderate_courses")
+        ? "/admin/course-reviews"
+        : hasPermission(me, "review_instructor_applications")
+          ? "/admin/instructor-applications"
+          : "/admin/users",
     );
   }, [me, router]);
 

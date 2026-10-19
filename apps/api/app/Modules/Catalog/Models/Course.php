@@ -3,6 +3,7 @@
 namespace App\Modules\Catalog\Models;
 
 use App\Models\User;
+use App\Modules\Authoring\Models\CourseSubmission;
 use App\Modules\Catalog\Enums\CourseLevel;
 use App\Modules\Catalog\Enums\CourseStatus;
 use App\Modules\Identity\Models\InstructorProfile;
@@ -38,6 +39,7 @@ use Illuminate\Support\Str;
  * @property list<string> $requirements
  * @property list<string> $audience
  * @property Carbon|null $published_at
+ * @property Carbon|null $pricing_confirmed_at
  * @property float $rating_avg
  * @property int $rating_count
  * @property int $enrollment_count
@@ -49,6 +51,8 @@ use Illuminate\Support\Str;
  * @property-read Category $category
  * @property-read PriceTier|null $priceTier
  * @property-read Collection<int, CourseSection> $sections
+ * @property-read Collection<int, Lecture> $lectures
+ * @property-read CourseSubmission|null $latestSubmission
  */
 class Course extends Model
 {
@@ -88,6 +92,7 @@ class Course extends Model
             'requirements' => 'array',
             'audience' => 'array',
             'published_at' => 'datetime',
+            'pricing_confirmed_at' => 'datetime',
             'rating_avg' => 'float',
             'rating_count' => 'integer',
             'enrollment_count' => 'integer',
@@ -129,6 +134,24 @@ class Course extends Model
     public function sections(): HasMany
     {
         return $this->hasMany(CourseSection::class)->orderBy('position');
+    }
+
+    /** @return HasMany<Lecture, $this> */
+    public function lectures(): HasMany
+    {
+        return $this->hasMany(Lecture::class);
+    }
+
+    /** @return HasMany<CourseSubmission, $this> */
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(CourseSubmission::class);
+    }
+
+    /** @return HasOne<CourseSubmission, $this> */
+    public function latestSubmission(): HasOne
+    {
+        return $this->hasOne(CourseSubmission::class)->latestOfMany();
     }
 
     /**

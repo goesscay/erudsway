@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Identity\Models\InstructorProfile;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -27,6 +28,21 @@ class DatabaseSeeder extends Seeder
         $admin->forceFill(['email_verified_at' => now()])->save();
         $admin->profile()->firstOrCreate();
         $admin->syncRoles([Role::Admin->value]);
+
+        // A local instructor for trying the course builder.
+        $instructor = User::query()->firstOrCreate(
+            ['email' => 'instructor@erudsway.test'],
+            ['name' => 'CA Local Instructor', 'password' => 'password'],
+        );
+        $instructor->forceFill(['email_verified_at' => now()])->save();
+        $instructor->profile()->firstOrCreate();
+        $instructor->syncRoles([Role::Student->value, Role::Instructor->value]);
+        InstructorProfile::query()->updateOrCreate(['user_id' => $instructor->id], [
+            'slug' => 'local-instructor',
+            'display_name' => 'CA Local Instructor',
+            'headline' => 'Test account for local development',
+            'approved_at' => now(),
+        ]);
 
         $this->call(CatalogDemoSeeder::class);
     }

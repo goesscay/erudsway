@@ -15,7 +15,7 @@ export function VideoStage({ poster, title, duration }: { poster: string; title:
 
   return (
     <div className="group relative aspect-video w-full overflow-hidden bg-black">
-      <Image src={poster} alt="" fill sizes="(min-width: 1024px) 70vw, 100vw" className="object-cover opacity-60" priority />
+      <Image src={poster} alt="" fill sizes="(min-width: 1024px) 70vw, 100vw" className="object-cover opacity-60" preload />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
 
       {/* Discourage screen recording: faint moving watermark with the learner's identity. */}

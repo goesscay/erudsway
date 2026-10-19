@@ -431,6 +431,1298 @@
                 "security": []
             }
         },
+        "/instructor/price-tiers": {
+            "get": {
+                "operationId": "authoring.price-tiers",
+                "summary": "Price tiers instructors can choose from",
+                "tags": [
+                    "Course"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `PriceTierResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PriceTierResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses": {
+            "get": {
+                "operationId": "authoring.courses.index",
+                "summary": "The signed-in instructor's courses, most recently edited first",
+                "tags": [
+                    "Course"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `InstructorCourseResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/InstructorCourseResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "authoring.courses.store",
+                "summary": "Start a new draft course",
+                "tags": [
+                    "Course"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 120
+                                    },
+                                    "category": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "category"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}": {
+            "get": {
+                "operationId": "authoring.courses.show",
+                "summary": "Full course data for the builder",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "authoring.courses.update",
+                "summary": "Update the landing page, details or price",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCourseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "authoring.courses.destroy",
+                "summary": "Delete a draft that has never been published",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/thumbnail": {
+            "post": {
+                "operationId": "authoring.courses.thumbnail",
+                "summary": "Upload the course image (JPEG, PNG or WebP; at least 750\u00d7422)",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 5120 kilobytes."
+                                    }
+                                },
+                                "required": [
+                                    "image"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/submit": {
+            "post": {
+                "operationId": "authoring.courses.submit",
+                "summary": "Send the course to the Erudsway team for review",
+                "tags": [
+                    "Course"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/course-submissions": {
+            "get": {
+                "operationId": "admin.courses.submissions.index",
+                "summary": "Submissions, oldest pending first by default",
+                "tags": [
+                    "CourseReview"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "rejected"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `CourseSubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseSubmissionResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/course-submissions/{submission}/approve": {
+            "post": {
+                "operationId": "admin.courses.submissions.approve",
+                "tags": [
+                    "CourseReview"
+                ],
+                "parameters": [
+                    {
+                        "name": "submission",
+                        "in": "path",
+                        "required": true,
+                        "description": "The submission ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "notes": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseSubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseSubmissionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/course-submissions/{submission}/reject": {
+            "post": {
+                "operationId": "admin.courses.submissions.reject",
+                "tags": [
+                    "CourseReview"
+                ],
+                "parameters": [
+                    {
+                        "name": "submission",
+                        "in": "path",
+                        "required": true,
+                        "description": "The submission ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "feedback": {
+                                        "type": "string",
+                                        "minLength": 20,
+                                        "maxLength": 5000
+                                    }
+                                },
+                                "required": [
+                                    "feedback"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseSubmissionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseSubmissionResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/courses/{course}": {
+            "get": {
+                "operationId": "admin.courses.show",
+                "summary": "Full course content for review, including drafts",
+                "tags": [
+                    "CourseReview"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/courses/{course}/unpublish": {
+            "post": {
+                "operationId": "admin.courses.unpublish",
+                "summary": "Take a live course off the catalogue (e.g. a complaint or a legal issue)",
+                "tags": [
+                    "CourseReview"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 2000
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/sections": {
+            "post": {
+                "operationId": "authoring.sections.store",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 120
+                                    }
+                                },
+                                "required": [
+                                    "title"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/curriculum/order": {
+            "put": {
+                "operationId": "authoring.curriculum.reorder",
+                "summary": "Apply a complete new order of sections and lectures (lectures may change section)",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReorderCurriculumRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/instructor/sections/{section}": {
+            "patch": {
+                "operationId": "authoring.sections.update",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "section",
+                        "in": "path",
+                        "required": true,
+                        "description": "The section ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 120
+                                    }
+                                },
+                                "required": [
+                                    "title"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "authoring.sections.destroy",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "section",
+                        "in": "path",
+                        "required": true,
+                        "description": "The section ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/sections/{section}/lectures": {
+            "post": {
+                "operationId": "authoring.lectures.store",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "section",
+                        "in": "path",
+                        "required": true,
+                        "description": "The section ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 160
+                                    },
+                                    "kind": {
+                                        "type": "string",
+                                        "enum": [
+                                            "video",
+                                            "article"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "kind"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/lectures/{lecture}": {
+            "patch": {
+                "operationId": "authoring.lectures.update",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "minLength": 3,
+                                        "maxLength": 160
+                                    },
+                                    "is_free_preview": {
+                                        "type": "boolean"
+                                    },
+                                    "article_html": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 50000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "authoring.lectures.destroy",
+                "tags": [
+                    "Curriculum"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/auth/email/resend": {
             "post": {
                 "operationId": "identity.verification.send",
@@ -1365,6 +2657,179 @@
                 "security": []
             }
         },
+        "/instructor/lectures/{lecture}/resources": {
+            "post": {
+                "operationId": "authoring.resources.store",
+                "tags": [
+                    "Resource"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 51200 kilobytes."
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/resources/{resource}": {
+            "delete": {
+                "operationId": "authoring.resources.destroy",
+                "tags": [
+                    "Resource"
+                ],
+                "parameters": [
+                    {
+                        "name": "resource",
+                        "in": "path",
+                        "required": true,
+                        "description": "The resource ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/resources/{resource}/download": {
+            "get": {
+                "operationId": "authoring.resources.download",
+                "summary": "Lets the instructor (or a moderator) check an uploaded file. Learner downloads arrive in Phase 4",
+                "tags": [
+                    "Resource"
+                ],
+                "parameters": [
+                    {
+                        "name": "resource",
+                        "in": "path",
+                        "required": true,
+                        "description": "The resource ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "operationId": "admin.users.index",
@@ -1676,6 +3141,430 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/lectures/{lecture}/video-uploads": {
+            "post": {
+                "operationId": "authoring.uploads.start",
+                "tags": [
+                    "VideoUpload"
+                ],
+                "parameters": [
+                    {
+                        "name": "lecture",
+                        "in": "path",
+                        "required": true,
+                        "description": "The lecture ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file_name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "file_size": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 4294967296
+                                    },
+                                    "mime": {
+                                        "type": "string",
+                                        "enum": [
+                                            "video/mp4",
+                                            "video/quicktime",
+                                            "video/x-matroska",
+                                            "video/webm",
+                                            "video/x-msvideo"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "file_name",
+                                    "file_size",
+                                    "mime"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "chunk_size": {
+                                                    "type": "integer"
+                                                },
+                                                "total_chunks": {
+                                                    "type": "integer"
+                                                },
+                                                "received_chunks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "expires_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "chunk_size",
+                                                "total_chunks",
+                                                "received_chunks",
+                                                "expires_at"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/uploads/{session}": {
+            "get": {
+                "operationId": "authoring.uploads.show",
+                "tags": [
+                    "VideoUpload"
+                ],
+                "parameters": [
+                    {
+                        "name": "session",
+                        "in": "path",
+                        "required": true,
+                        "description": "The session UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "chunk_size": {
+                                                    "type": "integer"
+                                                },
+                                                "total_chunks": {
+                                                    "type": "integer"
+                                                },
+                                                "received_chunks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "expires_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "chunk_size",
+                                                "total_chunks",
+                                                "received_chunks",
+                                                "expires_at"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/uploads/{session}/chunks/{index}": {
+            "put": {
+                "operationId": "authoring.uploads.chunk",
+                "tags": [
+                    "VideoUpload"
+                ],
+                "parameters": [
+                    {
+                        "name": "session",
+                        "in": "path",
+                        "required": true,
+                        "description": "The session UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "index",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "received": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "received",
+                                                "total"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/uploads/{session}/complete": {
+            "post": {
+                "operationId": "authoring.uploads.complete",
+                "tags": [
+                    "VideoUpload"
+                ],
+                "parameters": [
+                    {
+                        "name": "session",
+                        "in": "path",
+                        "required": true,
+                        "description": "The session UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "original_name": {
+                                                    "type": "string"
+                                                },
+                                                "duration_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "failure_reason": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "status",
+                                                "original_name",
+                                                "duration_seconds",
+                                                "failure_reason"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/videos/{uuid}": {
+            "get": {
+                "operationId": "authoring.videos.show",
+                "summary": "Processing status of one of the instructor's videos",
+                "tags": [
+                    "VideoUpload"
+                ],
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "original_name": {
+                                                    "type": "string"
+                                                },
+                                                "duration_seconds": {
+                                                    "type": "integer"
+                                                },
+                                                "failure_reason": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "status",
+                                                "original_name",
+                                                "duration_seconds",
+                                                "failure_reason"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
@@ -2191,6 +4080,367 @@
                 ],
                 "title": "CourseDetailResource"
             },
+            "CourseEditorResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "in_review",
+                            "changes_requested",
+                            "published",
+                            "unpublished",
+                            "archived"
+                        ]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "parent": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "slug",
+                                    "name"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "name",
+                            "parent"
+                        ]
+                    },
+                    "price_tier_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "price": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "pricing_confirmed": {
+                        "type": "boolean"
+                    },
+                    "thumbnail_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "outcomes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "requirements": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "audience": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "lecture_count": {
+                        "type": "integer"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "latest_submission": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "pending",
+                                    "approved",
+                                    "rejected"
+                                ]
+                            },
+                            "feedback": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "submitted_at": {
+                                "type": "string"
+                            },
+                            "decided_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "status",
+                            "feedback",
+                            "submitted_at",
+                            "decided_at"
+                        ]
+                    },
+                    "checklist": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "group": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "ok": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "key",
+                                "group",
+                                "label",
+                                "ok"
+                            ]
+                        }
+                    },
+                    "curriculum": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "title": {
+                                    "type": "string"
+                                },
+                                "position": {
+                                    "type": "integer"
+                                },
+                                "lectures": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "video",
+                                                    "article",
+                                                    "quiz",
+                                                    "assignment"
+                                                ]
+                                            },
+                                            "position": {
+                                                "type": "integer"
+                                            },
+                                            "is_free_preview": {
+                                                "type": "boolean"
+                                            },
+                                            "duration_seconds": {
+                                                "type": "integer"
+                                            },
+                                            "article_html": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "video": {
+                                                "type": [
+                                                    "object",
+                                                    "null"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "uploading",
+                                                            "processing",
+                                                            "ready",
+                                                            "failed"
+                                                        ]
+                                                    },
+                                                    "original_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "duration_seconds": {
+                                                        "type": "integer"
+                                                    },
+                                                    "failure_reason": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "status",
+                                                    "original_name",
+                                                    "duration_seconds",
+                                                    "failure_reason"
+                                                ]
+                                            },
+                                            "resources": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "size_bytes": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "size_bytes"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "id",
+                                            "title",
+                                            "kind",
+                                            "position",
+                                            "is_free_preview",
+                                            "duration_seconds",
+                                            "article_html",
+                                            "video",
+                                            "resources"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "title",
+                                "position",
+                                "lectures"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "title",
+                    "subtitle",
+                    "description",
+                    "language",
+                    "level",
+                    "category",
+                    "price_tier_id",
+                    "price",
+                    "pricing_confirmed",
+                    "thumbnail_url",
+                    "outcomes",
+                    "requirements",
+                    "audience",
+                    "published_at",
+                    "lecture_count",
+                    "duration_seconds",
+                    "latest_submission",
+                    "checklist",
+                    "curriculum"
+                ],
+                "title": "CourseEditorResource"
+            },
             "CourseLevel": {
                 "type": "string",
                 "enum": [
@@ -2200,6 +4450,119 @@
                     "all"
                 ],
                 "title": "CourseLevel"
+            },
+            "CourseSubmissionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "approved",
+                            "rejected"
+                        ]
+                    },
+                    "feedback": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_at": {
+                        "type": "string"
+                    },
+                    "decided_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "course": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "thumbnail_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "lecture_count": {
+                                "type": "integer"
+                            },
+                            "duration_seconds": {
+                                "type": "integer"
+                            },
+                            "category": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "slug",
+                            "title",
+                            "status",
+                            "thumbnail_url",
+                            "lecture_count",
+                            "duration_seconds",
+                            "category"
+                        ]
+                    },
+                    "instructor": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "email"
+                        ]
+                    },
+                    "reviewer": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "feedback",
+                    "submitted_at",
+                    "decided_at",
+                    "course",
+                    "instructor",
+                    "reviewer"
+                ],
+                "title": "CourseSubmissionResource"
             },
             "ForgotPasswordRequest": {
                 "type": "object",
@@ -2311,6 +4674,111 @@
                 ],
                 "title": "InstructorApplicationResource"
             },
+            "InstructorCourseResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "in_review",
+                            "changes_requested",
+                            "published",
+                            "unpublished",
+                            "archived"
+                        ]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "thumbnail_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "category": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "name"
+                        ]
+                    },
+                    "lecture_count": {
+                        "type": "integer"
+                    },
+                    "duration_seconds": {
+                        "type": "integer"
+                    },
+                    "enrollment_count": {
+                        "type": "integer"
+                    },
+                    "rating": {
+                        "type": "number"
+                    },
+                    "rating_count": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "title",
+                    "thumbnail_url",
+                    "category",
+                    "lecture_count",
+                    "duration_seconds",
+                    "enrollment_count",
+                    "rating",
+                    "rating_count",
+                    "price",
+                    "published_at",
+                    "updated_at"
+                ],
+                "title": "InstructorCourseResource"
+            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -2330,6 +4798,26 @@
                     "password"
                 ],
                 "title": "LoginRequest"
+            },
+            "PriceTierResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "amount",
+                    "currency"
+                ],
+                "title": "PriceTierResource"
             },
             "RegisterRequest": {
                 "type": "object",
@@ -2358,6 +4846,39 @@
                     "password_confirmation"
                 ],
                 "title": "RegisterRequest"
+            },
+            "ReorderCurriculumRequest": {
+                "type": "object",
+                "description": "The full new order: every section of the course, each with every lecture it should hold.\nLectures can move between sections.",
+                "properties": {
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "lectures": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "uniqueItems": true
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "lectures"
+                            ]
+                        },
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "sections"
+                ],
+                "title": "ReorderCurriculumRequest"
             },
             "ResetPasswordRequest": {
                 "type": "object",
@@ -2460,6 +4981,85 @@
                     "online"
                 ],
                 "title": "TeachingExperience"
+            },
+            "UpdateCourseRequest": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 5,
+                        "maxLength": 120
+                    },
+                    "subtitle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 200
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 20000
+                    },
+                    "language": {
+                        "type": "string",
+                        "enum": [
+                            "English",
+                            "Hindi",
+                            "Tamil",
+                            "Telugu",
+                            "Kannada",
+                            "Malayalam",
+                            "Marathi",
+                            "Bengali",
+                            "Gujarati"
+                        ]
+                    },
+                    "level": {
+                        "$ref": "#/components/schemas/CourseLevel"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "outcomes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 160
+                        },
+                        "maxItems": 12
+                    },
+                    "requirements": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 160
+                        },
+                        "maxItems": 10
+                    },
+                    "audience": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 160
+                        },
+                        "maxItems": 10
+                    },
+                    "price_tier_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Null means the course is free. Sending this key confirms the pricing step."
+                    }
+                },
+                "title": "UpdateCourseRequest"
             },
             "UpdatePasswordRequest": {
                 "type": "object",

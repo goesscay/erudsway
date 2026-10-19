@@ -126,6 +126,258 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/price-tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Price tiers instructors can choose from */
+        get: operations["authoring.price-tiers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in instructor's courses, most recently edited first */
+        get: operations["authoring.courses.index"];
+        put?: never;
+        /** Start a new draft course */
+        post: operations["authoring.courses.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Full course data for the builder */
+        get: operations["authoring.courses.show"];
+        put?: never;
+        post?: never;
+        /** Delete a draft that has never been published */
+        delete: operations["authoring.courses.destroy"];
+        options?: never;
+        head?: never;
+        /** Update the landing page, details or price */
+        patch: operations["authoring.courses.update"];
+        trace?: never;
+    };
+    "/instructor/courses/{course}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload the course image (JPEG, PNG or WebP; at least 750×422) */
+        post: operations["authoring.courses.thumbnail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the course to the Erudsway team for review */
+        post: operations["authoring.courses.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/course-submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Submissions, oldest pending first by default */
+        get: operations["admin.courses.submissions.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/course-submissions/{submission}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin.courses.submissions.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/course-submissions/{submission}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin.courses.submissions.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Full course content for review, including drafts */
+        get: operations["admin.courses.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{course}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take a live course off the catalogue (e.g. a complaint or a legal issue) */
+        post: operations["admin.courses.unpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.sections.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course}/curriculum/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Apply a complete new order of sections and lectures (lectures may change section) */
+        put: operations["authoring.curriculum.reorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/sections/{section}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["authoring.sections.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["authoring.sections.update"];
+        trace?: never;
+    };
+    "/instructor/sections/{section}/lectures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.lectures.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/lectures/{lecture}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["authoring.lectures.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["authoring.lectures.update"];
+        trace?: never;
+    };
     "/auth/email/resend": {
         parameters: {
             query?: never;
@@ -348,6 +600,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/instructor/lectures/{lecture}/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.resources.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/resources/{resource}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["authoring.resources.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/resources/{resource}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lets the instructor (or a moderator) check an uploaded file. Learner downloads arrive in Phase 4 */
+        get: operations["authoring.resources.download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -393,6 +694,87 @@ export interface paths {
         put?: never;
         /** Restore a suspended user's access */
         post: operations["admin.users.reactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/lectures/{lecture}/video-uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.uploads.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/uploads/{session}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["authoring.uploads.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/uploads/{session}/chunks/{index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["authoring.uploads.chunk"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/uploads/{session}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.uploads.complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/videos/{uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Processing status of one of the instructor's videos */
+        get: operations["authoring.videos.show"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -517,11 +899,111 @@ export interface components {
                 }[];
             }[];
         };
+        /** CourseEditorResource */
+        CourseEditorResource: {
+            id: string;
+            slug: string;
+            /** @enum {string} */
+            status: "draft" | "in_review" | "changes_requested" | "published" | "unpublished" | "archived";
+            title: string;
+            subtitle: string | null;
+            description: string | null;
+            language: string;
+            level: string;
+            category: {
+                slug: string;
+                name: string;
+                parent: {
+                    slug: string;
+                    name: string;
+                } | null;
+            };
+            price_tier_id: number | null;
+            price: {
+                amount: number;
+                currency: string;
+            } | null;
+            pricing_confirmed: boolean;
+            thumbnail_url: string | null;
+            outcomes: string[];
+            requirements: string[];
+            audience: string[];
+            published_at: string | null;
+            lecture_count: number;
+            duration_seconds: number;
+            latest_submission: {
+                /** @enum {string} */
+                status: "pending" | "approved" | "rejected";
+                feedback: string | null;
+                submitted_at: string;
+                decided_at: string | null;
+            } | null;
+            checklist: {
+                key: string;
+                group: string;
+                label: string;
+                ok: boolean;
+            }[];
+            curriculum: {
+                id: number;
+                title: string;
+                position: number;
+                lectures: {
+                    id: number;
+                    title: string;
+                    /** @enum {string} */
+                    kind: "video" | "article" | "quiz" | "assignment";
+                    position: number;
+                    is_free_preview: boolean;
+                    duration_seconds: number;
+                    article_html: string | null;
+                    video: {
+                        id: string;
+                        /** @enum {string} */
+                        status: "uploading" | "processing" | "ready" | "failed";
+                        original_name: string;
+                        duration_seconds: number;
+                        failure_reason: string | null;
+                    } | null;
+                    resources: {
+                        id: number;
+                        name: string;
+                        size_bytes: number;
+                    }[];
+                }[];
+            }[];
+        };
         /**
          * CourseLevel
          * @enum {string}
          */
         CourseLevel: "beginner" | "intermediate" | "advanced" | "all";
+        /** CourseSubmissionResource */
+        CourseSubmissionResource: {
+            id: number;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            feedback: string | null;
+            submitted_at: string;
+            decided_at: string | null;
+            course: {
+                id: string;
+                slug: string;
+                title: string;
+                status: string;
+                thumbnail_url: string | null;
+                lecture_count: number;
+                duration_seconds: number;
+                category: string;
+            };
+            instructor: {
+                name: string;
+                email: string;
+            };
+            reviewer: {
+                name: string;
+            } | null;
+        };
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             /** Format: email */
@@ -549,12 +1031,42 @@ export interface components {
                 name: string;
             } | null;
         };
+        /** InstructorCourseResource */
+        InstructorCourseResource: {
+            id: string;
+            slug: string;
+            /** @enum {string} */
+            status: "draft" | "in_review" | "changes_requested" | "published" | "unpublished" | "archived";
+            title: string;
+            thumbnail_url: string | null;
+            category: {
+                slug: string;
+                name: string;
+            };
+            lecture_count: number;
+            duration_seconds: number;
+            enrollment_count: number;
+            rating: number;
+            rating_count: number;
+            price: {
+                amount: number;
+                currency: string;
+            } | null;
+            published_at: string | null;
+            updated_at: string;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Format: email */
             email: string;
             password: string;
             remember?: boolean;
+        };
+        /** PriceTierResource */
+        PriceTierResource: {
+            id: number;
+            amount: number;
+            currency: string;
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -563,6 +1075,17 @@ export interface components {
             email: string;
             password: string;
             password_confirmation: string;
+        };
+        /**
+         * ReorderCurriculumRequest
+         * @description The full new order: every section of the course, each with every lecture it should hold.
+         *     Lectures can move between sections.
+         */
+        ReorderCurriculumRequest: {
+            sections: {
+                id: number;
+                lectures: number[];
+            }[];
         };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
@@ -595,6 +1118,21 @@ export interface components {
          * @enum {string}
          */
         TeachingExperience: "none" | "informal" | "classroom" | "online";
+        /** UpdateCourseRequest */
+        UpdateCourseRequest: {
+            title?: string;
+            subtitle?: string | null;
+            description?: string | null;
+            /** @enum {string} */
+            language?: "English" | "Hindi" | "Tamil" | "Telugu" | "Kannada" | "Malayalam" | "Marathi" | "Bengali" | "Gujarati";
+            level?: components["schemas"]["CourseLevel"];
+            category?: string;
+            outcomes?: string[];
+            requirements?: string[];
+            audience?: string[];
+            /** @description Null means the course is free. Sending this key confirms the pricing step. */
+            price_tier_id?: number | null;
+        };
         /** UpdatePasswordRequest */
         UpdatePasswordRequest: {
             current_password: string;
@@ -878,6 +1416,657 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "authoring.price-tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `PriceTierResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PriceTierResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "authoring.courses.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `InstructorCourseResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InstructorCourseResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "authoring.courses.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    category: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.courses.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.courses.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.courses.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateCourseRequest"];
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.courses.thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Maximum file size: 5120 kilobytes.
+                     */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.courses.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.courses.submissions.index": {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `CourseSubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseSubmissionResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.submissions.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The submission ID */
+                submission: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    notes?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseSubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseSubmissionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.submissions.reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The submission ID */
+                submission: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    feedback: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseSubmissionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseSubmissionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.courses.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.courses.unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.sections.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.curriculum.reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderCurriculumRequest"];
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.sections.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The section ID */
+                section: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.sections.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The section ID */
+                section: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.lectures.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The section ID */
+                section: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    /** @enum {string} */
+                    kind: "video" | "article";
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.lectures.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.lectures.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    title?: string;
+                    is_free_preview?: boolean;
+                    article_html?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "identity.verification.send": {
@@ -1312,6 +2501,99 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "authoring.resources.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Maximum file size: 51200 kilobytes.
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.resources.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The resource ID */
+                resource: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.resources.download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The resource ID */
+                resource: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "admin.users.index": {
         parameters: {
             query?: {
@@ -1429,6 +2711,182 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.uploads.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The lecture ID */
+                lecture: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    file_name: string;
+                    file_size: number;
+                    /** @enum {string} */
+                    mime: "video/mp4" | "video/quicktime" | "video/x-matroska" | "video/webm" | "video/x-msvideo";
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            chunk_size: number;
+                            total_chunks: number;
+                            received_chunks: number[];
+                            expires_at: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.uploads.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The session UUID */
+                session: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            chunk_size: number;
+                            total_chunks: number;
+                            received_chunks: number[];
+                            expires_at: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.uploads.chunk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The session UUID */
+                session: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            received: number;
+                            total: number;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.uploads.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The session UUID */
+                session: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: string;
+                            original_name: string;
+                            duration_seconds: number;
+                            failure_reason: string | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.videos.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: string;
+                            original_name: string;
+                            duration_seconds: number;
+                            failure_reason: string | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
         };
     };
 }
