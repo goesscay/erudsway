@@ -191,7 +191,9 @@
   .font-heading {
     font-family: var(--font-fraunces), Georgia, serif;
     font-optical-sizing: auto;
-    font-variation-settings: "SOFT" 0, "WONK" 0;
+    font-variation-settings:
+      "SOFT" 0,
+      "WONK" 0;
     font-weight: 600;
     color: var(--navy-900);
   }
@@ -268,6 +270,46 @@
   margin: 0 0 0.75rem;
 }
 .prose-editor a,
+.prose-editor table,
+.prose-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+.prose-editor th,
+.prose-editor td,
+.prose-content th,
+.prose-content td {
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-editor th,
+.prose-content th {
+  background: var(--paper-2);
+  font-weight: 600;
+  color: var(--ink);
+}
+.prose-editor :is(th, td) p,
+.prose-content :is(th, td) p {
+  margin: 0;
+}
+.prose-editor img,
+.prose-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 0.5rem 0 1rem;
+  border-radius: 6px;
+}
+.prose-content hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 1.5rem 0;
+}
 .prose-content a {
   color: var(--navy-800);
   text-decoration: underline;

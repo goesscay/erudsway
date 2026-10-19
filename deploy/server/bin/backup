@@ -3,7 +3,10 @@
 #   * PostgreSQL: a custom-format dump; the last 14 are kept.
 #   * Files: a snapshot of storage/app with rsync hard links, so unchanged files (videos)
 #     take no extra space; the last 7 are kept. HLS output is left out — it can be rebuilt
-#     from the original uploads in video-sources, which are kept.
+#     from the original uploads in video-sources, which are kept. Files the app stores are
+#     written once and never edited in place, so an unchanged file is linked to the live
+#     copy itself: a 20 GB video library costs no extra disk, and a deleted file still
+#     survives in the snapshots.
 # Backups stay on this server (decided 2026-10-19): they protect against mistakes and bad
 # deploys, not against losing the server. Log: /var/log/erudsway/backup.log
 set -Eeuo pipefail
@@ -21,7 +24,7 @@ mv "$ROOT/db/$DB_NAME-$STAMP.dump.part" "$ROOT/db/$DB_NAME-$STAMP.dump"
 LATEST="$(ls -1dt "$ROOT"/files/*/ 2>/dev/null | head -n 1 || true)"
 rsync -a --delete \
     --exclude 'private/video-hls/' --exclude 'private/video-uploads/' --exclude 'private/livewire-tmp/' \
-    ${LATEST:+--link-dest="$LATEST"} \
+    --link-dest="$BASE/shared/storage/app/" ${LATEST:+--link-dest="$LATEST"} \
     "$BASE/shared/storage/app/" "$ROOT/files/$STAMP.part/"
 mv "$ROOT/files/$STAMP.part" "$ROOT/files/$STAMP"
 cp -p "$BASE/shared/api.env" "$ROOT/files/$STAMP/api.env" && chmod 600 "$ROOT/files/$STAMP/api.env"

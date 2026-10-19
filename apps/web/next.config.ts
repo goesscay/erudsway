@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Images inside reading lectures use site-relative /storage/… paths (nginx serves them in
+  // production, on the same host); in development the API runs on its own port.
+  async rewrites() {
+    if (process.env.NODE_ENV !== "development") return [];
+    return [{ source: "/storage/:path*", destination: `${apiUrl.origin}/storage/:path*` }];
+  },
   partialPrefetching: true,
   images: {
     remotePatterns: [

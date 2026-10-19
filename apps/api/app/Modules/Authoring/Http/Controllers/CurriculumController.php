@@ -107,7 +107,7 @@ class CurriculumController extends Controller
             if ($lecture->kind !== LectureKind::Article) {
                 throw new DomainException('NOT_AN_ARTICLE', 'Only article lectures have text content.', 422);
             }
-            $data['article_html'] = $sanitizer->clean($data['article_html']);
+            $data['article_html'] = $sanitizer->cleanArticle($data['article_html']);
             // Reading time at ~200 words a minute, at least one minute.
             $words = str_word_count(strip_tags((string) $data['article_html']));
             $data['duration_seconds'] = max(60, (int) round($words / 200 * 60));

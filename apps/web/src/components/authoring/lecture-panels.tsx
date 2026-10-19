@@ -12,10 +12,23 @@ import { editorKey, postForm, useEditorAction, type CourseEditor, type EditorLec
 import { uploadVideo } from "@/lib/authoring/uploader";
 import { formatClock } from "@/lib/format";
 
-const formatBytes = (n: number) => (n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(1)} GB` : n >= 1024 ** 2 ? `${(n / 1024 ** 2).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+const formatBytes = (n: number) =>
+  n >= 1024 ** 3
+    ? `${(n / 1024 ** 3).toFixed(1)} GB`
+    : n >= 1024 ** 2
+      ? `${(n / 1024 ** 2).toFixed(1)} MB`
+      : `${Math.max(1, Math.round(n / 1024))} KB`;
 
 /** Upload, progress, processing and failure states for a video lecture. */
-export function VideoPanel({ courseId, lecture, locked }: { courseId: string; lecture: EditorLecture; locked: boolean }) {
+export function VideoPanel({
+  courseId,
+  lecture,
+  locked,
+}: {
+  courseId: string;
+  lecture: EditorLecture;
+  locked: boolean;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const [progress, setProgress] = useState<{ sent: number; total: number } | null>(null);
@@ -28,10 +41,19 @@ export function VideoPanel({ courseId, lecture, locked }: { courseId: string; le
     abort.current = new AbortController();
     setProgress({ sent: 0, total: file.size });
     try {
-      await uploadVideo(lecture.id, file, (p) => setProgress({ sent: p.sentBytes, total: p.totalBytes }), abort.current.signal);
+      await uploadVideo(
+        lecture.id,
+        file,
+        (p) => setProgress({ sent: p.sentBytes, total: p.totalBytes }),
+        abort.current.signal,
+      );
     } catch (e) {
       if (!abort.current.signal.aborted) {
-        setError(e instanceof ApiRequestError ? (Object.values(e.fields)[0]?.[0] ?? e.message) : "The upload failed. Choose the file again to resume.");
+        setError(
+          e instanceof ApiRequestError
+            ? (Object.values(e.fields)[0]?.[0] ?? e.message)
+            : "The upload failed. Choose the file again to resume.",
+        );
       }
     } finally {
       setProgress(null);
@@ -66,7 +88,9 @@ export function VideoPanel({ courseId, lecture, locked }: { courseId: string; le
           </div>
           <Progress value={pct} className="mt-2 h-1.5" aria-label={`Upload ${pct}% complete`} />
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-stone-500">Keep this tab open. If it closes, choose the same file again to resume.</p>
+            <p className="text-xs text-stone-500">
+              Keep this tab open. If it closes, choose the same file again to resume.
+            </p>
             <Button type="button" size="sm" variant="ghost" onClick={() => abort.current?.abort()}>
               Pause
             </Button>
@@ -76,7 +100,8 @@ export function VideoPanel({ courseId, lecture, locked }: { courseId: string; le
         <div className="flex items-center gap-3 rounded-md border border-gold-200 bg-gold-50 p-4 text-sm text-stone-700">
           <Loader2 className="size-4 animate-spin text-gold-600" />
           <span>
-            <strong className="text-ink">Processing {video.original_name}</strong> — preparing HD and mobile versions. You can keep working; this updates automatically.
+            <strong className="text-ink">Processing {video.original_name}</strong> — preparing HD and mobile versions.
+            You can keep working; this updates automatically.
           </span>
         </div>
       ) : video?.status === "failed" ? (
@@ -109,7 +134,9 @@ export function VideoPanel({ courseId, lecture, locked }: { courseId: string; le
         >
           <Upload className="size-5 text-navy-800" />
           <span className="font-semibold text-navy-900">Upload video</span>
-          <span className="text-xs text-stone-500">MP4, MOV, MKV, WebM or AVI · up to 4 GB · 720p or 1080p recommended</span>
+          <span className="text-xs text-stone-500">
+            MP4, MOV, MKV, WebM or AVI · up to 4 GB · 720p or 1080p recommended
+          </span>
         </button>
       )}
     </div>
@@ -117,18 +144,31 @@ export function VideoPanel({ courseId, lecture, locked }: { courseId: string; le
 }
 
 /** Rich-text body for an article lecture. */
-export function ArticlePanel({ courseId, lecture, locked }: { courseId: string; lecture: EditorLecture; locked: boolean }) {
+export function ArticlePanel({
+  courseId,
+  lecture,
+  locked,
+}: {
+  courseId: string;
+  lecture: EditorLecture;
+  locked: boolean;
+}) {
   const [html, setHtml] = useState(lecture.article_html ?? "");
   const [baseline, setBaseline] = useState(lecture.article_html ?? "");
   const [error, setError] = useState<string | null>(null);
   const save = useEditorAction(courseId, () =>
-    unwrap(api.PATCH("/instructor/lectures/{lecture}", { params: { path: { lecture: lecture.id } }, body: { article_html: html || null } })),
+    unwrap(
+      api.PATCH("/instructor/lectures/{lecture}", {
+        params: { path: { lecture: lecture.id } },
+        body: { article_html: html || null },
+      }),
+    ),
   );
 
   return (
     <div className="space-y-3">
       {error && <FormAlert>{error}</FormAlert>}
-      <RichTextEditor value={html} onChange={setHtml} minHeight={220} />
+      <RichTextEditor value={html} onChange={setHtml} minHeight={220} media />
       <div className="flex items-center gap-3">
         <Button
           type="button"
@@ -150,7 +190,15 @@ export function ArticlePanel({ courseId, lecture, locked }: { courseId: string; 
 }
 
 /** Downloadable files attached to a lecture. */
-export function ResourcesPanel({ courseId, lecture, locked }: { courseId: string; lecture: EditorLecture; locked: boolean }) {
+export function ResourcesPanel({
+  courseId,
+  lecture,
+  locked,
+}: {
+  courseId: string;
+  lecture: EditorLecture;
+  locked: boolean;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const upload = useEditorAction(courseId, (file: File) => {
@@ -175,7 +223,10 @@ export function ResourcesPanel({ courseId, lecture, locked }: { courseId: string
           {lecture.resources.map((r) => (
             <li key={r.id} className="flex items-center gap-3 px-3 py-2 text-sm">
               <FileDown className="size-4 text-stone-500" />
-              <a href={`${API_URL}/api/v1/instructor/resources/${r.id}/download`} className="flex-1 truncate text-navy-800 hover:underline">
+              <a
+                href={`${API_URL}/api/v1/instructor/resources/${r.id}/download`}
+                className="flex-1 truncate text-navy-800 hover:underline"
+              >
                 {r.name}
               </a>
               <span className="tabular text-xs text-stone-500">{formatBytes(r.size_bytes)}</span>
@@ -202,10 +253,22 @@ export function ResourcesPanel({ courseId, lecture, locked }: { courseId: string
           e.target.value = "";
           if (!file) return;
           setError(null);
-          upload.mutate(file, { onError: (err) => setError(err instanceof ApiRequestError ? (Object.values(err.fields)[0]?.[0] ?? err.message) : "Upload failed.") });
+          upload.mutate(file, {
+            onError: (err) =>
+              setError(
+                err instanceof ApiRequestError ? (Object.values(err.fields)[0]?.[0] ?? err.message) : "Upload failed.",
+              ),
+          });
         }}
       />
-      <Button type="button" size="sm" variant="ghost" className="text-navy-800" disabled={locked || upload.isPending} onClick={() => input.current?.click()}>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className="text-navy-800"
+        disabled={locked || upload.isPending}
+        onClick={() => input.current?.click()}
+      >
         <Paperclip /> {upload.isPending ? "Uploading…" : "Add a file"}
       </Button>
       <span className="ml-2 text-xs text-stone-500">PDF, Excel, Word, PowerPoint, CSV or ZIP · up to 50 MB</span>

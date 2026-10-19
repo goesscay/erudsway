@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Identity\Http\Requests\ForgotPasswordRequest;
 use App\Modules\Identity\Http\Requests\ResetPasswordRequest;
+use App\Modules\Identity\Services\LegacyPasswords;
 use App\Support\Http\ApiResponse;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
@@ -42,6 +43,7 @@ class PasswordResetController extends Controller
             $request->safe()->only(['email', 'password', 'password_confirmation', 'token']),
             function (User $user, string $password) {
                 $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+                LegacyPasswords::clear($user);
                 event(new PasswordReset($user));
             },
         );

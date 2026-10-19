@@ -81,6 +81,22 @@ Full restore: stop `erudsway-web` and `erudsway-horizon`, `pg_restore --clean -d
 - The server can't report its own outage: add a free external monitor (e.g. UptimeRobot) on
   `https://new.erudsway.com/api/v1/health` — it answers 503 when the database or Redis is down.
 
+## Moving a course from Moodle
+
+1. Export it (root; read-only towards Moodle, copies its files out of moodledata):
+   `/root/erudsway-deploy/server/bin/moodle-export --course=206 --out=/var/www/erudsway/shared/imports/moodle-206`
+2. Import the course as a draft (as `erudsway`, in `current/apps/api`). Videos are *moved* out of
+   the bundle into video storage and queued for transcoding (about 1 hour of CPU per 5 hours of
+   footage, at low priority):
+   `php artisan moodle:import-course /var/www/erudsway/shared/imports/moodle-206 --instructor=EMAIL --price=7800 --skip-sections=15,16,17`
+   Re-running is safe: it continues where it stopped.
+3. In Admin › Courses › Edit in builder, fill in the landing page (outcomes, requirements,
+   audience), check the curriculum, and Publish now once every video is ready.
+4. Bring the learners across (accounts keep their Moodle password until first sign-in; access,
+   completed lessons and certificates are carried over):
+   `php artisan moodle:import-learners /var/www/erudsway/shared/imports/moodle-206 --admin=EMAIL`
+5. Delete the bundle (`rm -r shared/imports/moodle-206`) — it holds password hashes.
+
 ## Settings that need values before go-live
 
 In `shared/api.env`: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, and the

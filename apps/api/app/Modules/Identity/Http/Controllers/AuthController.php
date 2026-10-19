@@ -8,6 +8,7 @@ use App\Modules\Identity\Actions\RegisterUser;
 use App\Modules\Identity\Http\Requests\LoginRequest;
 use App\Modules\Identity\Http\Requests\RegisterRequest;
 use App\Modules\Identity\Http\Resources\UserResource;
+use App\Modules\Identity\Services\LegacyPasswords;
 use App\Support\Http\DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -43,9 +44,11 @@ class AuthController extends Controller
      *
      * @unauthenticated
      */
-    public function login(LoginRequest $request): UserResource
+    public function login(LoginRequest $request, LegacyPasswords $legacy): UserResource
     {
         $credentials = $request->safe()->only(['email', 'password']);
+        // Accounts moved from the old site may still hold their Moodle password.
+        $legacy->upgrade((string) $credentials['email'], (string) $credentials['password']);
 
         if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([

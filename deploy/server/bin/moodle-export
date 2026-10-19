@@ -1,0 +1,219 @@
+#!/usr/bin/env php
+<?php
+/*
+ * Erudsway — export one Moodle course (content, files, buyers) into an import bundle (root).
+ *
+ *   moodle-export --course=206 --out=/var/www/erudsway/shared/imports/moodle-206 \
+ *       [--config=/var/www/ruleinfinity/moodle/config.php] [--owner=erudsway] [--skip-files]
+ *
+ * Read-only towards Moodle: it runs SELECTs and copies files out of moodledata. The bundle is
+ * a manifest.json plus files/<sha1> (Moodle's content hashes), owned by --owner so the app
+ * can read it. Safe to re-run: files already copied with the right size are skipped.
+ * Then, as the app user: php artisan moodle:import-course <out> …
+ */
+
+$opt = getopt('', ['course:', 'out:', 'config::', 'owner::', 'skip-files']);
+$courseId = (int) ($opt['course'] ?? 0);
+$out = rtrim((string) ($opt['out'] ?? ''), '/');
+$configPath = $opt['config'] ?? '/var/www/ruleinfinity/moodle/config.php';
+$owner = $opt['owner'] ?? 'erudsway';
+if ($courseId < 1 || $out === '') {
+    fwrite(STDERR, "Usage: moodle-export --course=ID --out=DIR [--config=PATH] [--owner=USER] [--skip-files]\n");
+    exit(2);
+}
+
+// Moodle's config.php bootstraps Moodle when included, so read the settings without running it.
+$config = file_get_contents($configPath) ?: '';
+$cfg = static function (string $key) use ($config): string {
+    preg_match('/\$CFG->'.$key."\s*=\s*'([^']*)'/", $config, $m);
+
+    return $m[1] ?? '';
+};
+$prefix = $cfg('prefix') ?: 'mdl_';
+$dataroot = $cfg('dataroot');
+$pdo = new PDO(sprintf('pgsql:host=%s;dbname=%s', $cfg('dbhost') ?: '127.0.0.1', $cfg('dbname')), $cfg('dbuser'), $cfg('dbpass'), [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+]);
+$pdo->exec('SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY');
+$q = static function (string $sql, array $args = []) use ($pdo, $prefix): array {
+    $st = $pdo->prepare(str_replace('{', $prefix, str_replace('}', '', $sql)));
+    $st->execute($args);
+
+    return $st->fetchAll();
+};
+$iso = static fn ($t) => $t ? gmdate('c', (int) $t) : null;
+
+$course = $q('select id, fullname, shortname, summary from {course} where id = ?', [$courseId])[0] ?? null;
+if (! $course) {
+    fwrite(STDERR, "No course {$courseId}.\n");
+    exit(1);
+}
+$courseContext = $q('select id from {context} where contextlevel = 50 and instanceid = ?', [$courseId])[0]['id'];
+
+$filesFor = static function (int $contextId, array $areas) use ($q): array {
+    $in = implode(',', array_fill(0, count($areas), '?'));
+
+    return array_map(fn ($f) => [
+        'area' => $f['filearea'], 'name' => $f['filename'], 'hash' => $f['contenthash'],
+        'mime' => $f['mimetype'], 'size' => (int) $f['filesize'],
+    ], $q("select filearea, filename, contenthash, mimetype, filesize from {files}
+           where contextid = ? and filearea in ({$in}) and filename <> '.' order by filearea, filename", [$contextId, ...$areas]));
+};
+
+// Sections and their modules, in course order.
+$sections = [];
+foreach ($q('select id, section, name, sequence, visible from {course_sections} where course = ? order by section', [$courseId]) as $s) {
+    $modules = [];
+    foreach (array_filter(explode(',', (string) $s['sequence'])) as $cmid) {
+        $cm = $q('select cm.id, cm.instance, cm.visible, cm.deletioninprogress, m.name as type
+                  from {course_modules} cm join {modules} m on m.id = cm.module where cm.id = ?', [(int) $cmid])[0] ?? null;
+        if (! $cm || $cm['deletioninprogress']) {
+            continue;
+        }
+        $context = $q('select id from {context} where contextlevel = 70 and instanceid = ?', [$cm['id']])[0]['id'] ?? 0;
+        $module = ['cmid' => (int) $cm['id'], 'type' => $cm['type'], 'visible' => (bool) $cm['visible'], 'name' => '', 'html' => null, 'files' => []];
+
+        switch ($cm['type']) {
+            case 'page':
+                $row = $q('select name, content from {page} where id = ?', [$cm['instance']])[0];
+                $module['name'] = $row['name'];
+                $module['html'] = $row['content'];
+                $module['files'] = $filesFor($context, ['content']);
+                break;
+            case 'label':
+                $row = $q('select name, intro from {label} where id = ?', [$cm['instance']])[0];
+                $module['name'] = $row['name'];
+                $module['html'] = $row['intro'];
+                $module['files'] = $filesFor($context, ['intro']);
+                break;
+            case 'quiz':
+                $quiz = $q('select id, name from {quiz} where id = ?', [$cm['instance']])[0];
+                $module['name'] = $quiz['name'];
+                $questions = [];
+                // The current version of each question in the quiz's slots, in slot order.
+                $rows = $q("select q.id, q.qtype, q.questiontext, q.generalfeedback, coalesce(mo.single, 1) as single
+                            from {quiz_slots} qs
+                            join {question_references} qr on qr.itemid = qs.id and qr.component = 'mod_quiz' and qr.questionarea = 'slot'
+                            join {question_versions} qv on qv.questionbankentryid = qr.questionbankentryid
+                              and qv.version = (select max(v2.version) from {question_versions} v2 where v2.questionbankentryid = qr.questionbankentryid)
+                            join {question} q on q.id = qv.questionid
+                            left join {qtype_multichoice_options} mo on mo.questionid = q.id
+                            where qs.quizid = ? order by qs.slot", [$quiz['id']]);
+                foreach ($rows as $row) {
+                    $questions[] = [
+                        'qtype' => $row['qtype'],
+                        'single' => (bool) $row['single'],
+                        'text_html' => $row['questiontext'],
+                        'feedback_html' => $row['generalfeedback'],
+                        'answers' => array_map(fn ($a) => ['text_html' => $a['answer'], 'fraction' => (float) $a['fraction'], 'feedback_html' => $a['feedback']],
+                            $q('select answer, fraction, feedback from {question_answers} where question = ? order by id', [$row['id']])),
+                    ];
+                }
+                $module['quiz'] = ['questions' => $questions];
+                break;
+            default:
+                $module['name'] = $cm['type'];
+        }
+        $modules[] = $module;
+    }
+    $sections[] = ['number' => (int) $s['section'], 'name' => (string) $s['name'], 'visible' => (bool) $s['visible'], 'modules' => $modules];
+}
+
+// Everyone enrolled, with what they bought, what they completed and any certificate.
+$users = [];
+foreach ($q("select u.id, u.email, u.firstname, u.lastname, u.password, u.auth, u.confirmed, u.suspended, u.deleted,
+                    u.timecreated, min(ue.timecreated) as enrolled_at, bool_or(ue.status = 0 and e.status = 0) as active
+             from {user_enrolments} ue join {enrol} e on e.id = ue.enrolid and e.courseid = ?
+             join {user} u on u.id = ue.userid group by u.id order by u.id", [$courseId]) as $u) {
+    $roles = array_column($q('select r.shortname from {role_assignments} ra join {role} r on r.id = ra.roleid
+                              where ra.userid = ? and ra.contextid = ?', [$u['id'], $courseContext]), 'shortname');
+    $edition = $q('select e.tier, e.name, ent.amount, ent.timegranted from {local_riacart_entitle} ent
+                   join {local_riacart_edition} e on e.id = ent.editionid where ent.userid = ? and ent.courseid = ? and ent.status = 1
+                   order by ent.tier desc limit 1', [$u['id'], $courseId])[0] ?? null;
+    $payments = $q("select p.amount, p.currency, p.gateway, p.timecreated, r.rp_paymentid, r.rp_orderid, h.itemname
+                    from {local_shopping_cart_history} h
+                    join {payments} p on p.itemid = h.identifier and p.userid = h.userid
+                    left join {paygw_razorpay} r on r.paymentid = p.id
+                    where h.userid = ? and ((h.area = 'course' and h.itemid = ?)
+                       or (h.area = 'edition' and h.itemid in (select id from {local_riacart_edition} where courseid = ?)))
+                    order by p.timecreated", [$u['id'], $courseId, $courseId]);
+    $completed = array_map('intval', array_column($q('select cmc.coursemoduleid from {course_modules_completion} cmc
+                    join {course_modules} cm on cm.id = cmc.coursemoduleid where cm.course = ? and cmc.userid = ? and cmc.completionstate > 0',
+        [$courseId, $u['id']]), 'coursemoduleid'));
+    $cert = $q('select ci.code, ci.timecreated from {customcert_issues} ci join {customcert} c on c.id = ci.customcertid
+                where c.course = ? and ci.userid = ? order by ci.timecreated limit 1', [$courseId, $u['id']])[0] ?? null;
+
+    $users[] = [
+        'id' => (int) $u['id'],
+        'email' => $u['email'],
+        'firstname' => $u['firstname'],
+        'lastname' => $u['lastname'],
+        'password_hash' => $u['password'],
+        'auth' => $u['auth'],
+        'confirmed' => (bool) $u['confirmed'],
+        'suspended' => (bool) $u['suspended'],
+        'deleted' => (bool) $u['deleted'],
+        'roles' => $roles,
+        'active' => (bool) $u['active'],
+        'created_at' => $iso($u['timecreated']),
+        'enrolled_at' => $iso($u['enrolled_at']),
+        'edition' => $edition ? ['tier' => (int) $edition['tier'], 'name' => $edition['name'], 'amount' => $edition['amount'], 'granted_at' => $iso($edition['timegranted'])] : null,
+        'payments' => array_map(fn ($p) => [
+            'amount' => $p['amount'], 'currency' => $p['currency'], 'gateway' => $p['gateway'], 'paid_at' => $iso($p['timecreated']),
+            'razorpay_payment_id' => $p['rp_paymentid'], 'razorpay_order_id' => $p['rp_orderid'], 'item' => html_entity_decode((string) $p['itemname']),
+        ], $payments),
+        'completed_cmids' => $completed,
+        'certificate' => $cert ? ['code' => $cert['code'], 'issued_at' => $iso($cert['timecreated'])] : null,
+    ];
+}
+
+$manifest = [
+    'format' => 'erudsway-moodle-export',
+    'version' => 1,
+    'source' => ['site' => $cfg('wwwroot'), 'course_id' => $courseId, 'exported_at' => gmdate('c')],
+    'course' => [
+        'fullname' => $course['fullname'],
+        'shortname' => $course['shortname'],
+        'summary_html' => $course['summary'],
+        'overview_files' => $filesFor((int) $courseContext, ['overviewfiles']),
+    ],
+    'sections' => $sections,
+    'users' => $users,
+];
+
+@mkdir("{$out}/files", 0750, true);
+file_put_contents("{$out}/manifest.json", json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+chmod("{$out}/manifest.json", 0640);
+
+// Copy every referenced file out of moodledata (content-addressed by SHA-1).
+$wanted = [];
+array_walk_recursive($manifest, function ($value, $key) use (&$wanted) {
+    if ($key === 'hash') {
+        $wanted[$value] = true;
+    }
+});
+$bytes = 0;
+foreach (array_keys($wanted) as $hash) {
+    $src = "{$dataroot}/filedir/".substr($hash, 0, 2).'/'.substr($hash, 2, 2)."/{$hash}";
+    $dst = "{$out}/files/{$hash}";
+    if (! is_file($src)) {
+        fwrite(STDERR, "Missing in moodledata: {$hash}\n");
+        exit(1);
+    }
+    if (! isset($opt['skip-files']) && (! is_file($dst) || filesize($dst) !== filesize($src))) {
+        copy($src, $dst) || exit("Copy failed: {$hash}\n");
+        chmod($dst, 0640);
+    }
+    $bytes += filesize($src);
+}
+if (function_exists('posix_getpwnam') && ($pw = posix_getpwnam($owner))) {
+    foreach (["{$out}", "{$out}/files", "{$out}/manifest.json", ...glob("{$out}/files/*")] as $path) {
+        chown($path, $pw['uid']);
+        chgrp($path, $pw['gid']);
+    }
+}
+
+$modules = array_sum(array_map(fn ($s) => count($s['modules']), $sections));
+printf("Exported \"%s\": %d sections, %d activities, %d learners, %d files (%.1f GB) → %s\n",
+    $course['fullname'], count($sections), $modules, count($users), count($wanted), $bytes / 1e9, $out);

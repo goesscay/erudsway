@@ -10,6 +10,7 @@ use App\Modules\Engagement\EngagementServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Learning\LearningServiceProvider;
+use App\Modules\Legacy\LegacyServiceProvider;
 use App\Modules\Media\MediaServiceProvider;
 use App\Modules\Platform\PlatformServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -30,4 +31,5 @@ return [
     AssessmentServiceProvider::class,
     CertificatesServiceProvider::class,
     AnalyticsServiceProvider::class,
+    LegacyServiceProvider::class,
 ];
