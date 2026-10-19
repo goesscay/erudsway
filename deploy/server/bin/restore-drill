@@ -16,7 +16,8 @@ echo "Snapshot: ${SNAP:-none}"
 sudo -u postgres dropdb --if-exists "$DRILL"
 sudo -u postgres createdb "$DRILL"
 start=$(date +%s)
-sudo -u postgres pg_restore --no-owner --role=postgres -d "$DRILL" "$DUMP"
+# Read by root and piped in: the backup folder is root-only (it holds a copy of api.env).
+sudo -u postgres pg_restore --no-owner --role=postgres -d "$DRILL" < "$DUMP"
 echo "Restored in $(( $(date +%s) - start ))s."
 
 printf '\n%-22s %10s %10s\n' table live restored
