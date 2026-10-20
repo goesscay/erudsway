@@ -41,7 +41,6 @@ class CourseDetailResource extends JsonResource
                 'headline' => $profile?->headline,
                 'bio' => $profile?->bio,
             ],
-            /** @var list<array{title: string, duration_seconds: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool}>}> */
             /** The levels this course is sold at, entry level first; empty for a single-price course. */
             /** @var list<array{id: int, name: string, price: array{amount: int, currency: string}, includes: list<string>, is_recommended: bool, access_days: int|null, video_view_limit: int|null, grants_simulator: bool, includes_doubt_session: bool}> */
             'editions' => $this->editions->map(fn (CourseEdition $e) => [
@@ -55,6 +54,7 @@ class CourseDetailResource extends JsonResource
                 'grants_simulator' => $e->grants_simulator,
                 'includes_doubt_session' => $e->includes_doubt_session,
             ])->values()->all(),
+            /** @var list<array{title: string, duration_seconds: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool, edition: string|null}>}> */
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [
                 'title' => $section->title,
                 'duration_seconds' => (int) $section->lectures->sum('duration_seconds'),
@@ -65,7 +65,7 @@ class CourseDetailResource extends JsonResource
                     'kind' => $lecture->kind->value,
                     'duration_seconds' => $lecture->duration_seconds,
                     'is_free_preview' => $lecture->is_free_preview,
-                    /** Name of the edition this lecture starts in, when it isn't in every edition. */
+                    // Name of the edition this lecture starts in, when it isn't in every edition.
                     'edition' => $lecture->minEdition?->name,
                 ])->values()->all(),
             ])->values()->all(),

@@ -194,10 +194,12 @@ export function ResourcesPanel({
   courseId,
   lecture,
   locked,
+  editions = [],
 }: {
   courseId: string;
   lecture: EditorLecture;
   locked: boolean;
+  editions?: CourseEditor["editions"];
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -208,6 +210,9 @@ export function ResourcesPanel({
   });
   const remove = useEditorAction(courseId, (id: number) =>
     unwrap(api.DELETE("/instructor/resources/{resource}", { params: { path: { resource: id } } })),
+  );
+  const setEdition = useEditorAction(courseId, ({ id, edition }: { id: number; edition: number | null }) =>
+    unwrap(api.PUT("/instructor/resources/{resource}/edition", { params: { path: { resource: id } }, body: { min_edition_id: edition } })),
   );
 
   return (
@@ -230,6 +235,22 @@ export function ResourcesPanel({
                 {r.name}
               </a>
               <span className="tabular text-xs text-stone-500">{formatBytes(r.size_bytes)}</span>
+              {editions.length > 1 && (
+                <select
+                  aria-label={`Which editions get ${r.name}`}
+                  value={r.min_edition_id ?? ""}
+                  disabled={locked || setEdition.isPending}
+                  onChange={(e) => setEdition.mutate({ id: r.id, edition: e.target.value ? Number(e.target.value) : null })}
+                  className="h-7 rounded-sm border border-input bg-white px-1.5 text-xs"
+                >
+                  <option value="">All editions</option>
+                  {editions.slice(1).map((ed) => (
+                    <option key={ed.id} value={ed.id}>
+                      {ed.name}+
+                    </option>
+                  ))}
+                </select>
+              )}
               <button
                 type="button"
                 aria-label={`Remove ${r.name}`}

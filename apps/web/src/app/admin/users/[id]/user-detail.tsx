@@ -44,6 +44,7 @@ const PERMISSIONS: { key: StaffPermission; label: string; help: string }[] = [
     label: "Categories",
     help: "Add, rename, reorder, hide and delete catalogue categories.",
   },
+  { key: "manage_fulfilment", label: "Fulfilment", help: "Simulator logins and doubt sessions that editions include." },
   { key: "manage_users", label: "Users", help: "Find users, suspend them, grant or revoke course access." },
   { key: "manage_finance", label: "Finance", help: "Orders, refunds, coupons, payouts and the ledger." },
   { key: "view_reports", label: "Reports", help: "The dashboard numbers and every report, with CSV exports." },

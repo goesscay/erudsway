@@ -3022,7 +3022,19 @@ export interface components {
                 grants_simulator: boolean;
                 includes_doubt_session: boolean;
             }[];
-            curriculum: string[];
+            curriculum: {
+                title: string;
+                duration_seconds: number;
+                lectures: {
+                    id: number;
+                    title: string;
+                    /** @enum {string} */
+                    kind: "video" | "article" | "quiz" | "assignment";
+                    duration_seconds: number;
+                    is_free_preview: boolean;
+                    edition: string | null;
+                }[];
+            }[];
         };
         /** CourseEditorResource */
         CourseEditorResource: {
@@ -3308,6 +3320,11 @@ export interface components {
                     resource_count: number;
                     completed: boolean;
                     last_position_seconds: number;
+                    locked_until: {
+                        id: number;
+                        name: string;
+                    } | null;
+                    views_left: number | null;
                 }[];
             }[];
             upgrades: {
@@ -3622,6 +3639,20 @@ export interface components {
          * @enum {string}
          */
         SaleChannel: "organic" | "instructor_referral" | "platform_promoted";
+        /**
+         * StoreEditionRequest
+         * @description A new edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).
+         */
+        StoreEditionRequest: {
+            name: string;
+            price_tier_id: number;
+            includes?: string[];
+            is_recommended?: boolean;
+            access_days?: number | null;
+            video_view_limit?: number | null;
+            grants_simulator?: boolean;
+            includes_doubt_session?: boolean;
+        };
         /** StoreInstructorApplicationRequest */
         StoreInstructorApplicationRequest: {
             headline: string;
@@ -3681,6 +3712,20 @@ export interface components {
             audience?: string[];
             /** @description Null means the course is free. Sending this key confirms the pricing step. */
             price_tier_id?: number | null;
+        };
+        /**
+         * UpdateEditionRequest
+         * @description Changes to an edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).
+         */
+        UpdateEditionRequest: {
+            name?: string;
+            price_tier_id?: number;
+            includes?: string[];
+            is_recommended?: boolean;
+            access_days?: number | null;
+            video_view_limit?: number | null;
+            grants_simulator?: boolean;
+            includes_doubt_session?: boolean;
         };
         /** UpdatePasswordRequest */
         UpdatePasswordRequest: {
@@ -6141,7 +6186,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreEditionRequest"];
+            };
+        };
         responses: {
             /** @description `CourseEditorResource` */
             200: {
@@ -6157,6 +6206,7 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "authoring.editions.reorder": {
@@ -6232,7 +6282,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateEditionRequest"];
+            };
+        };
         responses: {
             /** @description `CourseEditorResource` */
             200: {
@@ -6248,6 +6302,7 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "authoring.resources.edition": {

@@ -67,7 +67,7 @@ class LearnCourseResource extends JsonResource
                 'completed_at' => $this->enrollment->completed_at?->toIso8601String(),
                 'certificate_code' => $this->enrollment->certificate?->code,
             ] : null,
-            /** @var list<array{id: int, title: string, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool, has_video: bool, resource_count: int, completed: bool, last_position_seconds: int}>}> */
+            /** @var list<array{id: int, title: string, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool, has_video: bool, resource_count: int, completed: bool, last_position_seconds: int, locked_until: array{id: int, name: string}|null, views_left: float|null}>}> */
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [
                 'id' => $section->id,
                 'title' => $section->title,
@@ -81,10 +81,9 @@ class LearnCourseResource extends JsonResource
                     'resource_count' => (int) $lecture->getAttribute('resources_count'),
                     'completed' => $this->progress->get($lecture->id)?->completed_at !== null,
                     'last_position_seconds' => $this->progress->get($lecture->id)->last_position_seconds ?? 0,
-                    /** Set when the learner's edition doesn't include this lecture. */
-                    /** @var array{id: int, name: string}|null */
+                    // Set when the learner's edition doesn't include this lecture.
                     'locked_until' => ($needed = $this->lockFor($lecture)) ? ['id' => $needed->id, 'name' => $needed->name] : null,
-                    /** Full views left under the edition's limit; null = unlimited. */
+                    // Full views left under the edition's limit; null = unlimited.
                     'views_left' => $this->viewsLeft($lecture),
                 ])->values()->all(),
             ])->values()->all(),

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * The course page's call to action. Learners who already have access go straight to the
  * course; free courses enroll in one click; paid courses go through the cart.
  */
-export function PurchaseActions({ slug, free }: { slug: string; free: boolean }) {
+export function PurchaseActions({ slug, free, edition = null }: { slug: string; free: boolean; edition?: number | null }) {
   const hydrated = useHydrated();
   const { data: me, isPending: mePending } = useMe();
   const status = useEnrollmentStatus(slug, !!me);
@@ -47,7 +47,8 @@ export function PurchaseActions({ slug, free }: { slug: string; free: boolean })
     );
   }
 
-  const inCart = !!cart.data?.items.some((i) => i.course.slug === slug);
+  // For a course sold in editions, "in the cart" means this edition is.
+  const inCart = !!cart.data?.items.some((i) => i.course.slug === slug && (edition === null || i.edition?.id === edition));
   const saved = !!wishlist.data?.some((c) => c.slug === slug);
 
   /** Add, then optionally go straight on (Buy now → checkout, which asks guests to sign in). */
@@ -56,7 +57,7 @@ export function PurchaseActions({ slug, free }: { slug: string; free: boolean })
     if (!inCart) {
       setBusy(true);
       try {
-        await add.mutateAsync(slug);
+        await add.mutateAsync({ slug, edition });
       } catch (e) {
         setError(e instanceof ApiRequestError ? e.message : "Something went wrong. Please try again.");
         setBusy(false);

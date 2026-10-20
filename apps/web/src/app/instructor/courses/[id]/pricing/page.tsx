@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { EditionsManager } from "@/components/authoring/editions-manager";
 import { SaveBar } from "@/components/authoring/save-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiRequestError, unwrap } from "@/lib/api/client";
@@ -54,7 +55,12 @@ function PricingForm({ course }: { course: CourseEditor }) {
         shown in your revenue statement once checkout opens.
       </StepHeader>
 
-      <fieldset disabled={locked} className="max-w-xl">
+      {course.editions.length > 0 && (
+        <p className="mb-4 max-w-xl rounded-md border border-line bg-paper px-4 py-3 text-sm text-stone-700">
+          This course is sold in editions (below). Its listed price follows the cheapest edition automatically.
+        </p>
+      )}
+      <fieldset disabled={locked || course.editions.length > 0} className="max-w-xl">
         <legend className="sr-only">Course price</legend>
         {tiers.isPending ? (
           <Skeleton className="h-64 w-full" />
@@ -80,6 +86,7 @@ function PricingForm({ course }: { course: CourseEditor }) {
       </fieldset>
 
       <SaveBar dirty={choice !== "" && choice !== baseline} saving={save.isPending} saved={save.isSuccess && choice === baseline} error={error} locked={locked} />
+      <EditionsManager course={course} locked={locked} />
     </form>
   );
 }

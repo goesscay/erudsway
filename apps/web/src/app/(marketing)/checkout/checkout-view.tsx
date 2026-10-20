@@ -301,7 +301,14 @@ function Summary({ cart }: { cart: Cart }) {
                 <Image src={i.course.thumbnail_url} alt="" fill sizes="80px" className="object-cover" />
               )}
             </div>
-            <p className="line-clamp-2 flex-1 text-sm font-semibold text-ink">{i.course.title}</p>
+            <p className="flex-1 text-sm font-semibold text-ink">
+              <span className="line-clamp-2">{i.course.title}</span>
+              {i.edition && (
+                <span className="block text-xs font-normal text-stone-500">
+                  {i.upgrade_from ? `Upgrade: ${i.upgrade_from.name} → ${i.edition.name}` : i.edition.name}
+                </span>
+              )}
+            </p>
             <p className="tabular text-sm font-semibold text-ink">{formatPaise(i.amount)}</p>
           </li>
         ))}

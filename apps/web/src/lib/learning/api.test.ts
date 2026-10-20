@@ -12,6 +12,8 @@ function lecture(id: number, completed = false): LearnLecture {
     resource_count: 0,
     completed,
     last_position_seconds: 0,
+    locked_until: null,
+    views_left: null,
   };
 }
 
@@ -34,8 +36,11 @@ function course(sections: LearnLecture[][], lastLectureId: number | null = null)
       last_lecture_id: lastLectureId,
       completed_at: null,
       certificate_code: null,
+      edition: null,
+      expires_at: null,
     },
     curriculum: sections.map((lectures, i) => ({ id: i + 1, title: `Section ${i + 1}`, lectures })),
+    upgrades: [],
   };
 }
 

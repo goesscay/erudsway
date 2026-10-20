@@ -4,6 +4,8 @@ namespace App\Modules\Authoring\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Authoring\Http\Requests\StoreEditionRequest;
+use App\Modules\Authoring\Http\Requests\UpdateEditionRequest;
 use App\Modules\Authoring\Http\Resources\CourseEditorResource;
 use App\Modules\Catalog\Models\Course;
 use App\Modules\Catalog\Models\CourseEdition;
@@ -27,10 +29,10 @@ class EditionController extends Controller
 {
     public function __construct(private readonly Editions $editions) {}
 
-    public function store(Request $request, Course $course): CourseEditorResource
+    public function store(StoreEditionRequest $request, Course $course): CourseEditorResource
     {
         Gate::authorize('update', $course);
-        $data = $this->validated($request);
+        $data = $this->checked($request, $request->validated());
         if ($course->editions()->count() >= 6) {
             throw new DomainException('TOO_MANY_EDITIONS', 'A course can have at most six editions.', 422);
         }
@@ -44,10 +46,10 @@ class EditionController extends Controller
         return CourseEditorResource::load($course->refresh());
     }
 
-    public function update(Request $request, CourseEdition $edition): CourseEditorResource
+    public function update(UpdateEditionRequest $request, CourseEdition $edition): CourseEditorResource
     {
         Gate::authorize('update', $edition->course);
-        $data = $this->validated($request, partial: true);
+        $data = $this->checked($request, $request->validated());
 
         DB::transaction(function () use ($edition, $data) {
             $edition->fill($data)->save();
@@ -103,22 +105,14 @@ class EditionController extends Controller
         return CourseEditorResource::load($course);
     }
 
-    /** @return array<string, mixed> */
-    private function validated(Request $request, bool $partial = false): array
+    /**
+     * Staff-only flags and tidy bullet points.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function checked(Request $request, array $data): array
     {
-        $required = $partial ? 'sometimes' : 'required';
-        $data = $request->validate([
-            'name' => [$required, 'string', 'min:2', 'max:60'],
-            'price_tier_id' => [$required, 'integer', Rule::exists('price_tiers', 'id')->where('is_active', true)],
-            'includes' => ['sometimes', 'array', 'max:10'],
-            'includes.*' => ['string', 'min:2', 'max:160'],
-            'is_recommended' => ['sometimes', 'boolean'],
-            'access_days' => ['sometimes', 'nullable', 'integer', 'between:1,3650'],
-            'video_view_limit' => ['sometimes', 'nullable', 'integer', 'between:1,20'],
-            'grants_simulator' => ['sometimes', 'boolean'],
-            'includes_doubt_session' => ['sometimes', 'boolean'],
-        ], ['price_tier_id.exists' => 'Choose one of the listed prices.']);
-
         /** @var User $user */
         $user = $request->user();
         if ((isset($data['grants_simulator']) || isset($data['includes_doubt_session'])) && ! $user->can(Permission::ManageCourses->value)) {

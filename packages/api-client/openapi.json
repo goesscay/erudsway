@@ -5507,6 +5507,16 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreEditionRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "`CourseEditorResource`",
@@ -5534,6 +5544,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -5630,6 +5643,15 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateEditionRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "`CourseEditorResource`",
@@ -5657,6 +5679,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             },
@@ -16419,7 +16444,63 @@
                     "curriculum": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string"
+                                },
+                                "duration_seconds": {
+                                    "type": "integer"
+                                },
+                                "lectures": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "kind": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "video",
+                                                    "article",
+                                                    "quiz",
+                                                    "assignment"
+                                                ]
+                                            },
+                                            "duration_seconds": {
+                                                "type": "integer"
+                                            },
+                                            "is_free_preview": {
+                                                "type": "boolean"
+                                            },
+                                            "edition": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            }
+                                        },
+                                        "required": [
+                                            "id",
+                                            "title",
+                                            "kind",
+                                            "duration_seconds",
+                                            "is_free_preview",
+                                            "edition"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "title",
+                                "duration_seconds",
+                                "lectures"
+                            ]
                         }
                     }
                 },
@@ -17727,6 +17808,30 @@
                                             },
                                             "last_position_seconds": {
                                                 "type": "integer"
+                                            },
+                                            "locked_until": {
+                                                "type": [
+                                                    "object",
+                                                    "null"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "name"
+                                                ]
+                                            },
+                                            "views_left": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
                                             }
                                         },
                                         "required": [
@@ -17738,7 +17843,9 @@
                                             "has_video",
                                             "resource_count",
                                             "completed",
-                                            "last_position_seconds"
+                                            "last_position_seconds",
+                                            "locked_until",
+                                            "views_left"
                                         ]
                                     }
                                 }
@@ -18952,6 +19059,59 @@
                 ],
                 "title": "SaleChannel"
             },
+            "StoreEditionRequest": {
+                "type": "object",
+                "description": "A new edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 60
+                    },
+                    "price_tier_id": {
+                        "type": "integer"
+                    },
+                    "includes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 160
+                        },
+                        "maxItems": 10
+                    },
+                    "is_recommended": {
+                        "type": "boolean"
+                    },
+                    "access_days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 3650
+                    },
+                    "video_view_limit": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    "grants_simulator": {
+                        "type": "boolean"
+                    },
+                    "includes_doubt_session": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "price_tier_id"
+                ],
+                "title": "StoreEditionRequest"
+            },
             "StoreInstructorApplicationRequest": {
                 "type": "object",
                 "properties": {
@@ -19205,6 +19365,55 @@
                     }
                 },
                 "title": "UpdateCourseRequest"
+            },
+            "UpdateEditionRequest": {
+                "type": "object",
+                "description": "Changes to an edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 60
+                    },
+                    "price_tier_id": {
+                        "type": "integer"
+                    },
+                    "includes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 160
+                        },
+                        "maxItems": 10
+                    },
+                    "is_recommended": {
+                        "type": "boolean"
+                    },
+                    "access_days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 3650
+                    },
+                    "video_view_limit": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    "grants_simulator": {
+                        "type": "boolean"
+                    },
+                    "includes_doubt_session": {
+                        "type": "boolean"
+                    }
+                },
+                "title": "UpdateEditionRequest"
             },
             "UpdatePasswordRequest": {
                 "type": "object",

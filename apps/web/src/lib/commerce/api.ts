@@ -57,9 +57,16 @@ export function useCartActions() {
   const set = (cart: Cart) => queryClient.setQueryData(cartKey, keep(cart));
 
   return {
+    /** Add a course — for a course sold in editions, a particular edition (adding again switches it). */
     add: useMutation({
-      mutationFn: async (slug: string) =>
-        (await mutate(() => api.POST("/cart/items", { headers: cartHeaders(), body: { course: slug } }))).data,
+      mutationFn: async (target: string | { slug: string; edition?: number | null }) => {
+        const { slug, edition } = typeof target === "string" ? { slug: target, edition: null } : target;
+        return (
+          await mutate(() =>
+            api.POST("/cart/items", { headers: cartHeaders(), body: { course: slug, ...(edition ? { edition } : {}) } }),
+          )
+        ).data;
+      },
       onSuccess: set,
     }),
     remove: useMutation({

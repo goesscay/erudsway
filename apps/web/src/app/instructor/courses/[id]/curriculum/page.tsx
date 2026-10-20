@@ -273,7 +273,7 @@ function LectureRow({
   const open = toggled ?? autoOpen;
   const [editing, setEditing] = useState(false);
 
-  const update = useEditorAction(course.id, (body: { title?: string; is_free_preview?: boolean }) =>
+  const update = useEditorAction(course.id, (body: { title?: string; is_free_preview?: boolean; min_edition_id?: number | null }) =>
     unwrap(api.PATCH("/instructor/lectures/{lecture}", { params: { path: { lecture: lecture.id } }, body })),
   );
   const remove = useEditorAction(course.id, () => unwrap(api.DELETE("/instructor/lectures/{lecture}", { params: { path: { lecture: lecture.id } } })));
@@ -323,7 +323,7 @@ function LectureRow({
           ) : (
             <ArticlePanel courseId={course.id} lecture={lecture} locked={locked} />
           )}
-          <ResourcesPanel courseId={course.id} lecture={lecture} locked={locked} />
+          <ResourcesPanel courseId={course.id} lecture={lecture} locked={locked} editions={course.editions} />
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-4 text-sm">
             <label className="flex items-center gap-2 text-stone-700">
@@ -336,6 +336,24 @@ function LectureRow({
               />
               Free preview (anyone can watch this lecture)
             </label>
+            {course.editions.length > 0 && (
+              <label className="flex items-center gap-2 text-stone-700">
+                Available from
+                <select
+                  value={lecture.min_edition_id ?? ""}
+                  disabled={locked || update.isPending}
+                  onChange={(e) => update.mutate({ min_edition_id: e.target.value ? Number(e.target.value) : null })}
+                  className="h-8 rounded-md border border-input bg-white px-2 text-sm"
+                >
+                  <option value="">Every edition</option>
+                  {course.editions.slice(1).map((ed) => (
+                    <option key={ed.id} value={ed.id}>
+                      {ed.name} and above
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             {course.curriculum.length > 1 && !locked && (
               <label className="flex items-center gap-2 text-stone-700">
                 Move to

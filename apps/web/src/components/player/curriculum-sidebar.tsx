@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, ClipboardList, FileText, FolderOpen, ListChecks, PlayCircle } from "lucide-react";
+import { Check, ChevronDown, ClipboardList, FileText, FolderOpen, ListChecks, Lock, PlayCircle } from "lucide-react";
 import type { LearnCourse, LearnLecture } from "@/lib/learning/api";
 import { formatClock, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -67,7 +67,7 @@ export function CurriculumSidebar({
                   const Icon = icon[l.kind];
                   return (
                     <li key={l.id} className={cn("flex gap-3 px-5 py-3 text-sm", isCurrent ? "bg-navy-100/70" : "hover:bg-paper")}>
-                      {tracked && (l.kind === "quiz" || l.kind === "assignment") && (
+                      {tracked && !l.locked_until && (l.kind === "quiz" || l.kind === "assignment") && (
                         // Completed by passing or handing in, so it's a status, not a checkbox.
                         <span
                           role="img"
@@ -81,7 +81,12 @@ export function CurriculumSidebar({
                           {l.completed && <Check className="size-3 text-white" strokeWidth={3} />}
                         </span>
                       )}
-                      {tracked && l.kind !== "quiz" && l.kind !== "assignment" && (
+                      {tracked && l.locked_until && (
+                        <span role="img" aria-label={`Part of the ${l.locked_until.name} edition`} className="mt-0.5 flex size-4 shrink-0 items-center justify-center text-stone-500">
+                          <Lock className="size-3.5" />
+                        </span>
+                      )}
+                      {tracked && !l.locked_until && l.kind !== "quiz" && l.kind !== "assignment" && (
                         <button
                           type="button"
                           onClick={() => onToggle(l.id, !l.completed)}
@@ -108,6 +113,7 @@ export function CurriculumSidebar({
                           <span className="inline-flex items-center gap-1">
                             <Icon className="size-3.5" /> {lectureLength(l)}
                           </span>
+                          {l.locked_until && <span className="font-semibold text-stone-500">{l.locked_until.name}</span>}
                           {l.resource_count > 0 && (
                             <span className="inline-flex items-center gap-1">
                               <FolderOpen className="size-3.5" /> {l.resource_count === 1 ? "1 resource" : `${l.resource_count} resources`}

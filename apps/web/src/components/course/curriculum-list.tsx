@@ -8,6 +8,8 @@ export interface CurriculumLecture {
   kind: string;
   duration_seconds: number;
   is_free_preview: boolean;
+  /** The edition this lecture starts in, when it isn't in every edition. */
+  edition?: string | null;
 }
 
 export interface CurriculumSection {
@@ -49,7 +51,14 @@ export function CurriculumList({ sections }: { sections: CurriculumSection[] }) 
                   return (
                     <li key={`${j}-${l.title}`} className="flex items-center gap-3 py-2 text-sm">
                       <Icon className="size-4 shrink-0 text-stone-500" strokeWidth={1.75} />
-                      <span className="flex-1 text-stone-700">{l.title}</span>
+                      <span className="flex-1 text-stone-700">
+                        {l.title}
+                        {l.edition && (
+                          <span className="ml-2 inline-flex h-5 items-center rounded-sm bg-paper-2 px-1.5 align-middle text-[0.65rem] font-semibold text-stone-700 ring-1 ring-line ring-inset">
+                            {l.edition}
+                          </span>
+                        )}
+                      </span>
                       {l.is_free_preview &&
                         (l.kind === "video" && l.id ? (
                           <PreviewTrigger lectureId={l.id} className="text-xs font-semibold text-navy-800 underline underline-offset-2 hover:text-navy-900">

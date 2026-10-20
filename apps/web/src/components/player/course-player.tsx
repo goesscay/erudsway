@@ -21,6 +21,8 @@ import { AssignmentView } from "./assignment-view";
 import { CurriculumSidebar } from "./curriculum-sidebar";
 import { NotesPanel } from "./notes-panel";
 import { QuizView } from "./quiz-view";
+import { ExtrasPanel, useExtras } from "./extras-panel";
+import { UpgradeOptions } from "./upgrade-options";
 import { VideoPlayer } from "./video-player";
 
 const UP_NEXT_SECONDS = 5;
@@ -48,6 +50,15 @@ export function CoursePlayer() {
         </Blocked>
       );
     }
+    if (e instanceof ApiRequestError && e.code === "ACCESS_EXPIRED") {
+      return (
+        <Blocked title="Your access has ended" body={e.message}>
+          <Link href={`/course/${slug}`} className={buttonVariants({ size: "lg" })}>
+            Buy again
+          </Link>
+        </Blocked>
+      );
+    }
     if (e instanceof ApiRequestError && e.status === 401) return <div className="h-dvh bg-navy-950" />;
     return (
       <Blocked title={e instanceof ApiRequestError && e.status === 404 ? "Course not found" : "We couldn’t open this course"} body="Check the link, or find the course in My learning.">
@@ -68,6 +79,8 @@ function Player({ course }: { course: LearnCourse }) {
   const search = useSearchParams();
   const progress = useProgress(course.slug);
   const tracked = course.role === "learner";
+  const extras = useExtras(course.slug, tracked && !!course.enrollment?.edition);
+  const hasExtras = !!(extras.data?.simulator || extras.data?.doubt_session);
 
   const lectures = useMemo(() => flattenLectures(course), [course]);
   const requested = Number(search.get("lecture")) || null;
@@ -147,6 +160,13 @@ function Player({ course }: { course: LearnCourse }) {
               <Award className="size-3.5" /> Your certificate
             </Link>
           )}
+          {tracked && course.enrollment?.edition && (
+            <span className="hidden text-xs text-white/70 lg:inline">
+              {course.enrollment.edition.name}
+              {course.enrollment.expires_at &&
+                ` · access until ${new Date(course.enrollment.expires_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}
+            </span>
+          )}
           {tracked ? (
             <ProgressRing percent={percent} label={`${course.enrollment?.completed_count ?? 0} of ${course.lecture_count} complete`} />
           ) : (
@@ -162,7 +182,18 @@ function Player({ course }: { course: LearnCourse }) {
         <main className="min-h-0 overflow-y-auto bg-paper">
           {current ? (
             <div className="relative">
-              {current.kind === "video" ? (
+              {current.locked_until ? (
+                <div className="bg-navy-950 px-4 py-10 text-white sm:px-8">
+                  <div className="mx-auto max-w-xl">
+                    <Lock className="size-8 text-gold-400" strokeWidth={1.5} aria-hidden />
+                    <h2 className="mt-3 font-serif text-2xl font-semibold">Part of the {current.locked_until.name} edition</h2>
+                    <p className="mt-2 text-sm text-white/75">Upgrade to open this lecture — you pay only the difference, and everything you&rsquo;ve done so far stays.</p>
+                    <div className="mt-5 text-ink">
+                      <UpgradeOptions course={course} highlight={current.locked_until.id} />
+                    </div>
+                  </div>
+                </div>
+              ) : current.kind === "video" ? (
                 current.has_video ? (
                   <div className="relative">
                     <VideoPlayer
@@ -216,6 +247,11 @@ function Player({ course }: { course: LearnCourse }) {
                 <p className="min-w-0 flex-1 truncate text-sm">
                   <span className="text-stone-500">Lecture {current.number}:</span> <span className="font-semibold text-ink">{current.title}</span>
                 </p>
+                {tracked && current.views_left !== null && !current.locked_until && (
+                  <span className="tabular shrink-0 rounded-sm bg-paper-2 px-2 py-0.5 text-xs text-stone-700" title="Full views of this video left in your edition">
+                    {current.views_left <= 0 ? "No views left" : `${formatViews(current.views_left)} left`}
+                  </span>
+                )}
                 <Button variant="ghost" size="sm" disabled={!prev} onClick={() => prev && go(prev.id, { play: false })} aria-label="Previous lecture">
                   <ChevronLeft /> <span className="hidden sm:inline">Previous</span>
                 </Button>
@@ -251,6 +287,11 @@ function Player({ course }: { course: LearnCourse }) {
                     Reviews
                   </TabsTrigger>
                 )}
+                {hasExtras && (
+                  <TabsTrigger value="extras" className="flex-none px-0 text-[0.95rem] font-semibold">
+                    Extras
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="resources" className="flex-none px-0 text-[0.95rem] font-semibold">
                   Resources{current && current.resource_count > 0 && <span className="ml-1.5 text-xs text-stone-500">{current.resource_count}</span>}
                 </TabsTrigger>
@@ -262,6 +303,17 @@ function Player({ course }: { course: LearnCourse }) {
 
               <TabsContent value="overview" className="pt-6">
                 <Overview course={course} />
+                {tracked && course.upgrades.length > 0 && (
+                  <section aria-labelledby="upgrade-title" className="mt-10 max-w-2xl">
+                    <h2 id="upgrade-title" className="mb-1 font-sans text-base font-bold text-ink">
+                      Upgrade your edition
+                    </h2>
+                    <p className="mb-4 text-sm text-stone-700">
+                      You have {course.enrollment?.edition?.name}. Pay only the difference to unlock more — your progress carries over.
+                    </p>
+                    <UpgradeOptions course={course} />
+                  </section>
+                )}
               </TabsContent>
 
               <TabsContent value="notes" className="pt-6">
@@ -296,6 +348,12 @@ function Player({ course }: { course: LearnCourse }) {
                   <div className="mx-auto max-w-xl">
                     <MyReview slug={course.slug} instructorName={course.instructor.name} />
                   </div>
+                </TabsContent>
+              )}
+
+              {hasExtras && (
+                <TabsContent value="extras" className="pt-6">
+                  <ExtrasPanel slug={course.slug} />
                 </TabsContent>
               )}
 
@@ -367,6 +425,11 @@ function Resources({ lectureId, count }: { lectureId: number; count: number }) {
       ))}
     </ul>
   );
+}
+
+function formatViews(n: number): string {
+  const rounded = Math.round(n * 10) / 10;
+  return `${rounded} full ${rounded === 1 ? "view" : "views"}`;
 }
 
 function formatBytes(n: number): string {

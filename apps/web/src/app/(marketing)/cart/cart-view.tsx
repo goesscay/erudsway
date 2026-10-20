@@ -84,6 +84,11 @@ function Filled({ cart }: { cart: Cart }) {
                 >
                   {item.course.title}
                 </Link>
+                {item.edition && (
+                  <p className="mt-1 text-xs font-semibold text-navy-800">
+                    {item.upgrade_from ? `Upgrade: ${item.upgrade_from.name} → ${item.edition.name}` : item.edition.name}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-stone-500">By {item.course.instructor.name}</p>
                 <p className="mt-1 text-xs text-stone-500">
                   {plural(item.course.lecture_count, "lecture")} · {item.course.language}

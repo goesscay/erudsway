@@ -19,6 +19,7 @@ import {
 import { CourseBadge } from "@/components/course/course-badge";
 import { CoursePreview, PreviewTrigger } from "@/components/course/course-preview";
 import { CurriculumList } from "@/components/course/curriculum-list";
+import { EditionPurchase } from "@/components/course/edition-purchase";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { Price } from "@/components/course/price";
 import { PurchaseActions } from "@/components/course/purchase-actions";
@@ -101,6 +102,9 @@ async function CourseView({ params }: { params: Params }) {
   const quizzes = lectures.filter((l) => l.kind === "quiz").length;
   const previewVideos = lectures.filter((l) => l.is_free_preview && l.kind === "video");
   const previews = lectures.filter((l) => l.is_free_preview).length;
+  // Editions with an access period: show it when they all share one.
+  const periods = [...new Set(course.editions.map((e) => e.access_days))];
+  const accessDays = course.editions.length > 0 && periods.length === 1 ? periods[0] : null;
   const updated = new Date(course.updated_at).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
   return (
@@ -271,8 +275,14 @@ async function CourseView({ params }: { params: Params }) {
               )}
             </PreviewTrigger>
             <div className="space-y-4 p-6">
-              <Price price={course.price} className="font-serif text-3xl font-semibold" />
-              <PurchaseActions slug={course.slug} free={!course.price} />
+              {course.editions.length > 0 ? (
+                <EditionPurchase slug={course.slug} editions={course.editions} />
+              ) : (
+                <>
+                  <Price price={course.price} className="font-serif text-3xl font-semibold" />
+                  <PurchaseActions slug={course.slug} free={!course.price} />
+                </>
+              )}
               {course.price && (
                 <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
                   <ShieldCheck className="size-3.5" aria-hidden /> Secure payment · GST invoice ·{" "}
@@ -297,7 +307,11 @@ async function CourseView({ params }: { params: Params }) {
                     </Includes>
                   )}
                   <Includes icon={Smartphone}>Access on mobile and desktop</Includes>
-                  <Includes icon={InfinityIcon}>Full lifetime access</Includes>
+                  {accessDays ? (
+                    <Includes icon={InfinityIcon}>{accessDays} days of access</Includes>
+                  ) : (
+                    <Includes icon={InfinityIcon}>Full lifetime access</Includes>
+                  )}
                   <Includes icon={Award}>Certificate of completion</Includes>
                 </ul>
               </div>
