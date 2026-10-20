@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +23,16 @@ type Application = components["schemas"]["InstructorApplicationResource"];
 
 const applicationKey = ["instructor-application", "latest"] as const;
 
+/** A topic picked from the "Topics we're looking for" list (?topic=…), carried through sign-up. */
+function usePickedTopic(): string | null {
+  const topic = useSearchParams().get("topic")?.trim();
+  return topic ? topic.slice(0, 40) : null;
+}
+
 export function ApplySection() {
   const { data: me, isPending } = useMe();
+  const picked = usePickedTopic();
+  const next = encodeURIComponent(`/teach${picked ? `?topic=${encodeURIComponent(picked)}` : ""}#apply`);
   const latest = useQuery({
     queryKey: applicationKey,
     enabled: !!me,
@@ -37,12 +46,21 @@ export function ApplySection() {
   if (!me) {
     return (
       <Panel title="Ready to apply?">
-        <p className="text-stone-700">Create a free learner account first — it takes a minute — then come back here to apply.</p>
+        <p className="text-stone-700">
+          Create a free account first — it takes a minute — then you&rsquo;ll come straight back here
+          {picked ? (
+            <>
+              {" "}
+              with <strong className="text-ink">{picked}</strong> already added
+            </>
+          ) : null}
+          .
+        </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/register?next=/teach%23apply" className={buttonVariants({ size: "lg" })}>
+          <Link href={`/register?next=${next}`} className={buttonVariants({ size: "lg" })}>
             Create account
           </Link>
-          <Link href="/login?next=/teach%23apply" className={buttonVariants({ size: "lg", variant: "outline" })}>
+          <Link href={`/login?next=${next}`} className={buttonVariants({ size: "lg", variant: "outline" })}>
             Log in
           </Link>
         </div>
@@ -52,7 +70,10 @@ export function ApplySection() {
 
   if (me.instructor) {
     return (
-      <Panel title="You're an Erudsway instructor" icon={<CircleCheck className="size-8 text-success" strokeWidth={1.5} />}>
+      <Panel
+        title="You're an Erudsway instructor"
+        icon={<CircleCheck className="size-8 text-success" strokeWidth={1.5} />}
+      >
         <p className="text-stone-700">Head to your instructor dashboard to start building a course.</p>
         <Link href="/instructor" className={buttonVariants({ size: "lg", className: "mt-6" })}>
           Go to instructor dashboard
@@ -67,7 +88,7 @@ export function ApplySection() {
         <p className="text-stone-700">
           We sent a link to <strong className="text-ink">{me.email}</strong>. Once verified, you can apply here.
         </p>
-        <Link href="/verify-email?next=/teach%23apply" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
+        <Link href={`/verify-email?next=${next}`} className={buttonVariants({ variant: "outline", className: "mt-6" })}>
           Resend verification email
         </Link>
       </Panel>
@@ -78,11 +99,18 @@ export function ApplySection() {
 
   if (application?.status === "pending") {
     return (
-      <Panel title="Your application is being reviewed" icon={<Clock3 className="size-8 text-gold-600" strokeWidth={1.5} />}>
+      <Panel
+        title="Your application is being reviewed"
+        icon={<Clock3 className="size-8 text-gold-600" strokeWidth={1.5} />}
+      >
         <p className="text-stone-700">
           Submitted on{" "}
-          {new Date(application.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}.
-          We usually respond within five working days, by email.
+          {new Date(application.submitted_at).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+          . We usually respond within five working days, by email.
         </p>
         <dl className="mt-6 grid gap-4 rounded-md border border-line bg-paper p-5 text-sm sm:grid-cols-2">
           <div>
@@ -109,10 +137,10 @@ export function ApplySection() {
           </FormAlert>
         </div>
       )}
-      <SectionHeading eyebrow="Application" title="Tell us about your expertise">
-        Takes about five minutes. Be specific — we read every word.
+      <SectionHeading eyebrow="Start with your idea" title="Share your expertise">
+        Takes about five minutes. Be specific — we read every word, and only contact you about this idea.
       </SectionHeading>
-      <ApplicationForm />
+      <ApplicationForm picked={picked} />
     </div>
   );
 }
@@ -127,17 +155,32 @@ function Panel({ title, icon, children }: { title: string; icon?: React.ReactNod
   );
 }
 
-function ApplicationForm() {
+function ApplicationForm({ picked }: { picked: string | null }) {
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
   const [topicDraft, setTopicDraft] = useState("");
 
   const form = useForm<ApplicationValues>({
     resolver: zodResolver(applicationSchema),
-    defaultValues: { headline: "", topics: [], experience: "", teaching_experience: undefined, sample_url: "" },
+    defaultValues: {
+      headline: "",
+      topics: picked ? [picked] : [],
+      experience: "",
+      teaching_experience: undefined,
+      sample_url: "",
+    },
   });
   const { errors, isSubmitting } = form.formState;
   const topics = useWatch({ control: form.control, name: "topics" });
+
+  // Picking another topic from the list while the form is open adds it too.
+  useEffect(() => {
+    if (!picked) return;
+    const current = form.getValues("topics");
+    if (current.length < 5 && !current.some((t) => t.toLowerCase() === picked.toLowerCase())) {
+      form.setValue("topics", [...current, picked]);
+    }
+  }, [picked, form]);
   const experienceLength = useWatch({ control: form.control, name: "experience" }).trim().length;
 
   const addTopic = () => {
@@ -155,7 +198,9 @@ function ApplicationForm() {
       );
       queryClient.setQueryData(applicationKey, res.data);
     } catch (e) {
-      setFormError(applyApiErrors(e, form.setError, ["headline", "topics", "experience", "teaching_experience", "sample_url"]));
+      setFormError(
+        applyApiErrors(e, form.setError, ["headline", "topics", "experience", "teaching_experience", "sample_url"]),
+      );
     }
   });
 
@@ -163,11 +208,19 @@ function ApplicationForm() {
     <form onSubmit={onSubmit} noValidate className="mt-10 space-y-7">
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <Field label="Professional headline" error={errors.headline?.message} hint="e.g. Chartered Accountant · 10 years in indirect tax">
+      <Field
+        label="Professional headline"
+        error={errors.headline?.message}
+        hint="e.g. Chartered Accountant · 10 years in indirect tax"
+      >
         {(p) => <TextInput {...p} maxLength={120} {...form.register("headline")} />}
       </Field>
 
-      <Field label="What would you teach?" error={errors.topics?.message} hint="Add up to five topics. Press Enter after each.">
+      <Field
+        label="What would you teach?"
+        error={errors.topics?.message}
+        hint="Add up to five topics. Press Enter after each."
+      >
         {(p) => (
           <div>
             <div className="flex gap-2">
@@ -190,15 +243,24 @@ function ApplicationForm() {
               </Button>
             </div>
             {topics.length > 0 && (
-              <ul className="mt-3 flex flex-wrap gap-2">
+              <ul className="mt-3 flex flex-wrap gap-2" aria-live="polite" aria-label="Topics added">
                 {topics.map((t) => (
-                  <li key={t} className="inline-flex items-center gap-1.5 rounded-sm bg-navy-100 py-1 pr-1.5 pl-2.5 text-sm font-medium text-navy-800">
+                  <li
+                    key={t}
+                    className="inline-flex items-center gap-1.5 rounded-sm bg-navy-100 py-1 pr-1.5 pl-2.5 text-sm font-medium text-navy-800"
+                  >
                     {t}
                     <button
                       type="button"
                       aria-label={`Remove ${t}`}
                       className="rounded-sm p-0.5 hover:bg-navy-900/10"
-                      onClick={() => form.setValue("topics", topics.filter((x) => x !== t), { shouldValidate: true })}
+                      onClick={() =>
+                        form.setValue(
+                          "topics",
+                          topics.filter((x) => x !== t),
+                          { shouldValidate: true },
+                        )
+                      }
                     >
                       <X className="size-3.5" />
                     </button>
