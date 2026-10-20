@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChartColumn,
   ClipboardCheck,
-  ExternalLink,
   FileClock,
   FolderTree,
   PackageCheck,
@@ -27,8 +26,8 @@ import {
   TicketPercent,
   Users,
 } from "lucide-react";
+import { AdminAccountMenu } from "@/components/admin/account-menu";
 import { Logo } from "@/components/brand/logo";
-import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { hasPermission, isStaff, useMe, type CurrentUser } from "@/lib/auth/session";
@@ -126,36 +125,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <ActiveNavList sections={sections} rail={rail} />
-        {me && (
-          <div className={cn("mt-auto space-y-4 border-t border-white/10 pt-4", rail && "flex flex-col items-center")}>
-            <Link
-              href="/"
-              aria-label={rail ? "View site" : undefined}
-              title={rail ? "View site" : undefined}
-              className="flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white"
-            >
-              <ExternalLink className="size-4" /> {!rail && "View site"}
-            </Link>
-            <div
-              className={cn("flex items-center gap-3", rail ? "justify-center" : "px-3")}
-              title={rail ? me.name : undefined}
-            >
-              <InstructorAvatar name={me.name} className="size-9 text-xs" />
-              {!rail && (
-                <span className="min-w-0 text-sm">
-                  <span className="block truncate font-semibold text-white">{me.name}</span>
-                  <span className="block truncate text-xs text-white/50">
-                    {me.roles.includes("super_admin")
-                      ? "Super admin"
-                      : me.roles.includes("admin")
-                        ? "Administrator"
-                        : "Staff"}
-                  </span>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
 
       {/* Phones and small tablets: a bar with the menu in a sheet. */}
@@ -169,6 +138,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Menu className="size-5" />
         </button>
         <Logo inverted className="scale-90" />
+        <div className="ml-auto">
+          <AdminAccountMenu compact />
+        </div>
       </header>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="dark w-72 overflow-y-auto bg-navy-950 p-4 text-foreground">
@@ -177,13 +149,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Logo inverted />
           </SheetHeader>
           <ActiveNavList sections={sections} onNavigate={() => setOpen(false)} />
-          <Link href="/" className="mt-6 flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white">
-            <ExternalLink className="size-4" /> View site
-          </Link>
         </SheetContent>
       </Sheet>
 
-      <main className="min-w-0 flex-1 bg-paper">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col bg-paper">
+        {/* Laptops and up: a slim bar with the account menu on the right. */}
+        <header className="sticky top-0 z-20 hidden h-14 shrink-0 items-center justify-end gap-3 border-b border-line bg-white/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/80 sm:px-8 md:flex">
+          <AdminAccountMenu />
+        </header>
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
     </div>
   );
 }

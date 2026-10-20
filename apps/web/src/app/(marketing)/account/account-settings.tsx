@@ -77,7 +77,7 @@ function Section({
   );
 }
 
-function ProfileForm({ me }: { me: CurrentUser }) {
+export function ProfileForm({ me }: { me: CurrentUser }) {
   const session = useSession();
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const form = useForm<ProfileValues>({
@@ -135,7 +135,7 @@ function ProfileForm({ me }: { me: CurrentUser }) {
   );
 }
 
-function PasswordForm() {
+export function PasswordForm() {
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
