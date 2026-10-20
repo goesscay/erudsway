@@ -18,6 +18,8 @@ export function EditionPurchase({ slug, editions }: { slug: string; editions: Ed
   const [chosen, setChosen] = useState(initial.id);
   const name = useId();
   const current = editions.find((e) => e.id === chosen) ?? initial;
+  // An access period every edition shares is shown once, under "This course includes".
+  const sharedAccess = new Set(editions.map((e) => e.access_days)).size === 1;
 
   return (
     <div className="space-y-4">
@@ -61,7 +63,11 @@ export function EditionPurchase({ slug, editions }: { slug: string; editions: Ed
                       </span>
                       <span className="tabular text-sm font-semibold text-ink">{formatPaise(e.price.amount)}</span>
                     </span>
-                    {i > 0 && <span className="mt-1 block text-xs text-stone-500">Everything in {editions[i - 1].name}, plus:</span>}
+                    {i > 0 && (
+                      <span className="mt-1 block text-xs text-stone-500">
+                        Everything in {editions[i - 1].name}, plus:
+                      </span>
+                    )}
                     <ul className="mt-1 space-y-0.5 text-xs leading-relaxed text-stone-700">
                       {e.includes.map((item) => (
                         <li key={item} className="flex gap-1.5">
@@ -72,10 +78,12 @@ export function EditionPurchase({ slug, editions }: { slug: string; editions: Ed
                       {e.video_view_limit !== null && (
                         <li className="flex gap-1.5 text-stone-500">
                           <Check className="mt-0.5 size-3 shrink-0 text-stone-500" aria-hidden />
-                          {e.video_view_limit === 1 ? "1 full view of each video" : `${e.video_view_limit} full views of each video`}
+                          {e.video_view_limit === 1
+                            ? "1 full view of each video"
+                            : `${e.video_view_limit} full views of each video`}
                         </li>
                       )}
-                      {e.access_days !== null && (
+                      {e.access_days !== null && !sharedAccess && (
                         <li className="flex gap-1.5 text-stone-500">
                           <Check className="mt-0.5 size-3 shrink-0 text-stone-500" aria-hidden />
                           {e.access_days} days of access
