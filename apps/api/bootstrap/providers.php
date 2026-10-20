@@ -8,6 +8,7 @@ use App\Modules\Certificates\CertificatesServiceProvider;
 use App\Modules\Commerce\CommerceServiceProvider;
 use App\Modules\Engagement\EngagementServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
+use App\Modules\Fulfilment\FulfilmentServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Learning\LearningServiceProvider;
 use App\Modules\Legacy\LegacyServiceProvider;
@@ -31,5 +32,6 @@ return [
     AssessmentServiceProvider::class,
     CertificatesServiceProvider::class,
     AnalyticsServiceProvider::class,
+    FulfilmentServiceProvider::class,
     LegacyServiceProvider::class,
 ];

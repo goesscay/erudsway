@@ -4,6 +4,7 @@ namespace App\Modules\Authoring\Http\Middleware;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Catalog\Models\CourseSection;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Media\Models\LectureResource;
@@ -51,6 +52,7 @@ class AuditStaffCourseEdits
         return match (true) {
             $param('course') instanceof Course => $param('course'),
             $param('section') instanceof CourseSection => $param('section')->course,
+            $param('edition') instanceof CourseEdition => $param('edition')->course,
             $param('lecture') instanceof Lecture => $param('lecture')->course,
             $param('resource') instanceof LectureResource => $param('resource')->lecture->course,
             $param('session') instanceof UploadSession => $param('session')->lecture->course,

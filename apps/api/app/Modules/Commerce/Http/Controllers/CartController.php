@@ -9,6 +9,7 @@ use App\Modules\Commerce\Http\Resources\CartResource;
 use App\Modules\Commerce\Models\Cart;
 use App\Modules\Commerce\Services\CartService;
 use App\Modules\Commerce\Services\Pricing;
+use App\Support\Http\DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -29,14 +30,25 @@ class CartController extends Controller
         return $this->respond($request, $this->carts->find($this->user($request), $this->token($request)));
     }
 
-    /** Add a course to the cart (creates the cart, and for guests its token). */
+    /**
+     * Add a course to the cart (creates the cart, and for guests its token). For a course with
+     * editions, `edition` picks one (default: the recommended edition); adding the course again
+     * with another edition switches it — that's also how an owned course is upgraded.
+     */
     public function add(Request $request): JsonResponse
     {
-        $data = $request->validate(['course' => ['required', 'string']]);
+        $data = $request->validate([
+            'course' => ['required', 'string'],
+            'edition' => ['nullable', 'integer'],
+        ]);
         $user = $this->user($request);
-        $course = Course::query()->where('slug', $data['course'])->with('priceTier')->firstOrFail();
+        $course = Course::query()->where('slug', $data['course'])->with(['priceTier', 'editions.priceTier'])->firstOrFail();
+        $edition = isset($data['edition']) ? $course->editions->firstWhere('id', (int) $data['edition']) : null;
+        if (isset($data['edition']) && $edition === null) {
+            throw new DomainException('EDITION_UNKNOWN', 'That option isn’t available for this course.', 422);
+        }
         $cart = $this->carts->findOrCreate($user, $this->token($request));
-        $this->carts->add($cart, $course, $user);
+        $this->carts->add($cart, $course, $user, $edition);
 
         return $this->respond($request, $cart);
     }
@@ -82,10 +94,12 @@ class CartController extends Controller
 
     private function respond(Request $request, ?Cart $cart): JsonResponse
     {
-        $courses = $cart?->items()->with(['course.instructor:id,name', 'course.instructorProfile', 'course.category', 'course.priceTier'])->get()->pluck('course') ?? collect();
+        $items = $cart?->items()->with([
+            'course.instructor:id,name', 'course.instructorProfile', 'course.category', 'course.priceTier', 'course.editions.priceTier', 'edition.priceTier',
+        ])->get() ?? collect();
 
         // Always 200: the cart may have just been created, but the request didn't ask to create it.
-        return (new CartResource($cart, $this->pricing->quote($courses, $this->user($request), $cart?->coupon_code)))->response()->setStatusCode(200);
+        return (new CartResource($cart, $this->pricing->quote($items, $this->user($request), $cart?->coupon_code)))->response()->setStatusCode(200);
     }
 
     private function user(Request $request): ?User

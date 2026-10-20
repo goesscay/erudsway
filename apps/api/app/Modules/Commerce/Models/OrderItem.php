@@ -3,6 +3,7 @@
 namespace App\Modules\Commerce\Models;
 
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Commerce\Enums\SaleChannel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $order_id
  * @property int $course_id
+ * @property int|null $edition_id
+ * @property int|null $upgrade_from_edition_id
+ * @property-read CourseEdition|null $edition
+ * @property-read CourseEdition|null $upgradeFrom
  * @property int $instructor_id
  * @property string $course_title
  * @property int $list_price
@@ -58,6 +63,18 @@ class OrderItem extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /** @return BelongsTo<CourseEdition, $this> */
+    public function edition(): BelongsTo
+    {
+        return $this->belongsTo(CourseEdition::class, 'edition_id');
+    }
+
+    /** @return BelongsTo<CourseEdition, $this> */
+    public function upgradeFrom(): BelongsTo
+    {
+        return $this->belongsTo(CourseEdition::class, 'upgrade_from_edition_id');
     }
 
     /** @return BelongsTo<Course, $this> */

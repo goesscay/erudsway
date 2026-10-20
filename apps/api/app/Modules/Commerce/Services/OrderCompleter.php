@@ -120,10 +120,10 @@ class OrderCompleter
     private function markPaid(Order $order): void
     {
         $order->forceFill(['status' => OrderStatus::Paid, 'paid_at' => now()])->save();
-        $order->load('items.course', 'user');
+        $order->load('items.course', 'items.edition', 'user');
 
         foreach ($order->items as $item) {
-            $this->enroller->enrollPurchase($order->user, $item->course, $item->id);
+            $this->enroller->enrollPurchase($order->user, $item->course, $item->id, $item->edition);
             if ($item->coupon_id !== null) {
                 $this->redeem($order, $item->coupon_id);
             }

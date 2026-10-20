@@ -1950,7 +1950,7 @@
         "/cart/items": {
             "post": {
                 "operationId": "commerce.cart.add",
-                "summary": "Add a course to the cart (creates the cart, and for guests its token)",
+                "summary": "Add a course to the cart (creates the cart, and for guests its token). For a course with\neditions, `edition` picks one (default: the recommended edition); adding the course again\nwith another edition switches it \u2014 that's also how an owned course is upgraded",
                 "tags": [
                     "Cart"
                 ],
@@ -1963,6 +1963,12 @@
                                 "properties": {
                                     "course": {
                                         "type": "string"
+                                    },
+                                    "edition": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
                                     }
                                 },
                                 "required": [
@@ -5391,6 +5397,13 @@
                                             "null"
                                         ],
                                         "maxLength": 50000
+                                    },
+                                    "min_edition_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "description": "Hold the lecture back to an edition (null: every edition)."
                                     }
                                 }
                             }
@@ -5467,6 +5480,297 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/editions": {
+            "post": {
+                "operationId": "authoring.editions.store",
+                "tags": [
+                    "Edition"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/courses/{course}/editions/order": {
+            "put": {
+                "operationId": "authoring.editions.reorder",
+                "summary": "Order editions entry level first; each includes those before it",
+                "tags": [
+                    "Edition"
+                ],
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "minItems": 1,
+                                        "uniqueItems": true
+                                    }
+                                },
+                                "required": [
+                                    "ids"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/editions/{edition}": {
+            "patch": {
+                "operationId": "authoring.editions.update",
+                "tags": [
+                    "Edition"
+                ],
+                "parameters": [
+                    {
+                        "name": "edition",
+                        "in": "path",
+                        "required": true,
+                        "description": "The edition ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "authoring.editions.destroy",
+                "summary": "An edition someone has bought (or has in an order) can't be removed",
+                "tags": [
+                    "Edition"
+                ],
+                "parameters": [
+                    {
+                        "name": "edition",
+                        "in": "path",
+                        "required": true,
+                        "description": "The edition ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/instructor/resources/{resource}/edition": {
+            "put": {
+                "operationId": "authoring.resources.edition",
+                "summary": "Hold a downloadable file back to an edition (null: available to every edition)",
+                "tags": [
+                    "Edition"
+                ],
+                "parameters": [
+                    {
+                        "name": "resource",
+                        "in": "path",
+                        "required": true,
+                        "description": "The resource ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "min_edition_id": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "min_edition_id"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`CourseEditorResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/CourseEditorResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
@@ -6805,6 +7109,332 @@
                 }
             }
         },
+        "/admin/fulfilment": {
+            "get": {
+                "operationId": "fulfilment.admin.index",
+                "summary": "Open tasks first (needing action at the top), newest last",
+                "tags": [
+                    "Fulfilment"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "open",
+                                "done",
+                                "all"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/TaskType"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `FulfilmentTaskResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/FulfilmentTaskResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/fulfilment/{task}/retry": {
+            "post": {
+                "operationId": "fulfilment.admin.retry",
+                "summary": "Try creating the simulator login again (after the integration is configured, or a failure)",
+                "tags": [
+                    "Fulfilment"
+                ],
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "required": true,
+                        "description": "The task UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FulfilmentTaskResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FulfilmentTaskResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/fulfilment/{task}": {
+            "patch": {
+                "operationId": "fulfilment.admin.update",
+                "summary": "Schedule, complete or cancel a task, with notes the learner sees once scheduled",
+                "tags": [
+                    "Fulfilment"
+                ],
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "required": true,
+                        "description": "The task UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "scheduled",
+                                            "done",
+                                            "cancelled"
+                                        ]
+                                    },
+                                    "scheduled_for": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "date-time"
+                                    },
+                                    "staff_notes": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`FulfilmentTaskResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FulfilmentTaskResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "operationId": "platform.health",
@@ -7585,6 +8215,362 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/courses/{slug}/extras": {
+            "get": {
+                "operationId": "fulfilment.extras.show",
+                "summary": "Simulator login (once ready) and the doubt session's state",
+                "tags": [
+                    "LearnerExtras"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "simulator": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "username": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "password": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "gstin": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "login_url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status",
+                                                        "username",
+                                                        "password",
+                                                        "gstin",
+                                                        "login_url"
+                                                    ]
+                                                },
+                                                "doubt_session": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "preferred_times": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "questions": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "scheduled_for": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "notes": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status",
+                                                        "preferred_times",
+                                                        "questions",
+                                                        "scheduled_for",
+                                                        "notes"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "simulator",
+                                                "doubt_session"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/courses/{slug}/simulator-link": {
+            "post": {
+                "operationId": "fulfilment.extras.simulator",
+                "summary": "A one-time link that signs the learner into their simulator login",
+                "tags": [
+                    "LearnerExtras"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "url"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/courses/{slug}/doubt-session": {
+            "post": {
+                "operationId": "fulfilment.extras.doubt",
+                "summary": "Ask for the doubt session: preferred times and what to cover. Staff then confirm a slot",
+                "tags": [
+                    "LearnerExtras"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "preferred_times": {
+                                        "type": "string",
+                                        "minLength": 5,
+                                        "maxLength": 500
+                                    },
+                                    "questions": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 3000
+                                    },
+                                    "phone": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 20
+                                    }
+                                },
+                                "required": [
+                                    "preferred_times",
+                                    "questions"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "simulator": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "username": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "password": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "gstin": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "login_url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status",
+                                                        "username",
+                                                        "password",
+                                                        "gstin",
+                                                        "login_url"
+                                                    ]
+                                                },
+                                                "doubt_session": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string"
+                                                        },
+                                                        "preferred_times": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "questions": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "scheduled_for": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "notes": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status",
+                                                        "preferred_times",
+                                                        "questions",
+                                                        "scheduled_for",
+                                                        "notes"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "simulator",
+                                                "doubt_session"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -8555,6 +9541,13 @@
                                                 "duration_seconds": {
                                                     "type": "integer"
                                                 },
+                                                "views_left": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "Full views left under the edition's limit; null = unlimited."
+                                                },
                                                 "expires_at": {
                                                     "type": "string"
                                                 },
@@ -8571,6 +9564,7 @@
                                                 "playlist_url",
                                                 "poster_url",
                                                 "duration_seconds",
+                                                "views_left",
                                                 "expires_at",
                                                 "watermark"
                                             ]
@@ -8792,6 +9786,13 @@
                                                 "last_position_seconds": {
                                                     "type": "integer"
                                                 },
+                                                "views_left": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "Full views left under the edition's limit; null = unlimited. The player stops at 0."
+                                                },
                                                 "enrollment": {
                                                     "type": [
                                                         "object",
@@ -8816,6 +9817,7 @@
                                                 "tracked",
                                                 "completed",
                                                 "last_position_seconds",
+                                                "views_left",
                                                 "enrollment"
                                             ]
                                         },
@@ -8887,6 +9889,13 @@
                                                 "last_position_seconds": {
                                                     "type": "integer"
                                                 },
+                                                "views_left": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "Full views left under the edition's limit; null = unlimited. The player stops at 0."
+                                                },
                                                 "enrollment": {
                                                     "type": [
                                                         "object",
@@ -8911,6 +9920,7 @@
                                                 "tracked",
                                                 "completed",
                                                 "last_position_seconds",
+                                                "views_left",
                                                 "enrollment"
                                             ]
                                         },
@@ -8976,6 +9986,13 @@
                                                 "last_position_seconds": {
                                                     "type": "integer"
                                                 },
+                                                "views_left": {
+                                                    "type": [
+                                                        "number",
+                                                        "null"
+                                                    ],
+                                                    "description": "Full views left under the edition's limit; null = unlimited. The player stops at 0."
+                                                },
                                                 "enrollment": {
                                                     "type": [
                                                         "object",
@@ -9000,6 +10017,7 @@
                                                 "tracked",
                                                 "completed",
                                                 "last_position_seconds",
+                                                "views_left",
                                                 "enrollment"
                                             ]
                                         },
@@ -14598,6 +15616,42 @@
                     "course": {
                         "$ref": "#/components/schemas/CourseCardResource"
                     },
+                    "edition": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name"
+                        ]
+                    },
+                    "upgrade_from": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name"
+                        ]
+                    },
                     "list_price": {
                         "type": "integer"
                     },
@@ -14624,6 +15678,7 @@
                             "This course is free \u2014 enroll from the course page.",
                             "You can\u2019t buy your own course.",
                             "You already have this course.",
+                            "You already have this edition or a higher one.",
                             "This course can\u2019t be bought right now.",
                             null
                         ]
@@ -14631,6 +15686,8 @@
                 },
                 "required": [
                     "course",
+                    "edition",
+                    "upgrade_from",
                     "list_price",
                     "discount",
                     "amount",
@@ -15292,59 +16349,77 @@
                             ]
                         }
                     },
-                    "curriculum": {
+                    "editions": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "title": {
-                                    "type": "string"
-                                },
-                                "duration_seconds": {
+                                "id": {
                                     "type": "integer"
                                 },
-                                "lectures": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "price": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "amount",
+                                        "currency"
+                                    ]
+                                },
+                                "includes": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "title": {
-                                                "type": "string"
-                                            },
-                                            "kind": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "video",
-                                                    "article",
-                                                    "quiz",
-                                                    "assignment"
-                                                ]
-                                            },
-                                            "duration_seconds": {
-                                                "type": "integer"
-                                            },
-                                            "is_free_preview": {
-                                                "type": "boolean"
-                                            }
-                                        },
-                                        "required": [
-                                            "id",
-                                            "title",
-                                            "kind",
-                                            "duration_seconds",
-                                            "is_free_preview"
-                                        ]
+                                        "type": "string"
                                     }
+                                },
+                                "is_recommended": {
+                                    "type": "boolean"
+                                },
+                                "access_days": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "video_view_limit": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "grants_simulator": {
+                                    "type": "boolean"
+                                },
+                                "includes_doubt_session": {
+                                    "type": "boolean"
                                 }
                             },
                             "required": [
-                                "title",
-                                "duration_seconds",
-                                "lectures"
+                                "id",
+                                "name",
+                                "price",
+                                "includes",
+                                "is_recommended",
+                                "access_days",
+                                "video_view_limit",
+                                "grants_simulator",
+                                "includes_doubt_session"
                             ]
+                        }
+                    },
+                    "curriculum": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
                         }
                     }
                 },
@@ -15372,6 +16447,7 @@
                     "audience",
                     "published_at",
                     "breadcrumb",
+                    "editions",
                     "curriculum"
                 ],
                 "title": "CourseDetailResource"
@@ -15567,6 +16643,69 @@
                             "decided_at"
                         ]
                     },
+                    "editions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "position": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "price_tier_id": {
+                                    "type": "integer"
+                                },
+                                "price": {
+                                    "type": "integer"
+                                },
+                                "includes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "is_recommended": {
+                                    "type": "boolean"
+                                },
+                                "access_days": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "video_view_limit": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "grants_simulator": {
+                                    "type": "boolean"
+                                },
+                                "includes_doubt_session": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "position",
+                                "name",
+                                "price_tier_id",
+                                "price",
+                                "includes",
+                                "is_recommended",
+                                "access_days",
+                                "video_view_limit",
+                                "grants_simulator",
+                                "includes_doubt_session"
+                            ]
+                        }
+                    },
                     "checklist": {
                         "type": "array",
                         "items": {
@@ -15633,6 +16772,12 @@
                                             "is_free_preview": {
                                                 "type": "boolean"
                                             },
+                                            "min_edition_id": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ]
+                                            },
                                             "duration_seconds": {
                                                 "type": "integer"
                                             },
@@ -15694,12 +16839,19 @@
                                                         },
                                                         "size_bytes": {
                                                             "type": "integer"
+                                                        },
+                                                        "min_edition_id": {
+                                                            "type": [
+                                                                "integer",
+                                                                "null"
+                                                            ]
                                                         }
                                                     },
                                                     "required": [
                                                         "id",
                                                         "name",
-                                                        "size_bytes"
+                                                        "size_bytes",
+                                                        "min_edition_id"
                                                     ]
                                                 }
                                             }
@@ -15710,6 +16862,7 @@
                                             "kind",
                                             "position",
                                             "is_free_preview",
+                                            "min_edition_id",
                                             "duration_seconds",
                                             "article_html",
                                             "video",
@@ -15749,6 +16902,7 @@
                     "lecture_count",
                     "duration_seconds",
                     "latest_submission",
+                    "editions",
                     "checklist",
                     "curriculum"
                 ],
@@ -16026,6 +17180,165 @@
                     "email"
                 ],
                 "title": "ForgotPasswordRequest"
+            },
+            "FulfilmentTaskResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "simulator_access",
+                            "doubt_session"
+                        ]
+                    },
+                    "type_label": {
+                        "type": "string",
+                        "enum": [
+                            "GST simulator access",
+                            "Faculty doubt session"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "awaiting_learner",
+                            "requested",
+                            "scheduled",
+                            "done",
+                            "failed",
+                            "cancelled"
+                        ]
+                    },
+                    "learner": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "email"
+                        ]
+                    },
+                    "course": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "slug",
+                            "title"
+                        ]
+                    },
+                    "edition": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "simulator_username": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "preferred_times": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "questions": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "staff_notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "scheduled_for": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "attempts": {
+                        "type": "integer"
+                    },
+                    "last_error": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "handled_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "completed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "type_label",
+                    "status",
+                    "learner",
+                    "course",
+                    "edition",
+                    "simulator_username",
+                    "preferred_times",
+                    "questions",
+                    "phone",
+                    "staff_notes",
+                    "scheduled_for",
+                    "attempts",
+                    "last_error",
+                    "handled_by",
+                    "completed_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "FulfilmentTaskResource"
             },
             "InstructorApplicationResource": {
                 "type": "object",
@@ -16307,6 +17620,30 @@
                             "null"
                         ],
                         "properties": {
+                            "edition": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name"
+                                ]
+                            },
+                            "expires_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
                             "progress_percent": {
                                 "type": "integer"
                             },
@@ -16333,6 +17670,8 @@
                             }
                         },
                         "required": [
+                            "edition",
+                            "expires_at",
                             "progress_percent",
                             "completed_count",
                             "last_lecture_id",
@@ -16410,6 +17749,35 @@
                                 "lectures"
                             ]
                         }
+                    },
+                    "upgrades": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "includes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "upgrade_price": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name",
+                                "includes",
+                                "upgrade_price"
+                            ]
+                        }
                     }
                 },
                 "required": [
@@ -16425,7 +17793,8 @@
                     "role",
                     "instructor",
                     "enrollment",
-                    "curriculum"
+                    "curriculum",
+                    "upgrades"
                 ],
                 "title": "LearnCourseResource"
             },
@@ -17067,6 +18436,7 @@
                     "moderate_courses",
                     "manage_courses",
                     "manage_categories",
+                    "manage_fulfilment",
                     "manage_users",
                     "manage_finance",
                     "view_reports",
@@ -17738,6 +19108,14 @@
                     "submitted_at"
                 ],
                 "title": "SubmissionResource"
+            },
+            "TaskType": {
+                "type": "string",
+                "enum": [
+                    "simulator_access",
+                    "doubt_session"
+                ],
+                "title": "TaskType"
             },
             "TeachingExperience": {
                 "type": "string",

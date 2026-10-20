@@ -151,7 +151,7 @@ class RefundService
         $payment = Payment::query()->where('order_id', $order->id)->where('status', 'captured')->latest('id')->first();
 
         $refund->forceFill(['approved_by' => $staff?->id, 'payment_id' => $payment?->id, 'status' => RefundStatus::Processing])->save();
-        $this->enroller->markRefunded($order->user, $item->course);
+        $this->enroller->markRefunded($order->user, $item->course, $item->upgradeFrom);
         $this->audit->record('refund.approved', $refund, null, ['auto' => $refund->auto_approved, 'amount' => $refund->amount], $staff);
 
         if ($payment === null) {

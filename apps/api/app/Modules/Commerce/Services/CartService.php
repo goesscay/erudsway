@@ -4,6 +4,8 @@ namespace App\Modules\Commerce\Services;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
+use App\Modules\Catalog\Services\Editions;
 use App\Modules\Commerce\Models\Cart;
 use App\Support\Http\DomainException;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,10 @@ use Illuminate\Support\Str;
  */
 class CartService
 {
-    public function __construct(private readonly Purchasability $purchasability) {}
+    public function __construct(
+        private readonly Purchasability $purchasability,
+        private readonly Editions $editions,
+    ) {}
 
     public function find(?User $user, ?string $guestToken): ?Cart
     {
@@ -36,9 +41,11 @@ class CartService
             : Cart::query()->create(['guest_token' => Str::random(48)]));
     }
 
-    public function add(Cart $cart, Course $course, ?User $user): void
+    /** Add a course, or change which edition of it is in the cart. */
+    public function add(Cart $cart, Course $course, ?User $user, ?CourseEdition $edition = null): void
     {
-        $problem = $this->purchasability->problem($course, $user);
+        $edition ??= $course->editions->isNotEmpty() ? $this->editions->default($course) : null;
+        $problem = $this->purchasability->problem($course, $user, $edition);
         if ($problem !== null) {
             throw new DomainException($problem, Purchasability::message($problem), 422);
         }
@@ -46,7 +53,7 @@ class CartService
             throw new DomainException('CART_FULL', 'Your cart is full.', 422);
         }
 
-        $cart->items()->firstOrCreate(['course_id' => $course->id]);
+        $cart->items()->updateOrCreate(['course_id' => $course->id], ['edition_id' => $edition?->id]);
         $cart->touch();
     }
 
@@ -66,9 +73,9 @@ class CartService
                 return $cart;
             }
 
-            foreach ($guest->items()->with('course.priceTier')->get() as $item) {
-                if ($this->purchasability->problem($item->course, $user) === null) {
-                    $cart->items()->firstOrCreate(['course_id' => $item->course_id]);
+            foreach ($guest->items()->with(['course.priceTier', 'edition'])->get() as $item) {
+                if ($this->purchasability->problem($item->course, $user, $item->edition) === null) {
+                    $cart->items()->updateOrCreate(['course_id' => $item->course_id], ['edition_id' => $item->edition_id]);
                 }
             }
             if ($cart->coupon_code === null && $guest->coupon_code !== null) {

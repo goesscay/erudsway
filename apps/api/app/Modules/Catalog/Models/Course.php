@@ -53,6 +53,7 @@ use Illuminate\Support\Str;
  * @property-read PriceTier|null $priceTier
  * @property-read Collection<int, CourseSection> $sections
  * @property-read Collection<int, Lecture> $lectures
+ * @property-read Collection<int, CourseEdition> $editions
  * @property-read CourseSubmission|null $latestSubmission
  */
 class Course extends Model
@@ -130,6 +131,16 @@ class Course extends Model
     public function priceTier(): BelongsTo
     {
         return $this->belongsTo(PriceTier::class);
+    }
+
+    /**
+     * Editions, entry level first. Empty for a course sold at a single price.
+     *
+     * @return HasMany<CourseEdition, $this>
+     */
+    public function editions(): HasMany
+    {
+        return $this->hasMany(CourseEdition::class)->orderBy('position');
     }
 
     /** @return HasMany<CourseSection, $this> */

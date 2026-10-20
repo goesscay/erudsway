@@ -16,6 +16,11 @@ class CartLineResource extends JsonResource
     {
         return [
             'course' => new CourseCardResource($this->course),
+            /** @var array{id: int, name: string}|null */
+            'edition' => $this->edition ? ['id' => $this->edition->id, 'name' => $this->edition->name] : null,
+            /** The learner's current edition when this line is an upgrade. */
+            /** @var array{id: int, name: string}|null */
+            'upgrade_from' => $this->upgradeFrom ? ['id' => $this->upgradeFrom->id, 'name' => $this->upgradeFrom->name] : null,
             'list_price' => $this->listPrice,
             'discount' => $this->discount,
             'amount' => $this->amount,

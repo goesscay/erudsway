@@ -42,7 +42,7 @@ class CourseController extends Controller
         $course = Course::query()
             ->published()
             ->where('slug', $slug)
-            ->with(['instructor:id,name', 'instructorProfile', 'category.parent', 'priceTier', 'sections.lectures'])
+            ->with(['instructor:id,name', 'instructorProfile', 'category.parent', 'priceTier', 'editions.priceTier', 'sections.lectures.minEdition'])
             ->firstOrFail();
 
         return new CourseDetailResource($course);

@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $position
  * @property int $duration_seconds
  * @property bool $is_free_preview
+ * @property int|null $min_edition_id
+ * @property-read CourseEdition|null $minEdition
  * @property-read Course $course
  * @property-read CourseSection $section
  * @property-read VideoAsset|null $videoAsset
@@ -43,6 +45,12 @@ class Lecture extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /** @return BelongsTo<CourseEdition, $this> */
+    public function minEdition(): BelongsTo
+    {
+        return $this->belongsTo(CourseEdition::class, 'min_edition_id');
     }
 
     /** @return BelongsTo<CourseSection, $this> */

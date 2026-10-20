@@ -4,6 +4,7 @@ namespace App\Modules\Learning\Models;
 
 use App\Models\User;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Certificates\Models\Certificate;
 use App\Modules\Learning\Enums\EnrollmentSource;
@@ -25,7 +26,10 @@ use Illuminate\Support\Carbon;
  * @property int|null $order_item_id
  * @property int|null $granted_by
  * @property string|null $reason
+ * @property int|null $edition_id Null: the whole course (single-price courses, grants)
  * @property Carbon $granted_at
+ * @property Carbon|null $expires_at Null: no end date
+ * @property-read CourseEdition|null $edition
  * @property Carbon|null $revoked_at
  * @property int $completed_count
  * @property int $progress_percent
@@ -46,6 +50,7 @@ class Enrollment extends Model
             'source' => EnrollmentSource::class,
             'status' => EnrollmentStatus::class,
             'granted_at' => 'datetime',
+            'expires_at' => 'datetime',
             'revoked_at' => 'datetime',
             'last_accessed_at' => 'datetime',
             'completed_at' => 'datetime',
@@ -78,9 +83,21 @@ class Enrollment extends Model
         return $this->belongsTo(Lecture::class, 'last_lecture_id');
     }
 
+    /** Active and not past its access period. */
     public function isActive(): bool
     {
-        return $this->status === EnrollmentStatus::Active;
+        return $this->status === EnrollmentStatus::Active && ($this->expires_at === null || $this->expires_at->isFuture());
+    }
+
+    public function hasExpired(): bool
+    {
+        return $this->status === EnrollmentStatus::Active && $this->expires_at !== null && ! $this->expires_at->isFuture();
+    }
+
+    /** @return BelongsTo<CourseEdition, $this> */
+    public function edition(): BelongsTo
+    {
+        return $this->belongsTo(CourseEdition::class, 'edition_id');
     }
 
     /**
@@ -89,7 +106,8 @@ class Enrollment extends Model
      */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', EnrollmentStatus::Active->value);
+        return $query->where('status', EnrollmentStatus::Active->value)
+            ->where(fn (Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
     /** @return HasOne<Certificate, $this> */

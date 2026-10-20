@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Modules\Fulfilment;
+
+use App\Modules\Fulfilment\Listeners\CreateFulfilmentTasks;
+use App\Modules\Learning\Events\EditionGranted;
+use App\Support\Modules\ModuleServiceProvider;
+use Illuminate\Support\Facades\Event;
+
+/**
+ * What an edition promises beyond the course itself: GST simulator access (provisioned
+ * automatically through the simulator's integration API) and a faculty doubt session
+ * (requested by the learner, arranged by staff). Each is a task in the admin queue.
+ */
+class FulfilmentServiceProvider extends ModuleServiceProvider
+{
+    protected function modulePath(): string
+    {
+        return __DIR__;
+    }
+
+    public function boot(): void
+    {
+        parent::boot();
+
+        Event::listen(EditionGranted::class, CreateFulfilmentTasks::class);
+    }
+}

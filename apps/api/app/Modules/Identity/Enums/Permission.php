@@ -12,6 +12,7 @@ enum Permission: string
     case ModerateCourses = 'moderate_courses';
     case ManageCourses = 'manage_courses';
     case ManageCategories = 'manage_categories';
+    case ManageFulfilment = 'manage_fulfilment';
     case ManageUsers = 'manage_users';
     case ManageFinance = 'manage_finance';
     case ViewReports = 'view_reports';

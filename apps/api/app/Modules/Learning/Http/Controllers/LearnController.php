@@ -9,6 +9,7 @@ use App\Modules\Catalog\Models\Course;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Learning\Http\Resources\LearnCourseResource;
 use App\Modules\Learning\Http\Resources\LectureContentResource;
+use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Models\LectureProgress;
 use App\Modules\Learning\Services\Entitlements;
 use App\Modules\Media\Models\LectureResource;
@@ -32,6 +33,10 @@ class LearnController extends Controller
         $role = $this->entitlements->role($user, $course);
 
         if ($role === null) {
+            $expired = Enrollment::query()->where('user_id', $user->id)->where('course_id', $course->id)->first();
+            if ($expired?->hasExpired()) {
+                throw new DomainException('ACCESS_EXPIRED', 'Your access to this course ended on '.$expired->expires_at?->timezone('Asia/Kolkata')->format('j M Y').'. Buy it again to continue where you left off.', 403);
+            }
             if ($course->status === CourseStatus::Published) {
                 throw new DomainException('NOT_ENROLLED', 'Enroll in this course to start learning.', 403);
             }
@@ -39,8 +44,8 @@ class LearnController extends Controller
         }
 
         $course->load([
-            'instructor:id,name', 'instructorProfile',
-            'sections.lectures' => fn ($q) => $q->withCount('resources')->with('videoAsset:id,status'),
+            'instructor:id,name', 'instructorProfile', 'editions.priceTier',
+            'sections.lectures' => fn ($q) => $q->withCount('resources')->with(['videoAsset:id,status', 'minEdition']),
         ]);
         $progress = LectureProgress::query()
             ->where('user_id', $user->id)->where('course_id', $course->id)
@@ -60,12 +65,18 @@ class LearnController extends Controller
     public function download(Request $request, LectureResource $resource): StreamedResponse
     {
         $this->authorizeLecture($request->user(), $resource->lecture);
+        if ($needed = $this->entitlements->resourceLockedBehind($request->user(), $resource)) {
+            throw Entitlements::lockedError($needed);
+        }
 
         return Storage::disk('local')->download($resource->path, $resource->original_name);
     }
 
     private function authorizeLecture(?User $user, Lecture $lecture): void
     {
+        if ($needed = $this->entitlements->lockedBehind($user, $lecture)) {
+            throw Entitlements::lockedError($needed);
+        }
         if (! $this->entitlements->canView($user, $lecture)) {
             throw new DomainException('NOT_ENROLLED', 'Enroll in this course to open this lecture.', 403);
         }

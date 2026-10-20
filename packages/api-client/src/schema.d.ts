@@ -315,7 +315,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add a course to the cart (creates the cart, and for guests its token) */
+        /**
+         * Add a course to the cart (creates the cart, and for guests its token). For a course with
+         *     editions, `edition` picks one (default: the recommended edition); adding the course again
+         *     with another edition switches it — that's also how an owned course is upgraded
+         */
         post: operations["commerce.cart.add"];
         delete?: never;
         options?: never;
@@ -996,6 +1000,73 @@ export interface paths {
         patch: operations["authoring.lectures.update"];
         trace?: never;
     };
+    "/instructor/courses/{course}/editions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["authoring.editions.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/courses/{course}/editions/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Order editions entry level first; each includes those before it */
+        put: operations["authoring.editions.reorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/instructor/editions/{edition}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** An edition someone has bought (or has in an order) can't be removed */
+        delete: operations["authoring.editions.destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["authoring.editions.update"];
+        trace?: never;
+    };
+    "/instructor/resources/{resource}/edition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Hold a downloadable file back to an edition (null: available to every edition) */
+        put: operations["authoring.resources.edition"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/email/resend": {
         parameters: {
             query?: never;
@@ -1291,6 +1362,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/fulfilment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open tasks first (needing action at the top), newest last */
+        get: operations["fulfilment.admin.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/fulfilment/{task}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Try creating the simulator login again (after the integration is configured, or a failure) */
+        post: operations["fulfilment.admin.retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/fulfilment/{task}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Schedule, complete or cancel a task, with notes the learner sees once scheduled */
+        patch: operations["fulfilment.admin.update"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1491,6 +1613,57 @@ export interface paths {
         get: operations["learning.resources.download"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/courses/{slug}/extras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Simulator login (once ready) and the doubt session's state */
+        get: operations["fulfilment.extras.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/courses/{slug}/simulator-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A one-time link that signs the learner into their simulator login */
+        post: operations["fulfilment.extras.simulator"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/courses/{slug}/doubt-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask for the doubt session: preferred times and what to cover. Staff then confirm a slot */
+        post: operations["fulfilment.extras.doubt"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2662,13 +2835,21 @@ export interface components {
         /** CartLineResource */
         CartLineResource: {
             course: components["schemas"]["CourseCardResource"];
+            edition: {
+                id: number;
+                name: string;
+            } | null;
+            upgrade_from: {
+                id: number;
+                name: string;
+            } | null;
             list_price: number;
             discount: number;
             amount: number;
             /** @description Why this course can't be bought now (it is then left out of the totals). */
             problem: string | null;
             /** @enum {string|null} */
-            problem_message: "This course is no longer available." | "This course is free — enroll from the course page." | "You can’t buy your own course." | "You already have this course." | "This course can’t be bought right now." | null;
+            problem_message: "This course is no longer available." | "This course is free — enroll from the course page." | "You can’t buy your own course." | "You already have this course." | "You already have this edition or a higher one." | "This course can’t be bought right now." | null;
         };
         /** CartResource */
         CartResource: {
@@ -2827,18 +3008,21 @@ export interface components {
                 slug: string;
                 name: string;
             }[];
-            curriculum: {
-                title: string;
-                duration_seconds: number;
-                lectures: {
-                    id: number;
-                    title: string;
-                    /** @enum {string} */
-                    kind: "video" | "article" | "quiz" | "assignment";
-                    duration_seconds: number;
-                    is_free_preview: boolean;
-                }[];
+            editions: {
+                id: number;
+                name: string;
+                price: {
+                    amount: number;
+                    currency: string;
+                };
+                includes: string[];
+                is_recommended: boolean;
+                access_days: number | null;
+                video_view_limit: number | null;
+                grants_simulator: boolean;
+                includes_doubt_session: boolean;
             }[];
+            curriculum: string[];
         };
         /** CourseEditorResource */
         CourseEditorResource: {
@@ -2884,6 +3068,19 @@ export interface components {
                 submitted_at: string;
                 decided_at: string | null;
             } | null;
+            editions: {
+                id: number;
+                position: number;
+                name: string;
+                price_tier_id: number;
+                price: number;
+                includes: string[];
+                is_recommended: boolean;
+                access_days: number | null;
+                video_view_limit: number | null;
+                grants_simulator: boolean;
+                includes_doubt_session: boolean;
+            }[];
             checklist: {
                 key: string;
                 group: string;
@@ -2901,6 +3098,7 @@ export interface components {
                     kind: "video" | "article" | "quiz" | "assignment";
                     position: number;
                     is_free_preview: boolean;
+                    min_edition_id: number | null;
                     duration_seconds: number;
                     article_html: string | null;
                     video: {
@@ -2915,6 +3113,7 @@ export interface components {
                         id: number;
                         name: string;
                         size_bytes: number;
+                        min_edition_id: number | null;
                     }[];
                 }[];
             }[];
@@ -2987,6 +3186,38 @@ export interface components {
             /** Format: email */
             email: string;
         };
+        /** FulfilmentTaskResource */
+        FulfilmentTaskResource: {
+            id: string;
+            /** @enum {string} */
+            type: "simulator_access" | "doubt_session";
+            /** @enum {string} */
+            type_label: "GST simulator access" | "Faculty doubt session";
+            /** @enum {string} */
+            status: "pending" | "awaiting_learner" | "requested" | "scheduled" | "done" | "failed" | "cancelled";
+            learner: {
+                id: string;
+                name: string;
+                email: string;
+            };
+            course: {
+                slug: string;
+                title: string;
+            };
+            edition: string | null;
+            simulator_username: string | null;
+            preferred_times: string | null;
+            questions: string | null;
+            phone: string | null;
+            staff_notes: string | null;
+            scheduled_for: string | null;
+            attempts: number;
+            last_error: string | null;
+            handled_by: string | null;
+            completed_at: string | null;
+            created_at: string;
+            updated_at: string;
+        };
         /** InstructorApplicationResource */
         InstructorApplicationResource: {
             id: string;
@@ -3052,6 +3283,11 @@ export interface components {
                 headline: string | null;
             };
             enrollment: {
+                edition: {
+                    id: number;
+                    name: string;
+                } | null;
+                expires_at: string | null;
                 progress_percent: number;
                 completed_count: number;
                 last_lecture_id: number | null;
@@ -3073,6 +3309,12 @@ export interface components {
                     completed: boolean;
                     last_position_seconds: number;
                 }[];
+            }[];
+            upgrades: {
+                id: number;
+                name: string;
+                includes: string[];
+                upgrade_price: number;
             }[];
         };
         /** LectureContentResource */
@@ -3235,7 +3477,7 @@ export interface components {
          * @description Fine-grained staff permissions. The admin role holds all of them; support staff can be given a subset (e.g. moderation without finance).
          * @enum {string}
          */
-        Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
+        Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
         /** PriceTierResource */
         PriceTierResource: {
             id: number;
@@ -3415,6 +3657,11 @@ export interface components {
                 };
             } | null;
         };
+        /**
+         * TaskType
+         * @enum {string}
+         */
+        TaskType: "simulator_access" | "doubt_session";
         /**
          * TeachingExperience
          * @enum {string}
@@ -4296,6 +4543,7 @@ export interface operations {
             content: {
                 "application/json": {
                     course: string;
+                    edition?: number | null;
                 };
             };
         };
@@ -5860,6 +6108,162 @@ export interface operations {
                     title?: string;
                     is_free_preview?: boolean;
                     article_html?: string | null;
+                    /** @description Hold the lecture back to an edition (null: every edition). */
+                    min_edition_id?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.editions.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.editions.reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The course UUID */
+                course: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: number[];
+                };
+            };
+        };
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "authoring.editions.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The edition ID */
+                edition: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.editions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The edition ID */
+                edition: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CourseEditorResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CourseEditorResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "authoring.resources.edition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The resource ID */
+                resource: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    min_edition_id: number | null;
                 };
             };
         };
@@ -6512,6 +6916,127 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "fulfilment.admin.index": {
+        parameters: {
+            query?: {
+                status?: "open" | "done" | "all";
+                type?: components["schemas"]["TaskType"];
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `FulfilmentTaskResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FulfilmentTaskResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fulfilment.admin.retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The task UUID */
+                task: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FulfilmentTaskResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FulfilmentTaskResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fulfilment.admin.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The task UUID */
+                task: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "scheduled" | "done" | "cancelled";
+                    /** Format: date-time */
+                    scheduled_for?: string | null;
+                    staff_notes?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `FulfilmentTaskResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FulfilmentTaskResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "platform.health": {
         parameters: {
             query?: never;
@@ -6868,6 +7393,122 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fulfilment.extras.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            simulator: {
+                                status: string;
+                                username: string | null;
+                                password: string | null;
+                                gstin: string | null;
+                                login_url: string;
+                            } | null;
+                            doubt_session: {
+                                status: string;
+                                preferred_times: string | null;
+                                questions: string | null;
+                                scheduled_for: string | null;
+                                notes: string | null;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "fulfilment.extras.simulator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            url: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "fulfilment.extras.doubt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    preferred_times: string;
+                    questions: string;
+                    phone?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            simulator: {
+                                status: string;
+                                username: string | null;
+                                password: string | null;
+                                gstin: string | null;
+                                login_url: string;
+                            } | null;
+                            doubt_session: {
+                                status: string;
+                                preferred_times: string | null;
+                                questions: string | null;
+                                scheduled_for: string | null;
+                                notes: string | null;
+                            } | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "identity.me": {
@@ -7403,6 +8044,8 @@ export interface operations {
                             playlist_url: string;
                             poster_url: string | null;
                             duration_seconds: number;
+                            /** @description Full views left under the edition's limit; null = unlimited. */
+                            views_left: number | null;
                             expires_at: string;
                             /** @description Shown faintly over the video to discourage screen recording. */
                             watermark: string | null;
@@ -7514,6 +8157,8 @@ export interface operations {
                             tracked: boolean;
                             completed: boolean;
                             last_position_seconds: number;
+                            /** @description Full views left under the edition's limit; null = unlimited. The player stops at 0. */
+                            views_left: number | null;
                             enrollment: {
                                 progress_percent: number;
                                 completed_count: number;
@@ -7552,6 +8197,8 @@ export interface operations {
                             tracked: boolean;
                             completed: boolean;
                             last_position_seconds: number;
+                            /** @description Full views left under the edition's limit; null = unlimited. The player stops at 0. */
+                            views_left: number | null;
                             enrollment: {
                                 progress_percent: number;
                                 completed_count: number;
@@ -7589,6 +8236,8 @@ export interface operations {
                             tracked: boolean;
                             completed: boolean;
                             last_position_seconds: number;
+                            /** @description Full views left under the edition's limit; null = unlimited. The player stops at 0. */
+                            views_left: number | null;
                             enrollment: {
                                 progress_percent: number;
                                 completed_count: number;

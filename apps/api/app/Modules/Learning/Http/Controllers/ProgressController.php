@@ -68,6 +68,9 @@ class ProgressController extends Controller
         if (! $this->entitlements->canAccessCourse($user, $lecture->course)) {
             throw new DomainException('NOT_ENROLLED', 'Enroll in this course to track progress.', 403);
         }
+        if ($needed = $this->entitlements->lockedBehind($user, $lecture)) {
+            throw Entitlements::lockedError($needed);
+        }
 
         return $user;
     }
@@ -81,6 +84,8 @@ class ProgressController extends Controller
             'tracked' => $progress !== null,
             'completed' => $progress?->completed_at !== null,
             'last_position_seconds' => $progress->last_position_seconds ?? 0,
+            /** Full views left under the edition's limit; null = unlimited. The player stops at 0. */
+            'views_left' => $enrollment ? $this->tracker->viewsLeft($enrollment, $lecture) : null,
             'enrollment' => $enrollment ? [
                 'progress_percent' => $enrollment->progress_percent,
                 'completed_count' => $enrollment->completed_count,

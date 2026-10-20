@@ -34,8 +34,8 @@ class Checkout
      */
     public function start(User $user, Cart $cart, array $billing, Request $request): Order
     {
-        $cart->load('items.course.priceTier');
-        $quote = $this->pricing->quote($cart->items->pluck('course'), $user, $cart->coupon_code);
+        $cart->load(['items.course.priceTier', 'items.course.editions.priceTier', 'items.edition.priceTier']);
+        $quote = $this->pricing->quote($cart->items, $user, $cart->coupon_code);
 
         if ($quote->lines === []) {
             throw new DomainException('CART_EMPTY', 'Your cart is empty.', 422);
@@ -75,8 +75,10 @@ class Checkout
             foreach ($quote->payable() as $line) {
                 $order->items()->create([
                     'course_id' => $line->course->id,
+                    'edition_id' => $line->edition?->id,
+                    'upgrade_from_edition_id' => $line->upgradeFrom?->id,
                     'instructor_id' => $line->course->instructor_id,
-                    'course_title' => $line->course->title,
+                    'course_title' => mb_substr($line->title(), 0, 255),
                     'list_price' => $line->listPrice,
                     'discount' => $line->discount,
                     'amount' => $line->amount,

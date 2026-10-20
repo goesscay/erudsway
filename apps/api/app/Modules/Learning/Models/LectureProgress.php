@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $course_id
  * @property int $last_position_seconds
  * @property int $max_position_seconds
+ * @property int $watched_seconds
  * @property Carbon|null $completed_at
  */
 class LectureProgress extends Model

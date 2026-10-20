@@ -3,6 +3,7 @@
 namespace App\Modules\Catalog\Http\Resources;
 
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Catalog\Models\CourseSection;
 use App\Modules\Catalog\Models\Lecture;
 use Illuminate\Http\Request;
@@ -41,6 +42,19 @@ class CourseDetailResource extends JsonResource
                 'bio' => $profile?->bio,
             ],
             /** @var list<array{title: string, duration_seconds: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', duration_seconds: int, is_free_preview: bool}>}> */
+            /** The levels this course is sold at, entry level first; empty for a single-price course. */
+            /** @var list<array{id: int, name: string, price: array{amount: int, currency: string}, includes: list<string>, is_recommended: bool, access_days: int|null, video_view_limit: int|null, grants_simulator: bool, includes_doubt_session: bool}> */
+            'editions' => $this->editions->map(fn (CourseEdition $e) => [
+                'id' => $e->id,
+                'name' => $e->name,
+                'price' => ['amount' => $e->price(), 'currency' => $e->priceTier->currency],
+                'includes' => $e->includes,
+                'is_recommended' => $e->is_recommended,
+                'access_days' => $e->access_days,
+                'video_view_limit' => $e->video_view_limit,
+                'grants_simulator' => $e->grants_simulator,
+                'includes_doubt_session' => $e->includes_doubt_session,
+            ])->values()->all(),
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [
                 'title' => $section->title,
                 'duration_seconds' => (int) $section->lectures->sum('duration_seconds'),
@@ -51,6 +65,8 @@ class CourseDetailResource extends JsonResource
                     'kind' => $lecture->kind->value,
                     'duration_seconds' => $lecture->duration_seconds,
                     'is_free_preview' => $lecture->is_free_preview,
+                    /** Name of the edition this lecture starts in, when it isn't in every edition. */
+                    'edition' => $lecture->minEdition?->name,
                 ])->values()->all(),
             ])->values()->all(),
         ];

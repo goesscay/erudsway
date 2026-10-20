@@ -18,6 +18,12 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    // The GST simulator's integration API (simulator: php artisan integration:key-create … --scopes=users,sso).
+    'simulator' => [
+        'url' => env('SIMULATOR_URL', 'https://simulator.erudsway.com'),
+        'key' => env('SIMULATOR_API_KEY'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

@@ -101,6 +101,8 @@ class CurriculumController extends Controller
             'title' => ['sometimes', 'required', 'string', 'min:3', 'max:160'],
             'is_free_preview' => ['sometimes', 'boolean'],
             'article_html' => ['sometimes', 'nullable', 'string', 'max:50000'],
+            // Hold the lecture back to an edition (null: every edition).
+            'min_edition_id' => ['sometimes', 'nullable', 'integer', Rule::exists('course_editions', 'id')->where('course_id', $lecture->course_id)],
         ]);
 
         if (array_key_exists('article_html', $data)) {
@@ -113,6 +115,10 @@ class CurriculumController extends Controller
             $data['duration_seconds'] = max(60, (int) round($words / 200 * 60));
         }
 
+        if (array_key_exists('min_edition_id', $data)) {
+            $lecture->min_edition_id = $data['min_edition_id'];
+            unset($data['min_edition_id']);
+        }
         $lecture->fill($data);
         if (array_key_exists('duration_seconds', $data)) {
             $lecture->duration_seconds = $data['duration_seconds'];

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Catalog\Enums\LectureKind;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Learning\Services\Entitlements;
+use App\Modules\Learning\Services\ProgressTracker;
 use App\Modules\Media\Models\VideoAsset;
 use App\Modules\Media\Video\HlsPlaylists;
 use App\Modules\Media\Video\PlaybackToken;
@@ -26,6 +27,7 @@ class PlaybackController extends Controller
     public function __construct(
         private readonly Entitlements $entitlements,
         private readonly HlsPlaylists $playlists,
+        private readonly ProgressTracker $progress,
     ) {}
 
     /** Start (or refresh) playback of a video lecture. Free previews work signed out. */
@@ -33,6 +35,9 @@ class PlaybackController extends Controller
     {
         /** @var User|null $user */
         $user = $request->user('sanctum');
+        if ($needed = $this->entitlements->lockedBehind($user, $lecture)) {
+            throw Entitlements::lockedError($needed);
+        }
         if (! $this->entitlements->canView($user, $lecture)) {
             throw $user === null
                 ? new DomainException('UNAUTHENTICATED', 'Log in to watch this lecture.', 401)
@@ -44,6 +49,13 @@ class PlaybackController extends Controller
             throw new DomainException('VIDEO_UNAVAILABLE', 'This lecture has no video yet.', 422);
         }
 
+        // Editions with a view limit: each full view of a video uses one.
+        $enrollment = $user ? $this->entitlements->enrollment($user, $lecture->course) : null;
+        $viewsLeft = $enrollment ? $this->progress->viewsLeft($enrollment, $lecture) : null;
+        if ($viewsLeft !== null && $viewsLeft <= 0) {
+            throw new DomainException('WATCH_LIMIT_REACHED', 'You’ve used all your full views of this video. Upgrade your edition to watch it again.', 403);
+        }
+
         $token = PlaybackToken::issue($asset->uuid, $lecture->id, $user?->id);
 
         return ApiResponse::data([
@@ -51,6 +63,8 @@ class PlaybackController extends Controller
             'playlist_url' => $this->playlists->masterUrl($asset, $token),
             'poster_url' => $this->playlists->posterUrl($asset, $token),
             'duration_seconds' => $asset->duration_seconds,
+            /** Full views left under the edition's limit; null = unlimited. */
+            'views_left' => $viewsLeft,
             'expires_at' => date(DATE_ATOM, $token->expiresAt),
             // Shown faintly over the video to discourage screen recording.
             'watermark' => $user === null ? null : $user->email,

@@ -4,10 +4,12 @@ namespace App\Modules\Learning\Services;
 
 use App\Models\User;
 use App\Modules\Catalog\Enums\LectureKind;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Learning\Events\CourseCompleted;
 use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Models\LectureProgress;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -34,12 +36,17 @@ class ProgressTracker
         return DB::transaction(function () use ($user, $lecture, $enrollment, $position, $duration) {
             $current = $this->find($user, $lecture);
             $max = max($position, $current->max_position_seconds ?? 0);
+            // Time actually watched, for view limits: forward steps of up to a minute between
+            // reports count; seeks and jumps back don't.
+            $step = $position - ($current->last_position_seconds ?? 0);
+            $watched = ($current->watched_seconds ?? 0) + ($step > 0 && $step <= 60 ? $step : 0);
             $reachedEnd = $lecture->kind === LectureKind::Video && $duration > 0 && $max >= $duration * self::COMPLETE_AT;
             $completedAt = $current->completed_at ?? ($reachedEnd ? now() : null);
 
             $this->write($user, $lecture, $current !== null, [
                 'last_position_seconds' => $position,
                 'max_position_seconds' => $max,
+                'watched_seconds' => $watched,
                 'completed_at' => $completedAt,
             ]);
             $this->touch($enrollment, $lecture, recount: $completedAt !== null && $current?->completed_at === null);
@@ -88,10 +95,40 @@ class ProgressTracker
         return max((int) $enrollment->peak_progress_percent, (int) $enrollment->progress_percent, $total > 0 ? intdiv($watched * 100, $total) : 0);
     }
 
-    /** Recount completed lectures that still exist in the course. */
+    /**
+     * Full views of a video still available to this learner, or null when unlimited. One
+     * view is the video's length in watched time; 90% of it counts as a full view.
+     */
+    public function viewsLeft(Enrollment $enrollment, Lecture $lecture): ?float
+    {
+        $limit = $enrollment->edition?->video_view_limit;
+        if ($limit === null || $lecture->kind !== LectureKind::Video || $lecture->duration_seconds <= 0) {
+            return null;
+        }
+        $watched = (int) LectureProgress::query()->where('user_id', $enrollment->user_id)->where('lecture_id', $lecture->id)->value('watched_seconds');
+
+        return max(0.0, round($limit - $watched / ($lecture->duration_seconds * self::COMPLETE_AT), 2));
+    }
+
+    /**
+     * Ids of the course's lectures this enrollment's edition includes.
+     *
+     * @return Collection<int, int>
+     */
+    public function includedLectureIds(Enrollment $enrollment): Collection
+    {
+        $edition = $enrollment->edition;
+        $covered = $edition ? CourseEdition::query()->where('course_id', $edition->course_id)->where('position', '<=', $edition->position)->pluck('id') : null;
+
+        return Lecture::query()->where('course_id', $enrollment->course_id)
+            ->when($covered, fn ($q) => $q->where(fn ($w) => $w->whereNull('min_edition_id')->orWhereIn('min_edition_id', $covered)))
+            ->pluck('id');
+    }
+
+    /** Recount completed lectures that still exist in the course and are in the learner's edition. */
     public function recount(Enrollment $enrollment): void
     {
-        $lectureIds = Lecture::query()->where('course_id', $enrollment->course_id)->pluck('id');
+        $lectureIds = $this->includedLectureIds($enrollment);
         $total = $lectureIds->count();
         $done = LectureProgress::query()
             ->where('user_id', $enrollment->user_id)

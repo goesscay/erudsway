@@ -5,8 +5,10 @@ namespace App\Modules\Learning\Services;
 use App\Models\User;
 use App\Modules\Catalog\Enums\CourseStatus;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Learning\Enums\EnrollmentSource;
 use App\Modules\Learning\Enums\EnrollmentStatus;
+use App\Modules\Learning\Events\EditionGranted;
 use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Notifications\CourseAccessGranted;
 use App\Modules\Platform\Services\AuditLogger;
@@ -36,15 +38,48 @@ class Enroller
         return $this->activate($user, $course, EnrollmentSource::Free);
     }
 
-    /** Access bought through an order item (Phase 5). A purchase restores revoked access. */
-    public function enrollPurchase(User $user, Course $course, int $orderItemId): Enrollment
+    /**
+     * Access bought through an order item. A purchase restores revoked or expired access; for
+     * a course with editions it sets (or upgrades to) the edition bought.
+     */
+    public function enrollPurchase(User $user, Course $course, int $orderItemId, ?CourseEdition $edition = null): Enrollment
     {
-        return $this->activate($user, $course, EnrollmentSource::Purchase, orderItemId: $orderItemId);
+        $enrollment = $this->activate($user, $course, EnrollmentSource::Purchase, orderItemId: $orderItemId);
+
+        return $edition ? $this->applyEdition($enrollment, $edition) : $enrollment;
     }
 
-    /** Remove access because the purchase was refunded. */
-    public function markRefunded(User $user, Course $course): void
+    /**
+     * Give an enrollment an edition — a purchase, an upgrade or a renewal. The access period
+     * runs from now (never shortening what's left); an edition without one has no end.
+     */
+    public function applyEdition(Enrollment $enrollment, CourseEdition $edition): Enrollment
     {
+        $previous = $enrollment->edition;
+        $ends = $edition->access_days === null ? null : now()->addDays($edition->access_days);
+        if ($ends !== null && $enrollment->expires_at !== null && $enrollment->expires_at->isAfter($ends) && $previous !== null) {
+            $ends = $enrollment->expires_at;
+        }
+        $enrollment->forceFill(['edition_id' => $edition->id, 'expires_at' => $ends])->save();
+        $enrollment->setRelation('edition', $edition);
+        EditionGranted::dispatch($enrollment, $previous);
+
+        return $enrollment;
+    }
+
+    /**
+     * Undo a refunded purchase. Refunding an upgrade puts the learner back on the edition they
+     * upgraded from; refunding the course itself ends access.
+     */
+    public function markRefunded(User $user, Course $course, ?CourseEdition $revertTo = null): void
+    {
+        if ($revertTo !== null) {
+            Enrollment::query()->where('user_id', $user->id)->where('course_id', $course->id)->where('status', EnrollmentStatus::Active->value)
+                ->update(['edition_id' => $revertTo->id]);
+
+            return;
+        }
+
         DB::transaction(function () use ($user, $course) {
             $enrollment = Enrollment::query()->lockForUpdate()
                 ->where('user_id', $user->id)->where('course_id', $course->id)->first();

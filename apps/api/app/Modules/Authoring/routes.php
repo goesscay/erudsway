@@ -4,6 +4,7 @@ use App\Modules\Authoring\Http\Controllers\Admin\CourseManagementController;
 use App\Modules\Authoring\Http\Controllers\Admin\CourseReviewController;
 use App\Modules\Authoring\Http\Controllers\CourseController;
 use App\Modules\Authoring\Http\Controllers\CurriculumController;
+use App\Modules\Authoring\Http\Controllers\EditionController;
 use App\Modules\Authoring\Http\Controllers\ResourceController;
 use App\Modules\Authoring\Http\Controllers\VideoUploadController;
 use App\Modules\Authoring\Http\Middleware\AuditStaffCourseEdits;
@@ -31,6 +32,12 @@ Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function 
         Route::post('sections/{section}/lectures', [CurriculumController::class, 'storeLecture'])->name('lectures.store');
         Route::patch('lectures/{lecture}', [CurriculumController::class, 'updateLecture'])->name('lectures.update');
         Route::delete('lectures/{lecture}', [CurriculumController::class, 'destroyLecture'])->name('lectures.destroy');
+
+        Route::post('courses/{course:uuid}/editions', [EditionController::class, 'store'])->name('editions.store');
+        Route::put('courses/{course:uuid}/editions/order', [EditionController::class, 'reorder'])->name('editions.reorder');
+        Route::patch('editions/{edition}', [EditionController::class, 'update'])->name('editions.update');
+        Route::delete('editions/{edition}', [EditionController::class, 'destroy'])->name('editions.destroy');
+        Route::put('resources/{resource}/edition', [EditionController::class, 'resourceEdition'])->name('resources.edition');
 
         Route::post('lectures/{lecture}/resources', [ResourceController::class, 'store'])->name('resources.store');
         Route::delete('resources/{resource}', [ResourceController::class, 'destroy'])->name('resources.destroy');

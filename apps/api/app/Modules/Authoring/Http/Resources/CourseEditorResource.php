@@ -4,6 +4,7 @@ namespace App\Modules\Authoring\Http\Resources;
 
 use App\Modules\Authoring\Services\CourseReadiness;
 use App\Modules\Catalog\Models\Course;
+use App\Modules\Catalog\Models\CourseEdition;
 use App\Modules\Catalog\Models\CourseSection;
 use App\Modules\Catalog\Models\Lecture;
 use App\Modules\Media\Models\LectureResource;
@@ -57,9 +58,23 @@ class CourseEditorResource extends JsonResource
                 'submitted_at' => $submission->created_at->toIso8601String(),
                 'decided_at' => $submission->decided_at?->toIso8601String(),
             ] : null,
+            /** @var list<array{id: int, position: int, name: string, price_tier_id: int, price: int, includes: list<string>, is_recommended: bool, access_days: int|null, video_view_limit: int|null, grants_simulator: bool, includes_doubt_session: bool}> */
+            'editions' => $this->editions->map(fn (CourseEdition $e) => [
+                'id' => $e->id,
+                'position' => $e->position,
+                'name' => $e->name,
+                'price_tier_id' => $e->price_tier_id,
+                'price' => $e->price(),
+                'includes' => $e->includes,
+                'is_recommended' => $e->is_recommended,
+                'access_days' => $e->access_days,
+                'video_view_limit' => $e->video_view_limit,
+                'grants_simulator' => $e->grants_simulator,
+                'includes_doubt_session' => $e->includes_doubt_session,
+            ])->values()->all(),
             /** @var list<array{key: string, group: string, label: string, ok: bool}> */
             'checklist' => app(CourseReadiness::class)->check($this->resource),
-            /** @var list<array{id: int, title: string, position: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', position: int, is_free_preview: bool, duration_seconds: int, article_html: string|null, video: array{id: string, status: 'uploading'|'processing'|'ready'|'failed', original_name: string, duration_seconds: int, failure_reason: string|null}|null, resources: list<array{id: int, name: string, size_bytes: int}>}>}> */
+            /** @var list<array{id: int, title: string, position: int, lectures: list<array{id: int, title: string, kind: 'video'|'article'|'quiz'|'assignment', position: int, is_free_preview: bool, min_edition_id: int|null, duration_seconds: int, article_html: string|null, video: array{id: string, status: 'uploading'|'processing'|'ready'|'failed', original_name: string, duration_seconds: int, failure_reason: string|null}|null, resources: list<array{id: int, name: string, size_bytes: int, min_edition_id: int|null}>}>}> */
             'curriculum' => $this->sections->map(fn (CourseSection $section) => [
                 'id' => $section->id,
                 'title' => $section->title,
@@ -70,6 +85,7 @@ class CourseEditorResource extends JsonResource
                     'kind' => $lecture->kind->value,
                     'position' => $lecture->position,
                     'is_free_preview' => $lecture->is_free_preview,
+                    'min_edition_id' => $lecture->min_edition_id,
                     'duration_seconds' => $lecture->duration_seconds,
                     'article_html' => $lecture->article_html,
                     'video' => $lecture->videoAsset ? [
@@ -83,6 +99,7 @@ class CourseEditorResource extends JsonResource
                         'id' => $r->id,
                         'name' => $r->original_name,
                         'size_bytes' => $r->size_bytes,
+                        'min_edition_id' => $r->min_edition_id,
                     ])->values()->all(),
                 ])->values()->all(),
             ])->values()->all(),
@@ -92,7 +109,7 @@ class CourseEditorResource extends JsonResource
     public static function load(Course $course): self
     {
         return new self($course->load([
-            'instructor', 'category.parent', 'priceTier', 'latestSubmission',
+            'instructor', 'category.parent', 'priceTier', 'latestSubmission', 'editions.priceTier',
             'sections.lectures.videoAsset', 'sections.lectures.resources', 'lectures.videoAsset',
         ]));
     }
