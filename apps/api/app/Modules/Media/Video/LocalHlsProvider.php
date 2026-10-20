@@ -51,6 +51,9 @@ class LocalHlsProvider implements VideoProvider
         $dir = "video-hls/{$asset->uuid}";
         $disk->deleteDirectory($dir);
         $disk->makeDirectory($dir);
+        // The private disk creates owner-only folders; Nginx (the folder's group, via the
+        // setgid parent) must be able to enter it to serve segments and the poster.
+        @chmod($disk->path($dir), 0750);
         $out = $disk->path($dir);
 
         $key = random_bytes(16);

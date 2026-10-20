@@ -45,6 +45,8 @@ done
 chmod 755 "$BASE/shared/storage" "$BASE/shared/storage/app" "$BASE/shared/storage/app/public"
 # Nginx (www-data) reads public uploads and HLS segments directly.
 install -d -o "$APP_USER" -g www-data -m 750 "$BASE/shared/storage/app/private/video-hls"
+# setgid: each video's folder inherits the www-data group, so Nginx can serve its segments.
+chmod 2750 "$BASE/shared/storage/app/private/video-hls"
 chmod 751 "$BASE/shared/storage/app/private"
 install -d -o "$APP_USER" -g "$APP_USER" -m 750 /var/log/erudsway
 install -d -m 700 /var/backups/erudsway /var/backups/erudsway/db /var/backups/erudsway/files
