@@ -2,8 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** Compact horizontal lockup for headers: the S-mark plus a typeset wordmark. */
-export function Logo({ className, inverted = false }: { className?: string; inverted?: boolean }) {
+/** Compact horizontal lockup for headers: the S-mark plus a typeset wordmark (or the mark alone). */
+export function Logo({
+  className,
+  inverted = false,
+  markOnly = false,
+}: {
+  className?: string;
+  inverted?: boolean;
+  markOnly?: boolean;
+}) {
   return (
     <Link href="/" className={cn("inline-flex items-center gap-2.5", className)} aria-label="Erudsway home">
       <Image
@@ -14,7 +22,7 @@ export function Logo({ className, inverted = false }: { className?: string; inve
         preload
         className={cn("h-9 w-auto", inverted && "brightness-0 invert")}
       />
-      <span className="flex flex-col leading-none">
+      <span className={cn("flex flex-col leading-none", markOnly && "hidden")}>
         <span
           className={cn(
             "font-sans text-[1.15rem] font-extrabold tracking-[0.14em]",

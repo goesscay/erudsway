@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useId, useState } from "react";
 import {
   BookCheck,
+  ChevronDown,
   ChartColumn,
   ClipboardCheck,
   ExternalLink,
@@ -15,6 +16,8 @@ import {
   LayoutDashboard,
   Landmark,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   MessageSquareWarning,
   ReceiptText,
   RotateCcw,
@@ -26,7 +29,9 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { hasPermission, isStaff, useMe, type CurrentUser } from "@/lib/auth/session";
+import { useLocalPref } from "@/lib/use-local-pref";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: typeof Users; permission: string | null };
@@ -92,29 +97,60 @@ function visible(me: CurrentUser | null | undefined) {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { data: me } = useMe();
   const [open, setOpen] = useState(false);
+  const [railPref, setRailPref] = useLocalPref("admin.nav.rail", "expanded");
+  const rail = railPref === "collapsed";
   const sections = visible(me);
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <nav
         aria-label="Admin"
-        className="dark sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto bg-navy-950 px-4 py-5 text-foreground md:flex"
+        className={cn(
+          "dark sticky top-0 hidden h-dvh shrink-0 flex-col overflow-x-hidden overflow-y-auto bg-navy-950 py-5 text-foreground transition-[width] motion-reduce:transition-none md:flex",
+          rail ? "w-16 px-2" : "w-64 px-4",
+        )}
       >
-        <Logo inverted />
-        <ActiveNavList sections={sections} />
+        <div className={cn("flex items-center", rail ? "flex-col gap-3" : "justify-between")}>
+          <Logo inverted markOnly={rail} />
+          <button
+            type="button"
+            onClick={() => setRailPref(rail ? "expanded" : "collapsed")}
+            aria-label={rail ? "Expand the menu" : "Collapse the menu"}
+            aria-expanded={!rail}
+            title={rail ? "Expand the menu" : "Collapse the menu"}
+            className="rounded-md p-1.5 text-white/60 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-gold-400"
+          >
+            {rail ? <PanelLeftOpen className="size-5" /> : <PanelLeftClose className="size-5" />}
+          </button>
+        </div>
+        <ActiveNavList sections={sections} rail={rail} />
         {me && (
-          <div className="mt-auto space-y-4 border-t border-white/10 pt-4">
-            <Link href="/" className="flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white">
-              <ExternalLink className="size-4" /> View site
+          <div className={cn("mt-auto space-y-4 border-t border-white/10 pt-4", rail && "flex flex-col items-center")}>
+            <Link
+              href="/"
+              aria-label={rail ? "View site" : undefined}
+              title={rail ? "View site" : undefined}
+              className="flex items-center gap-2 px-3 text-sm text-white/60 hover:text-white"
+            >
+              <ExternalLink className="size-4" /> {!rail && "View site"}
             </Link>
-            <div className="flex items-center gap-3 px-3">
+            <div
+              className={cn("flex items-center gap-3", rail ? "justify-center" : "px-3")}
+              title={rail ? me.name : undefined}
+            >
               <InstructorAvatar name={me.name} className="size-9 text-xs" />
-              <span className="min-w-0 text-sm">
-                <span className="block truncate font-semibold text-white">{me.name}</span>
-                <span className="block truncate text-xs text-white/50">
-                  {me.roles.includes("admin") ? "Administrator" : "Staff"}
+              {!rail && (
+                <span className="min-w-0 text-sm">
+                  <span className="block truncate font-semibold text-white">{me.name}</span>
+                  <span className="block truncate text-xs text-white/50">
+                    {me.roles.includes("super_admin")
+                      ? "Super admin"
+                      : me.roles.includes("admin")
+                        ? "Administrator"
+                        : "Staff"}
+                  </span>
                 </span>
-              </span>
+              )}
             </div>
           </div>
         )}
@@ -155,7 +191,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
  * /admin/users/[id]) would otherwise block prerendering. The fallback is the same list
  * with nothing highlighted.
  */
-function ActiveNavList(props: { sections: ReturnType<typeof visible>; onNavigate?: () => void }) {
+function ActiveNavList(props: { sections: ReturnType<typeof visible>; onNavigate?: () => void; rail?: boolean }) {
   return (
     <Suspense fallback={<NavList {...props} pathname="" />}>
       <PathAwareNavList {...props} />
@@ -163,49 +199,113 @@ function ActiveNavList(props: { sections: ReturnType<typeof visible>; onNavigate
   );
 }
 
-function PathAwareNavList(props: { sections: ReturnType<typeof visible>; onNavigate?: () => void }) {
+function PathAwareNavList(props: { sections: ReturnType<typeof visible>; onNavigate?: () => void; rail?: boolean }) {
   return <NavList {...props} pathname={usePathname()} />;
 }
 
+/** The first group (Overview) is always open; the others fold, and the choice is remembered. */
 function NavList({
   sections,
   pathname,
   onNavigate,
+  rail = false,
 }: {
   sections: ReturnType<typeof visible>;
   pathname: string;
   onNavigate?: () => void;
+  rail?: boolean;
 }) {
+  const idBase = useId();
+  const [collapsedPref, setCollapsedPref] = useLocalPref("admin.nav.collapsed", "");
+  const collapsed = new Set(collapsedPref.split("|").filter(Boolean));
+  const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));
+  const toggle = (title: string) => {
+    const next = new Set(collapsed);
+    if (next.has(title)) next.delete(title);
+    else next.add(title);
+    setCollapsedPref([...next].join("|"));
+  };
+
   return (
-    <div className="mt-6 space-y-5">
-      {sections.map((g) => (
-        <div key={g.title}>
-          <p className="mb-1.5 px-3 text-[0.65rem] font-bold tracking-[0.2em] text-white/40 uppercase">{g.title}</p>
-          <ul className="space-y-0.5">
-            {g.items.map(({ href, label, icon: Icon }) => {
-              const active = href === "/admin" ? pathname === href : pathname.startsWith(href);
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={onNavigate}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm",
-                      active
-                        ? "bg-white/10 font-semibold text-white"
-                        : "text-white/65 hover:bg-white/5 hover:text-white",
-                    )}
-                  >
-                    <Icon className={cn("size-4", active && "text-gold-400")} />
-                    {label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+    <div className={cn("mt-6", rail ? "space-y-3" : "space-y-4")}>
+      {sections.map((g, index) => {
+        const pinned = index === 0;
+        const open = pinned || rail || !collapsed.has(g.title);
+        const listId = `${idBase}-${g.title.toLowerCase().replace(/[^a-z]+/g, "-")}`;
+        return (
+          <div key={g.title} className={cn(rail && index > 0 && "border-t border-white/10 pt-3")}>
+            {!rail &&
+              (pinned ? (
+                <p className="mb-1.5 px-3 text-[0.65rem] font-bold tracking-[0.2em] text-white/40 uppercase">
+                  {g.title}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => toggle(g.title)}
+                  aria-expanded={open}
+                  aria-controls={listId}
+                  className="mb-1.5 flex w-full items-center justify-between rounded-sm px-3 py-0.5 text-[0.65rem] font-bold tracking-[0.2em] text-white/40 uppercase hover:text-white/70 focus-visible:outline-2 focus-visible:outline-gold-400"
+                >
+                  {g.title}
+                  <ChevronDown
+                    className={cn("size-3.5 transition-transform motion-reduce:transition-none", !open && "-rotate-90")}
+                    aria-hidden
+                  />
+                </button>
+              ))}
+            {open && (
+              <ul id={listId} className="space-y-0.5" aria-label={rail ? g.title : undefined}>
+                {g.items.map(({ href, label, icon: Icon }) => {
+                  const active = isActive(href);
+                  const link = (
+                    <Link
+                      href={href}
+                      onClick={onNavigate}
+                      aria-current={active ? "page" : undefined}
+                      aria-label={rail ? label : undefined}
+                      className={cn(
+                        "flex items-center rounded-md text-sm",
+                        rail ? "justify-center p-2.5" : "gap-3 px-3 py-2",
+                        active
+                          ? "bg-white/10 font-semibold text-white"
+                          : "text-white/65 hover:bg-white/5 hover:text-white",
+                      )}
+                    />
+                  );
+                  return (
+                    <li key={href}>
+                      {rail ? (
+                        <Tooltip>
+                          <TooltipTrigger render={link}>
+                            <Icon className={cn("size-4", active && "text-gold-400")} />
+                          </TooltipTrigger>
+                          <TooltipContent side="right">{label}</TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Link
+                          href={href}
+                          onClick={onNavigate}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm",
+                            active
+                              ? "bg-white/10 font-semibold text-white"
+                              : "text-white/65 hover:bg-white/5 hover:text-white",
+                          )}
+                        >
+                          <Icon className={cn("size-4", active && "text-gold-400")} />
+                          {label}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
