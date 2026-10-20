@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
+    // These tests cover the learner refund flow, which is off by default (purchases are final).
+    config(['commerce.refunds.self_service' => true]);
     Notification::fake();
     $gst = Category::query()->create(['slug' => 'gst', 'name' => 'GST']);
     Category::query()->create(['slug' => 'registration-returns', 'name' => 'Registration & Returns', 'parent_id' => $gst->id]);

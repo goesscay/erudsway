@@ -8,7 +8,14 @@ import { formatDate } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { FormAlert } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,7 +50,12 @@ function Orders() {
   const [refundFor, setRefundFor] = useState<{ order: Order; item: OrderItem } | null>(null);
 
   if (orders.isPending) return <Skeleton className="mt-8 h-48 w-full" />;
-  if (orders.isError) return <div className="mt-8"><FormAlert>We couldn&rsquo;t load your purchases.</FormAlert></div>;
+  if (orders.isError)
+    return (
+      <div className="mt-8">
+        <FormAlert>We couldn&rsquo;t load your purchases.</FormAlert>
+      </div>
+    );
   if (orders.data.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-line bg-white px-6 py-16 text-center">
@@ -66,13 +78,17 @@ function Orders() {
                 <span className="text-stone-500">Ordered</span> {formatDate(order.paid_at)}
               </span>
               <span>
-                <span className="text-stone-500">Total</span> <strong className="tabular">{formatPaise(order.total)}</strong>
+                <span className="text-stone-500">Total</span>{" "}
+                <strong className="tabular">{formatPaise(order.total)}</strong>
               </span>
               <span>
                 <span className="text-stone-500">Order</span> {order.number}
               </span>
               {order.invoice && (
-                <a href={order.invoice.download_url} className="ml-auto inline-flex items-center gap-1 font-semibold text-navy-800 hover:underline">
+                <a
+                  href={order.invoice.download_url}
+                  className="ml-auto inline-flex items-center gap-1 font-semibold text-navy-800 hover:underline"
+                >
                   <Download className="size-3.5" /> Tax invoice
                 </a>
               )}
@@ -91,7 +107,9 @@ function Orders() {
                     {item.refund && (
                       <p className="mt-1 text-xs font-semibold text-stone-700">
                         {refundLabel[item.refund.status]}
-                        {item.refund.status === "rejected" && item.refund.decision_note && <span className="font-normal text-stone-500"> — {item.refund.decision_note}</span>}
+                        {item.refund.status === "rejected" && item.refund.decision_note && (
+                          <span className="font-normal text-stone-500"> — {item.refund.decision_note}</span>
+                        )}
                       </p>
                     )}
                   </div>
@@ -106,7 +124,17 @@ function Orders() {
           </li>
         ))}
       </ul>
-      <p className="mt-6 text-xs text-stone-500">Refunds are available for 30 days after purchase.</p>
+      <p className="mt-6 text-xs text-stone-500">
+        Course purchases are final. Charged twice or can&rsquo;t access a course? Email{" "}
+        <a href="mailto:support@erudsway.com" className="underline underline-offset-2">
+          support@erudsway.com
+        </a>{" "}
+        with your order number — see the{" "}
+        <Link href="/policies#refund" className="underline underline-offset-2">
+          Refund &amp; Cancellation policy
+        </Link>
+        .
+      </p>
       <RefundDialog target={refundFor} onClose={() => setRefundFor(null)} />
     </>
   );
@@ -123,8 +151,16 @@ function RefundDialog({ target, onClose }: { target: { order: Order; item: Order
     setBusy(true);
     setError(null);
     try {
-      await mutate(() => api.POST("/order-items/{item}/refund-request", { params: { path: { item: target.item.id } }, body: { reason: reason.trim() } }));
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ordersKey }), queryClient.invalidateQueries({ queryKey: myLearningKey })]);
+      await mutate(() =>
+        api.POST("/order-items/{item}/refund-request", {
+          params: { path: { item: target.item.id } },
+          body: { reason: reason.trim() },
+        }),
+      );
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ordersKey }),
+        queryClient.invalidateQueries({ queryKey: myLearningKey }),
+      ]);
       setReason("");
       onClose();
     } catch (e) {
@@ -140,8 +176,9 @@ function RefundDialog({ target, onClose }: { target: { order: Order; item: Order
         <DialogHeader>
           <DialogTitle>Request a refund</DialogTitle>
           <DialogDescription>
-            {target?.item.course.title} · {target && formatPaise(target.item.amount)}. If you&rsquo;ve completed less than 30% of the course, the refund is
-            issued straight away and your access ends. Otherwise our team reviews it within two working days.
+            {target?.item.course.title} · {target && formatPaise(target.item.amount)}. If you&rsquo;ve completed less
+            than 30% of the course, the refund is issued straight away and your access ends. Otherwise our team reviews
+            it within two working days.
           </DialogDescription>
         </DialogHeader>
         {error && <FormAlert>{error}</FormAlert>}
@@ -149,7 +186,14 @@ function RefundDialog({ target, onClose }: { target: { order: Order; item: Order
           <Label htmlFor="refund-reason" className="text-sm font-semibold text-ink">
             What went wrong?
           </Label>
-          <Textarea id="refund-reason" rows={4} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Helps us improve the course." className="bg-white" />
+          <Textarea
+            id="refund-reason"
+            rows={4}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Helps us improve the course."
+            className="bg-white"
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

@@ -45,7 +45,9 @@ function Empty() {
     <div className="mt-8 rounded-md border border-line bg-white px-6 py-16 text-center">
       <ShoppingCart className="mx-auto size-10 text-gold-600" strokeWidth={1.5} />
       <p className="mt-4 font-semibold text-ink">Your cart is empty</p>
-      <p className="mt-1 text-sm text-stone-500">Find a course on GST, income tax, audit or company law and start learning today.</p>
+      <p className="mt-1 text-sm text-stone-500">
+        Find a course on GST, income tax, audit or company law and start learning today.
+      </p>
       <Link href="/courses" className={buttonVariants({ size: "lg", className: "mt-6" })}>
         Browse courses
       </Link>
@@ -67,11 +69,19 @@ function Filled({ cart }: { cart: Cart }) {
         <ul className="divide-y divide-line border-y border-line">
           {cart.items.map((item) => (
             <li key={item.course.id} className="flex gap-4 py-5">
-              <Link href={`/course/${item.course.slug}`} className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-sm bg-paper-2 sm:w-40">
-                {item.course.thumbnail_url && <Image src={item.course.thumbnail_url} alt="" fill sizes="160px" className="object-cover" />}
+              <Link
+                href={`/course/${item.course.slug}`}
+                className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-sm bg-paper-2 sm:w-40"
+              >
+                {item.course.thumbnail_url && (
+                  <Image src={item.course.thumbnail_url} alt="" fill sizes="160px" className="object-cover" />
+                )}
               </Link>
               <div className="min-w-0 flex-1">
-                <Link href={`/course/${item.course.slug}`} className="line-clamp-2 font-sans text-[0.95rem] leading-snug font-bold text-ink hover:text-navy-800">
+                <Link
+                  href={`/course/${item.course.slug}`}
+                  className="line-clamp-2 font-sans text-[0.95rem] leading-snug font-bold text-ink hover:text-navy-800"
+                >
                   {item.course.title}
                 </Link>
                 <p className="mt-1 text-xs text-stone-500">By {item.course.instructor.name}</p>
@@ -93,7 +103,9 @@ function Filled({ cart }: { cart: Cart }) {
               </div>
               <div className="shrink-0 text-right">
                 <p className="tabular font-serif text-lg font-semibold text-navy-900">{formatPaise(item.amount)}</p>
-                {item.discount > 0 && <p className="tabular text-xs text-stone-500 line-through">{formatPaise(item.list_price)}</p>}
+                {item.discount > 0 && (
+                  <p className="tabular text-xs text-stone-500 line-through">{formatPaise(item.list_price)}</p>
+                )}
               </div>
             </li>
           ))}
@@ -107,7 +119,9 @@ function Filled({ cart }: { cart: Cart }) {
           {cart.totals.discount > 0 && (
             <p className="tabular mt-1 text-sm text-stone-500">
               <span className="line-through">{formatPaise(cart.totals.subtotal)}</span>{" "}
-              <span className="font-semibold text-success">{Math.round((cart.totals.discount / cart.totals.subtotal) * 100)}% off</span>
+              <span className="font-semibold text-success">
+                {Math.round((cart.totals.discount / cart.totals.subtotal) * 100)}% off
+              </span>
             </p>
           )}
           <p className="mt-1 text-xs text-stone-500">Includes GST of {formatPaise(cart.totals.tax)}</p>
@@ -141,7 +155,12 @@ function CouponBox({ cart }: { cart: Cart }) {
             <span className="font-semibold text-ink">{cart.coupon.code}</span>
             {cart.coupon.applied && <span className="text-success">applied</span>}
           </p>
-          <button type="button" onClick={() => removeCoupon.mutate()} aria-label="Remove coupon" className="rounded-sm p-1 text-stone-500 hover:text-navy-900">
+          <button
+            type="button"
+            onClick={() => removeCoupon.mutate()}
+            aria-label="Remove coupon"
+            className="rounded-sm p-1 text-stone-500 hover:text-navy-900"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -167,7 +186,14 @@ function CouponBox({ cart }: { cart: Cart }) {
         Coupon
       </label>
       <div className="mt-2 flex gap-2">
-        <Input id="coupon" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Enter code" autoComplete="off" className="bg-white uppercase placeholder:normal-case" />
+        <Input
+          id="coupon"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="Enter code"
+          autoComplete="off"
+          className="bg-white uppercase placeholder:normal-case"
+        />
         <Button type="submit" variant="outline" disabled={!code.trim() || applyCoupon.isPending}>
           Apply
         </Button>

@@ -1,14 +1,25 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import type { components } from "@erudsway/api-client";
 import { AdminPageHeader, formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { FormAlert } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api, unwrap } from "@/lib/api/client";
+import { Textarea } from "@/components/ui/textarea";
+import { api, ApiRequestError, mutate, unwrap } from "@/lib/api/client";
 import { formatPaise, plural } from "@/lib/format";
 
 const statuses = [
@@ -21,6 +32,16 @@ const statuses = [
 ] as const;
 
 type StatusFilter = (typeof statuses)[number]["value"];
+type Order = components["schemas"]["OrderResource"];
+type Item = Order["items"][number];
+
+const refundLabel: Record<NonNullable<Item["refund"]>["status"], string> = {
+  requested: "Refund requested",
+  processing: "Refund processing",
+  processed: "Refunded",
+  rejected: "Refund declined",
+  failed: "Refund failed",
+};
 
 export default function OrdersPage() {
   return <RequireAuth permission="manage_finance">{() => <Orders />}</RequireAuth>;
@@ -30,18 +51,26 @@ function Orders() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<StatusFilter>("");
   const [page, setPage] = useState(1);
+  const [refunding, setRefunding] = useState<{ order: Order; item: Item } | null>(null);
   const deferredQ = useDeferredValue(q.trim());
   const list = useQuery({
     queryKey: ["admin", "orders", deferredQ, status, page],
     queryFn: () =>
-      unwrap(api.GET("/admin/orders", { params: { query: { q: deferredQ || undefined, status: status || undefined, page } } })),
+      unwrap(
+        api.GET("/admin/orders", {
+          params: { query: { q: deferredQ || undefined, status: status || undefined, page } },
+        }),
+      ),
   });
   const rows = list.data?.data ?? [];
   const meta = list.data?.meta as { current_page: number; last_page: number; total: number } | undefined;
 
   return (
     <>
-      <AdminPageHeader title="Orders" description={meta ? plural(meta.total, "order") : "Every checkout, paid or not."} />
+      <AdminPageHeader
+        title="Orders"
+        description={meta ? plural(meta.total, "order") : "Every checkout, paid or not."}
+      />
       <div className="px-8 py-6">
         <div className="mb-5 flex flex-wrap gap-3">
           <label className="relative max-w-sm flex-1">
@@ -112,11 +141,33 @@ function Orders() {
                       </p>
                     </td>
                     <td className="px-5 py-3 text-stone-700">
-                      {o.items.map((i) => (
-                        <p key={i.id} className="truncate">
-                          {i.course.title}
-                        </p>
-                      ))}
+                      {o.items.map((i) => {
+                        // Purchases are final for learners; staff refund genuine problems here.
+                        const canRefund =
+                          ["paid", "partially_refunded"].includes(o.status) &&
+                          (!i.refund || ["rejected", "failed"].includes(i.refund.status));
+                        return (
+                          <div key={i.id} className="flex items-center justify-between gap-3 py-0.5">
+                            <span className="truncate">{i.course.title}</span>
+                            {i.refund && i.refund.status !== "rejected" ? (
+                              <span className="shrink-0 text-xs font-semibold text-stone-500">
+                                {refundLabel[i.refund.status]}
+                              </span>
+                            ) : (
+                              canRefund && (
+                                <Button
+                                  size="xs"
+                                  variant="ghost"
+                                  className="shrink-0 text-destructive"
+                                  onClick={() => setRefunding({ order: o, item: i })}
+                                >
+                                  Refund<span className="sr-only"> {i.course.title}</span>
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
                       {o.coupon_code && <p className="text-xs text-stone-500">Coupon {o.coupon_code}</p>}
                     </td>
                     <td className="tabular px-5 py-3 text-right font-semibold text-ink">{formatPaise(o.total)}</td>
@@ -144,6 +195,81 @@ function Orders() {
           </div>
         )}
       </div>
+      <RefundDialog target={refunding} onClose={() => setRefunding(null)} />
     </>
+  );
+}
+
+function RefundDialog({ target, onClose }: { target: { order: Order; item: Item } | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const close = () => {
+    setReason("");
+    setError(null);
+    onClose();
+  };
+  const submit = async () => {
+    if (!target) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await mutate(() =>
+        api.POST("/admin/order-items/{item}/refund", {
+          params: { path: { item: target.item.id } },
+          body: { reason: reason.trim() },
+        }),
+      );
+      await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      close();
+    } catch (e) {
+      setError(e instanceof ApiRequestError ? (Object.values(e.fields)[0]?.[0] ?? e.message) : "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!target} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Refund this course?</DialogTitle>
+          <DialogDescription>
+            {target && (
+              <>
+                <span className="font-semibold text-ink">{target.item.course.title}</span> · order {target.order.number}{" "}
+                ·{" "}
+                {formatPaise(
+                  target.item.amount - (target.item.refund?.status === "processed" ? target.item.refund.amount : 0),
+                )}{" "}
+                back to {target.order.billing.name}. Their access to the course ends, and the money goes back through
+                Razorpay.
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        {error && <FormAlert>{error}</FormAlert>}
+        <div className="space-y-1.5">
+          <Label htmlFor="refund-reason">Reason (kept in the audit log)</Label>
+          <Textarea
+            id="refund-reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. Charged twice — duplicate payment pay_…"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={close}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={submit} disabled={busy || reason.trim().length < 10}>
+            {busy ? "Refunding…" : "Refund"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -21,9 +21,11 @@ use App\Support\Http\DomainException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Refund policy (decision D4): within 30 days of purchase; approved automatically when less
- * than 30% of the course is complete, otherwise reviewed by staff. Access ends when the
- * refund is issued; the gateway confirms completion by webhook.
+ * Course purchases are final (policy of 1 October 2026), so by default learners can't ask for
+ * a refund; staff refund genuine problems — a double charge, access that never worked — with
+ * refundByStaff(). When self-service is switched on in Settings, learners may ask within the
+ * window; a request is approved automatically below the progress threshold, otherwise reviewed.
+ * Access ends when the refund is issued; the gateway confirms completion by webhook.
  */
 class RefundService
 {
@@ -40,6 +42,9 @@ class RefundService
         if ($order->user_id !== $user->id) {
             throw new DomainException('NOT_FOUND', 'Order not found.', 404);
         }
+        if (! config('commerce.refunds.self_service')) {
+            throw new DomainException('PURCHASES_FINAL', 'Course purchases are final. If you were charged twice or can’t access your course, email support@erudsway.com with your order number and we’ll put it right.', 403);
+        }
         $enrollment = Enrollment::query()->where('user_id', $user->id)->where('course_id', $item->course_id)->first();
         // Judged on what was consumed, not the current tick count (which can be lowered).
         $auto = $enrollment !== null && $this->progress->consumedPercent($enrollment) < (int) config('commerce.refunds.auto_approve_below_percent');
@@ -47,7 +52,7 @@ class RefundService
         // Check and create under a row lock, so parallel requests can't each open a refund.
         $refund = DB::transaction(function () use ($item, $user, $reason) {
             $locked = OrderItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
-            $this->assertRefundable($locked);
+            $this->assertRefundable($locked, withinWindow: true);
 
             return Refund::query()->create([
                 'order_item_id' => $locked->id,
@@ -68,6 +73,29 @@ class RefundService
         $user->notify(new RefundUpdated($refund));
 
         return $refund;
+    }
+
+    /**
+     * A refund staff decide on themselves — e.g. a double charge or access that never worked.
+     * No time window; issued straight away. The learner is notified as the refund's requester.
+     */
+    public function refundByStaff(OrderItem $item, User $staff, string $reason): Refund
+    {
+        $refund = DB::transaction(function () use ($item, $reason) {
+            $locked = OrderItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
+            $this->assertRefundable($locked, withinWindow: false);
+
+            return Refund::query()->create([
+                'order_item_id' => $locked->id,
+                'amount' => $locked->amount - $locked->refunded_amount,
+                'status' => RefundStatus::Requested,
+                'reason' => $reason,
+                'requested_by' => $locked->order->user_id,
+            ]);
+        });
+        $this->audit->record('refund.staff_initiated', $refund, null, ['order' => $item->order->number, 'course_id' => $item->course_id, 'reason' => $reason], $staff);
+
+        return $this->issue($refund, $staff);
     }
 
     public function approve(Refund $refund, User $staff, ?string $note): Refund
@@ -151,14 +179,15 @@ class RefundService
         return $refund;
     }
 
-    private function assertRefundable(OrderItem $item): void
+    private function assertRefundable(OrderItem $item, bool $withinWindow): void
     {
         $order = $item->order;
         if (! $order->isPaid() || $order->paid_at === null) {
             throw new DomainException('NOT_REFUNDABLE', 'This order hasn’t been paid.', 422);
         }
-        if ($order->paid_at->lt(now()->subDays((int) config('commerce.refunds.window_days')))) {
-            throw new DomainException('REFUND_WINDOW_CLOSED', 'Refunds are available within 30 days of purchase.', 422);
+        $days = (int) config('commerce.refunds.window_days');
+        if ($withinWindow && $order->paid_at->lt(now()->subDays($days))) {
+            throw new DomainException('REFUND_WINDOW_CLOSED', "Refunds are available within {$days} days of purchase.", 422);
         }
         if ($item->refunded_amount >= $item->amount && $item->amount > 0) {
             throw new DomainException('ALREADY_REFUNDED', 'This course has already been refunded.', 409);

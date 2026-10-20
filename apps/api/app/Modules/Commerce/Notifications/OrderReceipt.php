@@ -44,6 +44,6 @@ class OrderReceipt extends Notification implements ShouldQueue
                 ->attachData((string) Storage::disk('local')->get($this->invoice->file_path), str_replace('/', '-', $this->invoice->number).'.pdf', ['mime' => 'application/pdf']);
         }
 
-        return $mail->line('Refunds are available within 30 days of purchase from your purchase history.');
+        return $mail->line('Course purchases are final. If you were charged twice or can’t access your course, reply to this email or write to support@erudsway.com with your order number.');
     }
 }

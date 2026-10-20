@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
+    // These tests cover the learner refund flow, which is off by default (purchases are final).
+    config(['commerce.refunds.self_service' => true]);
     Notification::fake();
     $gst = Category::query()->create(['slug' => 'gst', 'name' => 'GST']);
     Category::query()->create(['slug' => 'registration-returns', 'name' => 'Registration & Returns', 'parent_id' => $gst->id]);

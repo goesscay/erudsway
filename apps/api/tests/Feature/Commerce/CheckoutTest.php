@@ -191,7 +191,7 @@ it('lists purchase history and keeps orders private', function () {
     fakeRazorpay(['pay_TEST1' => razorpayPayment($order)]);
     $this->actingAs($buyer)->postJson("/api/v1/orders/{$uuid}/verify", ['razorpay_payment_id' => 'pay_TEST1', 'razorpay_order_id' => 'order_TEST1', 'razorpay_signature' => signatureFor('order_TEST1', 'pay_TEST1')]);
 
-    $this->actingAs($buyer)->getJson('/api/v1/orders')->assertJsonCount(1, 'data')->assertJsonPath('data.0.items.0.refundable', true);
+    $this->actingAs($buyer)->getJson('/api/v1/orders')->assertJsonCount(1, 'data')->assertJsonPath('data.0.items.0.refundable', false); // purchases are final by default
     $this->actingAs(makeUser())->getJson("/api/v1/orders/{$uuid}")->assertNotFound();
     $this->actingAs(makeUser())->get("/api/v1/orders/{$uuid}/invoice")->assertNotFound();
 });

@@ -20,7 +20,9 @@ describe("browseHref", () => {
   });
 
   it("removes a filter with null", () => {
-    expect(browseHref("/courses/gst", { rating: "4.5", sort: "rating" }, { rating: null })).toBe("/courses/gst?sort=rating");
+    expect(browseHref("/courses/gst", { rating: "4.5", sort: "rating" }, { rating: null })).toBe(
+      "/courses/gst?sort=rating",
+    );
   });
 
   it("never puts the category in the query string (it lives in the path)", () => {

@@ -28,7 +28,13 @@ function course(sections: LearnLecture[][], lastLectureId: number | null = null)
     is_published: true,
     role: "learner",
     instructor: { name: "CA Example", slug: null, headline: null },
-    enrollment: { progress_percent: 0, completed_count: 0, last_lecture_id: lastLectureId, completed_at: null, certificate_code: null },
+    enrollment: {
+      progress_percent: 0,
+      completed_count: 0,
+      last_lecture_id: lastLectureId,
+      completed_at: null,
+      certificate_code: null,
+    },
     curriculum: sections.map((lectures, i) => ({ id: i + 1, title: `Section ${i + 1}`, lectures })),
   };
 }

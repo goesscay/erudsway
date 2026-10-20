@@ -13,7 +13,7 @@ import {
   Infinity as InfinityIcon,
   MonitorPlay,
   PlayCircle,
-  RotateCcw,
+  ShieldCheck,
   Smartphone,
 } from "lucide-react";
 import { CourseBadge } from "@/components/course/course-badge";
@@ -275,7 +275,10 @@ async function CourseView({ params }: { params: Params }) {
               <PurchaseActions slug={course.slug} free={!course.price} />
               {course.price && (
                 <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
-                  <RotateCcw className="size-3.5" /> 30-day money-back guarantee
+                  <ShieldCheck className="size-3.5" aria-hidden /> Secure payment · GST invoice ·{" "}
+                  <Link href="/policies#refund" className="underline underline-offset-2">
+                    Refund policy
+                  </Link>
                 </p>
               )}
               <div>

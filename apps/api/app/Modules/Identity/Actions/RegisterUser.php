@@ -16,6 +16,8 @@ class RegisterUser
     {
         $user = DB::transaction(function () use ($data) {
             $user = User::create($data);
+            // Registration only succeeds with the 18+ / Terms confirmation; record when it was given.
+            $user->forceFill(['terms_accepted_at' => now()])->save();
             $user->profile()->create();
             $user->assignRole(Role::Student->value);
 

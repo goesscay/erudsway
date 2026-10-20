@@ -45,6 +45,7 @@ Route::name('commerce.')->group(function () {
             Route::get('orders', [SalesController::class, 'orders'])->name('orders.index');
             Route::get('refunds', [SalesController::class, 'refunds'])->name('refunds.index');
             Route::post('refunds/{refund}/approve', [SalesController::class, 'approve'])->name('refunds.approve');
+            Route::post('order-items/{item}/refund', [SalesController::class, 'refundItem'])->name('refunds.issue');
             Route::post('refunds/{refund}/reject', [SalesController::class, 'reject'])->name('refunds.reject');
         });
     });

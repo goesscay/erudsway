@@ -40,6 +40,8 @@ export function billingPayload(v: BillingValues): CheckoutBody {
   return {
     name: v.name,
     state_code: v.state_code as CheckoutBody["state_code"],
-    ...(v.business ? { gstin: v.gstin ?? null, business_name: v.business_name ?? null, address: v.address ?? null } : {}),
+    ...(v.business
+      ? { gstin: v.gstin ?? null, business_name: v.business_name ?? null, address: v.address ?? null }
+      : {}),
   };
 }

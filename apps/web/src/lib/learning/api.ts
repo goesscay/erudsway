@@ -26,7 +26,8 @@ export function useLearnCourse(slug: string) {
 export function useLectureContent(lectureId: number | null) {
   return useQuery({
     queryKey: ["lecture-content", lectureId],
-    queryFn: async () => (await unwrap(api.GET("/learn/lectures/{lecture}", { params: { path: { lecture: lectureId! } } }))).data,
+    queryFn: async () =>
+      (await unwrap(api.GET("/learn/lectures/{lecture}", { params: { path: { lecture: lectureId! } } }))).data,
     enabled: lectureId !== null,
     staleTime: 5 * 60_000,
   });
@@ -59,7 +60,11 @@ export type Playback = Awaited<ReturnType<typeof requestPlayback>>;
 function applyProgress(
   course: LearnCourse | undefined,
   lectureId: number,
-  patch: { completed: boolean; last_position_seconds: number; enrollment: { progress_percent: number; completed_count: number } | null },
+  patch: {
+    completed: boolean;
+    last_position_seconds: number;
+    enrollment: { progress_percent: number; completed_count: number } | null;
+  },
 ): LearnCourse | undefined {
   if (!course) return course;
   return {
@@ -71,7 +76,9 @@ function applyProgress(
     curriculum: course.curriculum.map((s) => ({
       ...s,
       lectures: s.lectures.map((l) =>
-        l.id === lectureId ? { ...l, completed: patch.completed, last_position_seconds: patch.last_position_seconds } : l,
+        l.id === lectureId
+          ? { ...l, completed: patch.completed, last_position_seconds: patch.last_position_seconds }
+          : l,
       ),
     })),
   };
@@ -87,7 +94,10 @@ export function useProgress(slug: string) {
   return {
     async savePosition(lectureId: number, position: number) {
       const res = await mutate(() =>
-        api.PUT("/lectures/{lecture}/progress", { params: { path: { lecture: lectureId } }, body: { position_seconds: Math.floor(position) } }),
+        api.PUT("/lectures/{lecture}/progress", {
+          params: { path: { lecture: lectureId } },
+          body: { position_seconds: Math.floor(position) },
+        }),
       );
       apply(lectureId, res.data);
     },
@@ -103,7 +113,11 @@ export function useProgress(slug: string) {
     },
     async setCompleted(lectureId: number, completed: boolean) {
       const path = { params: { path: { lecture: lectureId } } };
-      const res = await mutate(() => (completed ? api.POST("/lectures/{lecture}/completion", path) : api.DELETE("/lectures/{lecture}/completion", path)));
+      const res = await mutate(() =>
+        completed
+          ? api.POST("/lectures/{lecture}/completion", path)
+          : api.DELETE("/lectures/{lecture}/completion", path),
+      );
       apply(lectureId, res.data);
     },
   };
@@ -123,11 +137,17 @@ export function useNoteActions(slug: string) {
   return {
     create: useMutation({
       mutationFn: (vars: { lectureId: number; body: string; at_seconds: number }) =>
-        mutate(() => api.POST("/lectures/{lecture}/notes", { params: { path: { lecture: vars.lectureId } }, body: { body: vars.body, at_seconds: vars.at_seconds } })),
+        mutate(() =>
+          api.POST("/lectures/{lecture}/notes", {
+            params: { path: { lecture: vars.lectureId } },
+            body: { body: vars.body, at_seconds: vars.at_seconds },
+          }),
+        ),
       onSuccess: refresh,
     }),
     update: useMutation({
-      mutationFn: (vars: { id: number; body: string }) => mutate(() => api.PATCH("/notes/{note}", { params: { path: { note: vars.id } }, body: { body: vars.body } })),
+      mutationFn: (vars: { id: number; body: string }) =>
+        mutate(() => api.PATCH("/notes/{note}", { params: { path: { note: vars.id } }, body: { body: vars.body } })),
       onSuccess: refresh,
     }),
     remove: useMutation({

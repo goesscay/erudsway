@@ -13,6 +13,7 @@ function registration(array $overrides = []): array
         'email' => 'Priya.Nair@Example.com',
         'password' => 'learning2026',
         'password_confirmation' => 'learning2026',
+        'accept_terms' => true,
     ], $overrides);
 }
 
@@ -50,6 +51,7 @@ it('rejects weak or mismatched passwords', function (array $overrides, string $f
     'too short' => [['password' => 'abc12', 'password_confirmation' => 'abc12'], 'password'],
     'no numbers' => [['password' => 'onlyletters', 'password_confirmation' => 'onlyletters'], 'password'],
     'mismatch' => [['password_confirmation' => 'different1'], 'password'],
+    '18+ and terms not confirmed' => [['accept_terms' => false], 'accept_terms'],
     'bad email' => [['email' => 'not-an-email'], 'email'],
     'missing name' => [['name' => ''], 'name'],
 ]);

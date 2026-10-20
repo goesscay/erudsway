@@ -45,6 +45,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Old addresses — the footer's former links and the Moodle site's policies page — land on /policies.
+  async redirects() {
+    return [
+      { source: "/terms", destination: "/policies#terms", permanent: true },
+      { source: "/privacy", destination: "/policies#privacy", permanent: true },
+      { source: "/refund-policy", destination: "/policies#refund", permanent: true },
+      { source: "/grievance", destination: "/policies#grievance", permanent: true },
+      { source: "/local/riasetup/policies.php", destination: "/policies", permanent: true },
+    ];
+  },
   // Images inside reading lectures use site-relative /storage/… paths (nginx serves them in
   // production, on the same host); in development the API runs on its own port.
   async rewrites() {

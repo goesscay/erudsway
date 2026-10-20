@@ -16,7 +16,8 @@ export interface UploadProgress {
 
 const CONCURRENCY = 3;
 const RETRIES = 4;
-const storageKey = (lectureId: number, file: File) => `erudsway:upload:${lectureId}:${file.name}:${file.size}:${file.lastModified}`;
+const storageKey = (lectureId: number, file: File) =>
+  `erudsway:upload:${lectureId}:${file.name}:${file.size}:${file.lastModified}`;
 
 /**
  * Resumable chunked upload. If the tab closes or the network drops, picking the same file
@@ -124,5 +125,15 @@ function chunkBytes(s: UploadSession, file: File, index: number) {
 
 function guessMime(name: string): string {
   const ext = name.split(".").pop()?.toLowerCase();
-  return ({ mp4: "video/mp4", mov: "video/quicktime", mkv: "video/x-matroska", webm: "video/webm", avi: "video/x-msvideo" } as Record<string, string>)[ext ?? ""] ?? "video/mp4";
+  return (
+    (
+      {
+        mp4: "video/mp4",
+        mov: "video/quicktime",
+        mkv: "video/x-matroska",
+        webm: "video/webm",
+        avi: "video/x-msvideo",
+      } as Record<string, string>
+    )[ext ?? ""] ?? "video/mp4"
+  );
 }

@@ -18,7 +18,7 @@ export function RegisterForm() {
 
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", password_confirmation: "" },
+    defaultValues: { name: "", email: "", password: "", password_confirmation: "", accept_terms: false },
   });
   const { errors, isSubmitting } = form.formState;
 
@@ -28,7 +28,9 @@ export function RegisterForm() {
       await session.register(values);
       router.replace(`/verify-email?next=${encodeURIComponent(safeNext(params.get("next")))}`);
     } catch (e) {
-      setFormError(applyApiErrors(e, form.setError, ["name", "email", "password", "password_confirmation"]));
+      setFormError(
+        applyApiErrors(e, form.setError, ["name", "email", "password", "password_confirmation", "accept_terms"]),
+      );
     }
   });
 
@@ -44,7 +46,11 @@ export function RegisterForm() {
         {(p) => <TextInput {...p} type="email" autoComplete="email" {...form.register("email")} />}
       </Field>
 
-      <Field label="Password" error={errors.password?.message} hint="At least 8 characters, with a letter and a number.">
+      <Field
+        label="Password"
+        error={errors.password?.message}
+        hint="At least 8 characters, with a letter and a number."
+      >
         {(p) => <PasswordInput {...p} autoComplete="new-password" {...form.register("password")} />}
       </Field>
 
@@ -52,21 +58,45 @@ export function RegisterForm() {
         {(p) => <PasswordInput {...p} autoComplete="new-password" {...form.register("password_confirmation")} />}
       </Field>
 
+      <div>
+        <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone-700">
+          <input
+            type="checkbox"
+            className="mt-1 size-4 shrink-0 accent-[var(--navy-900)]"
+            aria-invalid={errors.accept_terms ? true : undefined}
+            aria-describedby={errors.accept_terms ? "accept-terms-error" : undefined}
+            {...form.register("accept_terms")}
+          />
+          <span>
+            I am 18 or older and I accept the{" "}
+            <a
+              href="/policies#terms"
+              target="_blank"
+              className="font-semibold text-navy-800 underline underline-offset-2"
+            >
+              Terms &amp; Conditions
+            </a>{" "}
+            and{" "}
+            <a
+              href="/policies#privacy"
+              target="_blank"
+              className="font-semibold text-navy-800 underline underline-offset-2"
+            >
+              Privacy Policy
+            </a>
+            .
+          </span>
+        </label>
+        {errors.accept_terms && (
+          <p id="accept-terms-error" role="alert" className="mt-1.5 text-xs font-medium text-destructive">
+            {errors.accept_terms.message}
+          </p>
+        )}
+      </div>
+
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Creating your account…" : "Create account"}
       </Button>
-
-      <p className="text-center text-xs leading-relaxed text-stone-500">
-        By creating an account you agree to our{" "}
-        <a href="/terms" className="underline underline-offset-2">
-          Terms of Use
-        </a>{" "}
-        and{" "}
-        <a href="/privacy" className="underline underline-offset-2">
-          Privacy Policy
-        </a>
-        .
-      </p>
     </form>
   );
 }

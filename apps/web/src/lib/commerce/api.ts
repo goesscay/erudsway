@@ -58,15 +58,19 @@ export function useCartActions() {
 
   return {
     add: useMutation({
-      mutationFn: async (slug: string) => (await mutate(() => api.POST("/cart/items", { headers: cartHeaders(), body: { course: slug } }))).data,
+      mutationFn: async (slug: string) =>
+        (await mutate(() => api.POST("/cart/items", { headers: cartHeaders(), body: { course: slug } }))).data,
       onSuccess: set,
     }),
     remove: useMutation({
-      mutationFn: async (slug: string) => (await mutate(() => api.DELETE("/cart/items/{slug}", { headers: cartHeaders(), params: { path: { slug } } }))).data,
+      mutationFn: async (slug: string) =>
+        (await mutate(() => api.DELETE("/cart/items/{slug}", { headers: cartHeaders(), params: { path: { slug } } })))
+          .data,
       onSuccess: set,
     }),
     applyCoupon: useMutation({
-      mutationFn: async (code: string) => (await mutate(() => api.POST("/cart/coupon", { headers: cartHeaders(), body: { code } }))).data,
+      mutationFn: async (code: string) =>
+        (await mutate(() => api.POST("/cart/coupon", { headers: cartHeaders(), body: { code } }))).data,
       onSuccess: set,
     }),
     removeCoupon: useMutation({

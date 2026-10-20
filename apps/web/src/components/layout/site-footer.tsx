@@ -31,10 +31,10 @@ const columns: { title: string; links: [string, string][] }[] = [
     title: "Support",
     links: [
       ["Help centre", "/help"],
-      ["Refund policy", "/refund-policy"],
-      ["Terms of use", "/terms"],
-      ["Privacy policy", "/privacy"],
-      ["Grievance officer", "/grievance"],
+      ["Terms & Conditions", "/policies#terms"],
+      ["Privacy policy", "/policies#privacy"],
+      ["Refund & cancellation", "/policies#refund"],
+      ["Grievances", "/policies#grievance"],
     ],
   },
 ];
@@ -46,7 +46,9 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Logo inverted />
           <p className="max-w-xs font-serif text-lg leading-snug text-white/80 italic">Knowledge that moves minds.</p>
-          <p className="max-w-xs text-sm text-white/55">Tax, audit and compliance courses taught by practising professionals.</p>
+          <p className="max-w-xs text-sm text-white/55">
+            Tax, audit and compliance courses taught by practising professionals.
+          </p>
         </div>
         {columns.map((col) => (
           <div key={col.title}>

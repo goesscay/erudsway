@@ -41,7 +41,11 @@ export function AccountSettings() {
             <Section title="Password" description="Use a password you don't use on other sites.">
               <PasswordForm />
             </Section>
-            <Section id="notifications" title="Notifications" description="Choose what we email you about. Your Erudsway inbox follows the same choices.">
+            <Section
+              id="notifications"
+              title="Notifications"
+              description="Choose what we email you about. Your Erudsway inbox follows the same choices."
+            >
               <NotificationPreferences instructor={!!me.instructor} />
             </Section>
           </div>
@@ -51,7 +55,17 @@ export function AccountSettings() {
   );
 }
 
-function Section({ id, title, description, children }: { id?: string; title: string; description: string; children: React.ReactNode }) {
+function Section({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id?: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
     <section id={id} className="grid scroll-mt-24 gap-6 py-10 md:grid-cols-[240px_1fr]">
       <div>
@@ -147,7 +161,11 @@ function PasswordForm() {
       <Field label="Current password" error={errors.current_password?.message}>
         {(p) => <PasswordInput {...p} autoComplete="current-password" {...form.register("current_password")} />}
       </Field>
-      <Field label="New password" error={errors.password?.message} hint="At least 8 characters, with a letter and a number.">
+      <Field
+        label="New password"
+        error={errors.password?.message}
+        hint="At least 8 characters, with a letter and a number."
+      >
         {(p) => <PasswordInput {...p} autoComplete="new-password" {...form.register("password")} />}
       </Field>
       <Field label="Confirm new password" error={errors.password_confirmation?.message}>

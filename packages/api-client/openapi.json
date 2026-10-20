@@ -12430,6 +12430,78 @@
                 }
             }
         },
+        "/admin/order-items/{item}/refund": {
+            "post": {
+                "operationId": "commerce.admin.refunds.issue",
+                "summary": "Refund one course of a paid order on the learner's behalf (double charge, no access\u2026)",
+                "tags": [
+                    "Sales"
+                ],
+                "parameters": [
+                    {
+                        "name": "item",
+                        "in": "path",
+                        "required": true,
+                        "description": "The item ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "maxLength": 1000
+                                    }
+                                },
+                                "required": [
+                                    "reason"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`RefundResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RefundResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/refunds/{refund}/reject": {
             "post": {
                 "operationId": "commerce.admin.refunds.reject",
@@ -17302,6 +17374,17 @@
                     },
                     "password": {
                         "type": "string"
+                    },
+                    "accept_terms": {
+                        "description": "Under-18s can't register until guardian consent exists (Terms \u00a73, Privacy \u00a77).",
+                        "enum": [
+                            "yes",
+                            "on",
+                            "1",
+                            1,
+                            "true",
+                            true
+                        ]
                     },
                     "password_confirmation": {
                         "type": "string"

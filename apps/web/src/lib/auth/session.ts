@@ -44,8 +44,18 @@ export function useSession() {
       await adoptGuestCart();
       return res.data;
     },
-    async register(body: { name: string; email: string; password: string; password_confirmation: string }) {
-      const res = await mutate(() => api.POST("/auth/register", { body }));
+    async register(body: {
+      name: string;
+      email: string;
+      password: string;
+      password_confirmation: string;
+      accept_terms: boolean;
+    }) {
+      // Sent only when ticked; the API refuses sign-up without it (18+ and Terms accepted).
+      const { accept_terms, ...rest } = body;
+      const res = await mutate(() =>
+        api.POST("/auth/register", { body: { ...rest, ...(accept_terms && { accept_terms: true as const }) } }),
+      );
       resetCsrf();
       queryClient.setQueryData(meKey, res.data);
       await adoptGuestCart();

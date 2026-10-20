@@ -43,10 +43,10 @@ export default function DesignSystemPage() {
       <header className="flex flex-wrap items-end justify-between gap-6 border-b border-line pb-8">
         <div>
           <Logo />
-          <h1 className="text-h1 mt-6">Design system</h1>
+          <h1 className="mt-6 text-h1">Design system</h1>
           <p className="mt-2 max-w-[60ch] text-stone-700">
-            Tokens and components for Erudsway. Navy carries the brand; gold is an accent that should cover less than
-            a twentieth of any screen.
+            Tokens and components for Erudsway. Navy carries the brand; gold is an accent that should cover less than a
+            twentieth of any screen.
           </p>
         </div>
         <p className="text-xs text-stone-500">Phase 0 · for review</p>
@@ -77,7 +77,10 @@ export default function DesignSystemPage() {
           {type.map(([cls, label, sample]) => (
             <div key={cls} className="grid items-baseline gap-4 py-5 md:grid-cols-[200px_1fr]">
               <p className="text-xs font-semibold text-stone-500">{label}</p>
-              <p className={cls} style={{ fontFamily: "var(--font-fraunces)", fontWeight: 600, color: "var(--navy-900)" }}>
+              <p
+                className={cls}
+                style={{ fontFamily: "var(--font-fraunces)", fontWeight: 600, color: "var(--navy-900)" }}
+              >
                 {sample}
               </p>
             </div>
@@ -85,8 +88,8 @@ export default function DesignSystemPage() {
           <div className="grid items-baseline gap-4 py-5 md:grid-cols-[200px_1fr]">
             <p className="text-xs font-semibold text-stone-500">Body · Figtree 16</p>
             <p className="max-w-[65ch] leading-relaxed text-stone-700">
-              Learn at your own pace with lifetime access. Every course is reviewed by our team before it is published,
-              and comes with a 30-day refund.
+              Learn at your own pace on any device. Every course is reviewed by our team before it is published, and
+              comes with a GST invoice.
             </p>
           </div>
           <div className="grid items-baseline gap-4 py-5 md:grid-cols-[200px_1fr]">

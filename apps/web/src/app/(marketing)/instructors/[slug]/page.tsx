@@ -59,7 +59,7 @@ async function Profile({ params }: { params: Params }) {
         <div className="mx-auto grid max-w-[1180px] gap-10 px-6 py-14 md:grid-cols-[1fr_auto]">
           <div>
             <p className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase">Instructor</p>
-            <h1 className="text-h1 mt-3">{instructor.name}</h1>
+            <h1 className="mt-3 text-h1">{instructor.name}</h1>
             {instructor.headline && <p className="mt-2 text-lg text-stone-700">{instructor.headline}</p>}
             <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
               {stats.map(([n, l]) => (
@@ -76,7 +76,10 @@ async function Profile({ params }: { params: Params }) {
               </div>
             )}
           </div>
-          <InstructorAvatar name={instructor.name} className="order-first size-28 text-4xl md:order-none md:size-40 md:text-5xl" />
+          <InstructorAvatar
+            name={instructor.name}
+            className="order-first size-28 text-4xl md:order-none md:size-40 md:text-5xl"
+          />
         </div>
       </section>
 

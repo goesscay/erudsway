@@ -2278,6 +2278,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/order-items/{item}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refund one course of a paid order on the learner's behalf (double charge, no access…) */
+        post: operations["commerce.admin.refunds.issue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/refunds/{refund}/reject": {
         parameters: {
             query?: never;
@@ -3297,6 +3314,11 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+            /**
+             * @description Under-18s can't register until guardian consent exists (Terms §3, Privacy §7).
+             * @enum {unknown}
+             */
+            accept_terms?: "yes" | "on" | "1" | 1 | "true" | true;
             password_confirmation: string;
         };
         /**
@@ -8801,6 +8823,41 @@ export interface operations {
             content: {
                 "application/json": {
                     note?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `RefundResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RefundResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.refunds.issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The item ID */
+                item: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
                 };
             };
         };

@@ -12,7 +12,10 @@ describe("applyApiErrors", () => {
     });
 
     expect(applyApiErrors<Values>(error, setError, ["email", "password"])).toBeNull();
-    expect(setError).toHaveBeenCalledWith("email", { type: "server", message: "An account with this email already exists." });
+    expect(setError).toHaveBeenCalledWith("email", {
+      type: "server",
+      message: "An account with this email already exists.",
+    });
   });
 
   it("maps nested array errors to their root field", () => {
@@ -33,7 +36,9 @@ describe("applyApiErrors", () => {
   it("explains rate limiting in plain language", () => {
     const error = new ApiRequestError(429, "TOO_MANY_REQUESTS", "Too many attempts.");
 
-    expect(applyApiErrors<Values>(error, vi.fn(), ["email"])).toBe("Too many attempts. Please wait a minute and try again.");
+    expect(applyApiErrors<Values>(error, vi.fn(), ["email"])).toBe(
+      "Too many attempts. Please wait a minute and try again.",
+    );
   });
 
   it("handles unexpected errors", () => {

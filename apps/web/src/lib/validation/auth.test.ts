@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { applicationSchema, registerSchema } from "./auth";
 
 describe("registerSchema", () => {
-  const valid = { name: "Asha Raman", email: "asha@example.com", password: "learning2026", password_confirmation: "learning2026" };
+  const valid = {
+    name: "Asha Raman",
+    email: "asha@example.com",
+    password: "learning2026",
+    password_confirmation: "learning2026",
+    accept_terms: true,
+  };
 
   it("accepts a valid registration", () => {
     expect(registerSchema.safeParse(valid).success).toBe(true);
@@ -13,6 +19,7 @@ describe("registerSchema", () => {
     ["password without a number", { password: "abcdefgh", password_confirmation: "abcdefgh" }, "password"],
     ["mismatched confirmation", { password_confirmation: "different1" }, "password_confirmation"],
     ["invalid email", { email: "asha@" }, "email"],
+    ["18+ and terms not confirmed", { accept_terms: false }, "accept_terms"],
   ])("rejects %s", (_, overrides, field) => {
     const result = registerSchema.safeParse({ ...valid, ...overrides });
     expect(result.success).toBe(false);

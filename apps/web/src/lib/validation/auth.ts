@@ -22,6 +22,9 @@ export const registerSchema = z
     email,
     password,
     password_confirmation: z.string(),
+    accept_terms: z
+      .boolean()
+      .refine((v) => v, "Confirm that you are 18 or older and accept the Terms and Privacy Policy."),
   })
   .refine((v) => v.password === v.password_confirmation, {
     path: ["password_confirmation"],

@@ -70,7 +70,8 @@ class CommerceServiceProvider extends ModuleServiceProvider
         $settings->define('commerce.invoice_prefix', $g, 'Invoice number prefix', 'Numbers look like ERW/2627/00001. Changing it mid-year starts a new-looking series; the count carries on.', 'text', ['string', 'regex:/^[A-Z0-9]{2,5}$/']);
 
         $r = 'Refunds';
-        $settings->define('commerce.refunds.window_days', $r, 'Refund window', 'Days after purchase a learner can ask for a refund.', 'integer', ['integer', 'between:0,90']);
+        $settings->define('commerce.refunds.self_service', $r, 'Learners can request refunds', 'Off: purchases are final and only staff can refund an order (from Orders). On: learners can ask within the refund window.', 'boolean', ['boolean']);
+        $settings->define('commerce.refunds.window_days', $r, 'Refund window', 'Days after purchase a learner can ask for a refund (when learners can request refunds).', 'integer', ['integer', 'between:0,90']);
         $settings->define('commerce.refunds.auto_approve_below_percent', $r, 'Auto-approve below progress', 'Refunds are approved automatically when the learner has completed less than this share of the course (%); otherwise staff review them.', 'integer', ['integer', 'between:0,100']);
     }
 }

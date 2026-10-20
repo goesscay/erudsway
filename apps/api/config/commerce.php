@@ -40,6 +40,9 @@ return [
 
     /* Decision D4. */
     'refunds' => [
+        // Course purchases are final (policy of 1 Oct 2026): learners can't request refunds
+        // themselves; staff refund genuine problems (double charge, no access) from Orders.
+        'self_service' => false,
         'window_days' => 30,
         'auto_approve_below_percent' => 30,
     ],

@@ -54,10 +54,13 @@ function load(): Promise<void> {
   return loading;
 }
 
-export type PaymentOutcome = { status: "paid"; response: RazorpaySuccess } | { status: "dismissed" } | { status: "failed"; message: string };
+export type PaymentOutcome =
+  { status: "paid"; response: RazorpaySuccess } | { status: "dismissed" } | { status: "failed"; message: string };
 
 /** Opens the payment window and resolves when the learner pays, closes it or the payment fails. */
-export async function payWithRazorpay(options: Omit<RazorpayOptions, "handler" | "modal" | "theme">): Promise<PaymentOutcome> {
+export async function payWithRazorpay(
+  options: Omit<RazorpayOptions, "handler" | "modal" | "theme">,
+): Promise<PaymentOutcome> {
   await load();
   return new Promise((resolve) => {
     let settled = false;
@@ -74,7 +77,10 @@ export async function payWithRazorpay(options: Omit<RazorpayOptions, "handler" |
       ...options,
       theme: { color: "#001b40" },
       handler: (response) => done({ status: "paid", response }),
-      modal: { ondismiss: () => done(lastError ? { status: "failed", message: lastError } : { status: "dismissed" }), confirm_close: true },
+      modal: {
+        ondismiss: () => done(lastError ? { status: "failed", message: lastError } : { status: "dismissed" }),
+        confirm_close: true,
+      },
     });
     rzp.on("payment.failed", (r) => {
       lastError = r.error.description ?? "The payment didn’t go through.";

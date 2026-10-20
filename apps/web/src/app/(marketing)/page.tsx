@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { ArrowRight, Award, FileCheck2, IndianRupee, RotateCcw } from "lucide-react";
+import { ArrowRight, Award, FileCheck2, IndianRupee, MonitorSmartphone } from "lucide-react";
 import { PhotoCredit } from "@/components/brand/photo-credit";
 import { SectionHeading } from "@/components/brand/section-heading";
 import { CourseCard } from "@/components/course/course-card";
@@ -40,8 +40,8 @@ export default function HomePage() {
               Tax and compliance, learned from practice.
             </h1>
             <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-stone-700">
-              GST, income tax, TDS, audit, company law, FEMA and more — explained with real cases, portal walkthroughs and
-              working files by professionals who file, audit and argue every week.
+              GST, income tax, TDS, audit, company law, FEMA and more — explained with real cases, portal walkthroughs
+              and working files by professionals who file, audit and argue every week.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link href="/courses" className={buttonVariants({ size: "lg" })}>
@@ -86,7 +86,7 @@ export default function HomePage() {
             [
               [IndianRupee, "Pay in rupees — UPI, cards, netbanking"],
               [FileCheck2, "GST invoice with every purchase"],
-              [RotateCcw, "30-day refund on every course"],
+              [MonitorSmartphone, "Learn at your own pace, on any device"],
               [Award, "Certificate of completion"],
             ] as const
           ).map(([Icon, text]) => (
@@ -104,7 +104,10 @@ export default function HomePage() {
           <SectionHeading eyebrow="Most enrolled" title="Courses professionals finish — and recommend">
             Ranked by enrollments and reviews.
           </SectionHeading>
-          <Link href="/courses?sort=popular" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-navy-900">
+          <Link
+            href="/courses?sort=popular"
+            className="group inline-flex items-center gap-1.5 text-sm font-semibold text-navy-900"
+          >
             View all courses
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
@@ -138,14 +141,21 @@ export default function HomePage() {
       <section className="dark bg-navy-900 text-foreground">
         <div className="mx-auto grid max-w-[1340px] items-center gap-12 px-6 py-20 lg:grid-cols-2">
           <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-            <Image src={photos.teach.src} alt={photos.teach.alt} fill sizes="(min-width: 1024px) 620px, 100vw" className="object-cover" />
+            <Image
+              src={photos.teach.src}
+              alt={photos.teach.alt}
+              fill
+              sizes="(min-width: 1024px) 620px, 100vw"
+              className="object-cover"
+            />
           </div>
           <div>
             <p className="mb-4 text-xs font-bold tracking-[0.2em] text-gold-400 uppercase">For practitioners</p>
-            <h2 className="text-h1 max-w-[16ch]">Teach what you practise. We handle the rest.</h2>
+            <h2 className="max-w-[16ch] text-h1">Teach what you practise. We handle the rest.</h2>
             <p className="mt-5 max-w-[50ch] leading-relaxed text-white/75">
-              Chartered accountants, company secretaries, cost accountants and advocates publish courses on Erudsway. We take
-              care of payments, GST invoicing, hosting and learner support — you focus on teaching and earn on every enrollment.
+              Chartered accountants, company secretaries, cost accountants and advocates publish courses on Erudsway. We
+              take care of payments, GST invoicing, hosting and learner support — you focus on teaching and earn on
+              every enrollment.
             </p>
             <ol className="mt-8 space-y-4">
               {[

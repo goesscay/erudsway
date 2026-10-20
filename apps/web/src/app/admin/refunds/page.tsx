@@ -38,16 +38,28 @@ function Queue() {
 
   return (
     <>
-      <AdminPageHeader title="Refunds" description="Requests within 30 days are approved automatically below 30% progress; the rest wait here." />
+      <AdminPageHeader
+        title="Refunds"
+        description="Purchases are final, so learners can’t request refunds unless that’s switched on in Settings. Refund genuine problems (double charge, no access) from Orders."
+      />
       <div className="px-8 py-6">
-        <div role="tablist" aria-label="Refund status" className="mb-6 flex gap-6 overflow-x-auto overflow-y-hidden border-b border-line">
+        <div
+          role="tablist"
+          aria-label="Refund status"
+          className="mb-6 flex gap-6 overflow-x-auto overflow-y-hidden border-b border-line"
+        >
           {tabs.map((t) => (
             <button
               key={t.value}
               role="tab"
               aria-selected={status === t.value}
               onClick={() => setStatus(t.value)}
-              className={cn("-mb-px shrink-0 border-b-2 pb-3 text-sm font-semibold", status === t.value ? "border-gold-500 text-navy-900" : "border-transparent text-stone-500 hover:text-navy-900")}
+              className={cn(
+                "-mb-px shrink-0 border-b-2 pb-3 text-sm font-semibold",
+                status === t.value
+                  ? "border-gold-500 text-navy-900"
+                  : "border-transparent text-stone-500 hover:text-navy-900",
+              )}
             >
               {t.label}
             </button>
@@ -58,7 +70,9 @@ function Queue() {
         ) : list.isError ? (
           <FormAlert>Couldn&rsquo;t load refunds.</FormAlert>
         ) : list.data.length === 0 ? (
-          <div className="rounded-md border border-dashed border-line bg-white px-6 py-16 text-center text-sm text-stone-500">Nothing here.</div>
+          <div className="rounded-md border border-dashed border-line bg-white px-6 py-16 text-center text-sm text-stone-500">
+            Nothing here.
+          </div>
         ) : (
           <ul className="space-y-3">
             {list.data.map((r) => (
@@ -82,7 +96,10 @@ function RefundCard({ refund: r }: { refund: RefundRow }) {
     setError(null);
     try {
       const path = { params: { path: { refund: r.id } } };
-      if (decision === "approve") await mutate(() => api.POST("/admin/refunds/{refund}/approve", { ...path, body: { note: note.trim() || null } }));
+      if (decision === "approve")
+        await mutate(() =>
+          api.POST("/admin/refunds/{refund}/approve", { ...path, body: { note: note.trim() || null } }),
+        );
       else await mutate(() => api.POST("/admin/refunds/{refund}/reject", { ...path, body: { note: note.trim() } }));
       await queryClient.invalidateQueries({ queryKey: ["admin", "refunds"] });
     } catch (e) {
@@ -97,7 +114,8 @@ function RefundCard({ refund: r }: { refund: RefundRow }) {
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-ink">{r.course.title}</p>
           <p className="mt-0.5 text-xs text-stone-500">
-            {r.learner.name} ({r.learner.email}) · order {r.order.number} · bought {formatDate(r.order.paid_at)} · requested {formatDate(r.created_at)}
+            {r.learner.name} ({r.learner.email}) · order {r.order.number} · bought {formatDate(r.order.paid_at)} ·
+            requested {formatDate(r.created_at)}
           </p>
           <p className="mt-2 text-stone-700">&ldquo;{r.reason}&rdquo;</p>
           {r.decision_note && <p className="mt-1 text-xs text-stone-500">Note: {r.decision_note}</p>}
@@ -116,13 +134,24 @@ function RefundCard({ refund: r }: { refund: RefundRow }) {
           <Label htmlFor={`note-${r.id}`} className="text-xs font-semibold text-stone-700">
             Note to the learner (required to decline)
           </Label>
-          <Textarea id={`note-${r.id}`} rows={2} value={note} onChange={(e) => setNote(e.target.value)} className="bg-white" />
+          <Textarea
+            id={`note-${r.id}`}
+            rows={2}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="bg-white"
+          />
           <div className="flex gap-2">
             <Button size="sm" onClick={() => decide("approve")} disabled={!!busy}>
               {busy === "approve" ? "Refunding…" : r.status === "failed" ? "Retry refund" : "Approve and refund"}
             </Button>
             {r.status === "requested" && (
-              <Button size="sm" variant="destructive" onClick={() => decide("reject")} disabled={!!busy || note.trim().length < 10}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => decide("reject")}
+                disabled={!!busy || note.trim().length < 10}
+              >
                 Decline
               </Button>
             )}

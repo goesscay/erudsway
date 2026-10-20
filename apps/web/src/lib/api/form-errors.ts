@@ -26,7 +26,9 @@ export function applyApiErrors<T extends FieldValues>(
   }
 
   if (Object.keys(error.fields).length === 0 || unmatched) {
-    return error.code === "TOO_MANY_REQUESTS" ? "Too many attempts. Please wait a minute and try again." : error.message;
+    return error.code === "TOO_MANY_REQUESTS"
+      ? "Too many attempts. Please wait a minute and try again."
+      : error.message;
   }
   return null;
 }

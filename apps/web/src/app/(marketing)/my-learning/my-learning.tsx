@@ -53,7 +53,12 @@ function Library() {
             role="tab"
             aria-selected={filter === f.value}
             onClick={() => setFilter(f.value)}
-            className={cn("-mb-px border-b-2 pb-3 text-sm font-semibold", filter === f.value ? "border-gold-500 text-navy-900" : "border-transparent text-stone-500 hover:text-navy-900")}
+            className={cn(
+              "-mb-px border-b-2 pb-3 text-sm font-semibold",
+              filter === f.value
+                ? "border-gold-500 text-navy-900"
+                : "border-transparent text-stone-500 hover:text-navy-900",
+            )}
           >
             {f.label}
           </button>
@@ -75,14 +80,18 @@ function Library() {
       ) : all.length === 0 ? (
         <div className="mx-auto max-w-md py-16 text-center">
           <BookOpen className="mx-auto size-10 text-gold-600" strokeWidth={1.5} />
-          <h2 className="text-h3 mt-4">Start learning</h2>
-          <p className="mt-2 text-sm text-stone-700">Courses you enroll in appear here, with your progress and where you left off.</p>
+          <h2 className="mt-4 text-h3">Start learning</h2>
+          <p className="mt-2 text-sm text-stone-700">
+            Courses you enroll in appear here, with your progress and where you left off.
+          </p>
           <Link href="/courses" className={buttonVariants({ size: "lg", className: "mt-6" })}>
             Browse courses
           </Link>
         </div>
       ) : shown.length === 0 ? (
-        <p className="py-16 text-center text-sm text-stone-500">{filter === "completed" ? "No completed courses yet — keep going." : "Every course here is complete."}</p>
+        <p className="py-16 text-center text-sm text-stone-500">
+          {filter === "completed" ? "No completed courses yet — keep going." : "Every course here is complete."}
+        </p>
       ) : (
         <ul className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((e) => (
@@ -105,25 +114,52 @@ function EnrolledCard({ enrollment: e }: { enrollment: Enrollment }) {
       <Link href={href} className="group block">
         <div className="relative aspect-video overflow-hidden rounded-sm bg-paper-2 ring-1 ring-line">
           {e.course.thumbnail_url && (
-            <Image src={e.course.thumbnail_url} alt="" fill sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
+            <Image
+              src={e.course.thumbnail_url}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover"
+            />
           )}
           <span className="absolute inset-0 flex items-center justify-center bg-navy-950/0 transition-colors group-hover:bg-navy-950/40">
-            <PlayCircle className="size-12 text-white opacity-0 transition-opacity group-hover:opacity-100" strokeWidth={1.25} />
+            <PlayCircle
+              className="size-12 text-white opacity-0 transition-opacity group-hover:opacity-100"
+              strokeWidth={1.25}
+            />
           </span>
         </div>
-        <h3 className="mt-3 line-clamp-2 font-sans text-[0.95rem] leading-snug font-bold text-ink group-hover:text-navy-800">{e.course.title}</h3>
+        <h3 className="mt-3 line-clamp-2 font-sans text-[0.95rem] leading-snug font-bold text-ink group-hover:text-navy-800">
+          {e.course.title}
+        </h3>
         <p className="mt-1 truncate text-xs text-stone-500">{e.course.instructor_name}</p>
         <div className="mt-3">
-          <div className="h-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={e.progress_percent} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+          <div
+            className="h-1 overflow-hidden rounded-full bg-line"
+            role="progressbar"
+            aria-valuenow={e.progress_percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Course progress"
+          >
             <div className="h-full rounded-full bg-navy-900" style={{ width: `${e.progress_percent}%` }} />
           </div>
           <p className="mt-1.5 text-xs text-stone-700">
-            {e.completed_at ? "Completed" : started ? `${e.progress_percent}% complete` : <span className="font-semibold text-navy-800">Start course</span>}
+            {e.completed_at ? (
+              "Completed"
+            ) : started ? (
+              `${e.progress_percent}% complete`
+            ) : (
+              <span className="font-semibold text-navy-800">Start course</span>
+            )}
           </p>
         </div>
       </Link>
       {e.certificate_code && (
-        <Link href={`/certificates/${e.certificate_code}`} className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-gold-600 hover:underline">
+        <Link
+          href={`/certificates/${e.certificate_code}`}
+          className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-gold-600 hover:underline"
+        >
           <Award className="size-3.5" /> View certificate
         </Link>
       )}

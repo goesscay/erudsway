@@ -45,7 +45,8 @@ class OrderResource extends JsonResource
                     'discount' => $item->discount,
                     'amount' => $item->amount,
                     'refund' => $refund ? ['status' => $refund->status->value, 'amount' => $refund->amount, 'decision_note' => $refund->decision_note] : null,
-                    'refundable' => $this->isPaid() && ! $open && $windowEnds !== null && $windowEnds->isFuture(),
+                    // Whether the learner may ask for a refund themselves (off while purchases are final).
+                    'refundable' => (bool) config('commerce.refunds.self_service') && $this->isPaid() && ! $open && $windowEnds !== null && $windowEnds->isFuture(),
                 ];
             })->values()->all(),
             'invoice' => $this->isPaid() && $this->total > 0

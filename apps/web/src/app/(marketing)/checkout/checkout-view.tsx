@@ -11,7 +11,14 @@ import { Lock, ShieldCheck } from "lucide-react";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { Field, FormAlert, TextInput } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiRequestError, mutate } from "@/lib/api/client";
 import { applyApiErrors } from "@/lib/api/form-errors";
@@ -75,7 +82,7 @@ function Checkout({ me }: { me: CurrentUser }) {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-h1 mb-8">Checkout</h1>
+      <h1 className="mb-8 text-h1">Checkout</h1>
       {children}
     </div>
   );
@@ -105,14 +112,21 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
     router.replace(`/checkout/complete?order=${orderId}`);
   };
 
-  const verify = async (orderId: string, body: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+  const verify = async (
+    orderId: string,
+    body: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string },
+  ) => {
     setVerifying(true);
     try {
       await mutate(() => api.POST("/orders/{order}/verify", { params: { path: { order: orderId } }, body }));
       await finish(orderId);
     } catch (e) {
       setVerifying(false);
-      setFormError(e instanceof ApiRequestError ? e.message : "We couldn’t confirm your payment. If you were charged, you’ll get access within a few minutes.");
+      setFormError(
+        e instanceof ApiRequestError
+          ? e.message
+          : "We couldn’t confirm your payment. If you were charged, you’ll get access within a few minutes.",
+      );
     }
   };
 
@@ -124,7 +138,11 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
         await finish(data.order.id); // fully discounted: nothing to pay
         return;
       }
-      const started = { orderId: data.order.id, gatewayOrderId: data.payment.gateway_order_id, fakeSignature: data.payment.fake_signature };
+      const started = {
+        orderId: data.order.id,
+        gatewayOrderId: data.payment.gateway_order_id,
+        fakeSignature: data.payment.fake_signature,
+      };
       if (data.payment.gateway === "fake") {
         setFake(started);
         return;
@@ -145,7 +163,11 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
       if (e instanceof ApiRequestError && (e.code === "CART_CHANGED" || e.code === "COUPON_INVALID")) {
         void queryClient.invalidateQueries({ queryKey: cartKey });
       }
-      setFormError(e instanceof Error && !(e instanceof ApiRequestError) ? e.message : applyApiErrors(e, form.setError, ["name", "state_code", "gstin", "business_name", "address"]));
+      setFormError(
+        e instanceof Error && !(e instanceof ApiRequestError)
+          ? e.message
+          : applyApiErrors(e, form.setError, ["name", "state_code", "gstin", "business_name", "address"]),
+      );
     }
   });
 
@@ -153,7 +175,9 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
     <form onSubmit={onSubmit} noValidate className="space-y-6 rounded-md border border-line bg-white p-6">
       <div>
         <h2 className="font-sans text-lg font-bold text-ink">Billing details</h2>
-        <p className="mt-1 text-sm text-stone-500">Printed on your GST tax invoice. Your state decides how GST is shown (CGST + SGST, or IGST).</p>
+        <p className="mt-1 text-sm text-stone-500">
+          Printed on your GST tax invoice. Your state decides how GST is shown (CGST + SGST, or IGST).
+        </p>
       </div>
       {formError && <FormAlert>{formError}</FormAlert>}
 
@@ -189,7 +213,9 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
       {business && (
         <div className="space-y-5 rounded-md bg-paper p-4">
           <Field label="GSTIN" error={errors.gstin?.message}>
-            {(p) => <TextInput {...p} maxLength={15} autoComplete="off" className="uppercase" {...form.register("gstin")} />}
+            {(p) => (
+              <TextInput {...p} maxLength={15} autoComplete="off" className="uppercase" {...form.register("gstin")} />
+            )}
           </Field>
           <Field label="Registered business name" error={errors.business_name?.message}>
             {(p) => <TextInput {...p} autoComplete="organization" {...form.register("business_name")} />}
@@ -201,10 +227,16 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
       )}
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || verifying || !me.email_verified}>
-        <Lock /> {verifying ? "Confirming payment…" : isSubmitting ? "Opening secure payment…" : `Pay ${formatPaise(cart.totals.total)}`}
+        <Lock />{" "}
+        {verifying
+          ? "Confirming payment…"
+          : isSubmitting
+            ? "Opening secure payment…"
+            : `Pay ${formatPaise(cart.totals.total)}`}
       </Button>
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
-        <ShieldCheck className="size-3.5" /> Payments are processed securely by Razorpay. We never see your card or UPI details.
+        <ShieldCheck className="size-3.5" /> Payments are processed securely by Razorpay. We never see your card or UPI
+        details.
       </p>
 
       <FakePayment
@@ -213,7 +245,11 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
         onCancel={() => setFake(null)}
         onPay={(s) => {
           setFake(null);
-          void verify(s.orderId, { razorpay_payment_id: `pay_fake_${s.gatewayOrderId}`, razorpay_order_id: s.gatewayOrderId, razorpay_signature: s.fakeSignature ?? "" });
+          void verify(s.orderId, {
+            razorpay_payment_id: `pay_fake_${s.gatewayOrderId}`,
+            razorpay_order_id: s.gatewayOrderId,
+            razorpay_signature: s.fakeSignature ?? "",
+          });
         }}
       />
     </form>
@@ -221,13 +257,25 @@ function BillingForm({ me, cart }: { me: CurrentUser; cart: Cart }) {
 }
 
 /** Local development only: stands in for the Razorpay window when no keys are configured. */
-function FakePayment({ started, amount, onCancel, onPay }: { started: Started | null; amount: number; onCancel: () => void; onPay: (s: Started) => void }) {
+function FakePayment({
+  started,
+  amount,
+  onCancel,
+  onPay,
+}: {
+  started: Started | null;
+  amount: number;
+  onCancel: () => void;
+  onPay: (s: Started) => void;
+}) {
   return (
     <Dialog open={!!started} onOpenChange={(o) => !o && onCancel()}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Test payment</DialogTitle>
-          <DialogDescription>Razorpay keys aren&rsquo;t configured, so this local build simulates a successful payment. No money moves.</DialogDescription>
+          <DialogDescription>
+            Razorpay keys aren&rsquo;t configured, so this local build simulates a successful payment. No money moves.
+          </DialogDescription>
         </DialogHeader>
         <p className="tabular text-center font-serif text-3xl font-semibold text-navy-900">{formatPaise(amount)}</p>
         <DialogFooter>
@@ -249,7 +297,9 @@ function Summary({ cart }: { cart: Cart }) {
         {cart.items.map((i) => (
           <li key={i.course.id} className="flex gap-3">
             <div className="relative aspect-video w-20 shrink-0 overflow-hidden rounded-sm bg-paper-2">
-              {i.course.thumbnail_url && <Image src={i.course.thumbnail_url} alt="" fill sizes="80px" className="object-cover" />}
+              {i.course.thumbnail_url && (
+                <Image src={i.course.thumbnail_url} alt="" fill sizes="80px" className="object-cover" />
+              )}
             </div>
             <p className="line-clamp-2 flex-1 text-sm font-semibold text-ink">{i.course.title}</p>
             <p className="tabular text-sm font-semibold text-ink">{formatPaise(i.amount)}</p>
@@ -258,14 +308,27 @@ function Summary({ cart }: { cart: Cart }) {
       </ul>
       <dl className="space-y-2 border-t border-line pt-4 text-sm">
         <Row label="Original price" value={formatPaise(cart.totals.subtotal)} />
-        {cart.totals.discount > 0 && <Row label={`Discount (${cart.coupon.code})`} value={`−${formatPaise(cart.totals.discount)}`} />}
+        {cart.totals.discount > 0 && (
+          <Row label={`Discount (${cart.coupon.code})`} value={`−${formatPaise(cart.totals.discount)}`} />
+        )}
         <Row label="Included GST" value={formatPaise(cart.totals.tax)} muted />
         <div className="flex justify-between border-t border-line pt-3 text-base font-bold text-ink">
           <dt>Total</dt>
           <dd className="tabular">{formatPaise(cart.totals.total)}</dd>
         </div>
       </dl>
-      <p className="text-xs text-stone-500">30-day refund if the course isn&rsquo;t right for you.</p>
+      <p className="text-xs leading-relaxed text-stone-500">
+        Course purchases are final once access is enabled. If you&rsquo;re charged twice or can&rsquo;t access a course,
+        we&rsquo;ll put it right — see our{" "}
+        <Link href="/policies#refund" className="underline underline-offset-2">
+          Refund &amp; Cancellation policy
+        </Link>
+        . By paying you accept the{" "}
+        <Link href="/policies#terms" className="underline underline-offset-2">
+          Terms &amp; Conditions
+        </Link>
+        .
+      </p>
     </aside>
   );
 }

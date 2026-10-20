@@ -27,7 +27,12 @@ function Saved() {
   const toggle = useWishlistToggle();
 
   if (list.isPending) return <Skeleton className="mt-8 h-56 w-full" />;
-  if (list.isError) return <div className="mt-8"><FormAlert>We couldn&rsquo;t load your wishlist.</FormAlert></div>;
+  if (list.isError)
+    return (
+      <div className="mt-8">
+        <FormAlert>We couldn&rsquo;t load your wishlist.</FormAlert>
+      </div>
+    );
   if (list.data.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-line bg-white px-6 py-16 text-center">

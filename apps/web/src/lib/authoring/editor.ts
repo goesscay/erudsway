@@ -13,13 +13,16 @@ export type InstructorCourse = components["schemas"]["InstructorCourseResource"]
 export const editorKey = (id: string) => ["course-editor", id] as const;
 
 const inFlight = (c: CourseEditor | undefined) =>
-  !!c?.curriculum.some((s) => s.lectures.some((l) => l.video && (l.video.status === "processing" || l.video.status === "uploading")));
+  !!c?.curriculum.some((s) =>
+    s.lectures.some((l) => l.video && (l.video.status === "processing" || l.video.status === "uploading")),
+  );
 
 /** The course being edited. Polls while any video is still processing. */
 export function useCourseEditor(id: string) {
   return useQuery({
     queryKey: editorKey(id),
-    queryFn: async () => (await unwrap(api.GET("/instructor/courses/{course}", { params: { path: { course: id } } }))).data,
+    queryFn: async () =>
+      (await unwrap(api.GET("/instructor/courses/{course}", { params: { path: { course: id } } }))).data,
     refetchInterval: (q) => (inFlight(q.state.data) ? 5000 : false),
   });
 }
@@ -57,8 +60,14 @@ export async function postForm<T>(path: string, form: FormData): Promise<T> {
 export async function parseResponse<T>(res: Response): Promise<T> {
   const body = res.status === 204 ? null : await res.json().catch(() => null);
   if (!res.ok) {
-    const e = (body as { error?: { code?: string; message?: string; fields?: Record<string, string[]> } } | null)?.error;
-    throw new ApiRequestError(res.status, e?.code ?? "UNKNOWN", e?.message ?? "Something went wrong. Please try again.", e?.fields ?? {});
+    const e = (body as { error?: { code?: string; message?: string; fields?: Record<string, string[]> } } | null)
+      ?.error;
+    throw new ApiRequestError(
+      res.status,
+      e?.code ?? "UNKNOWN",
+      e?.message ?? "Something went wrong. Please try again.",
+      e?.fields ?? {},
+    );
   }
   return body as T;
 }
