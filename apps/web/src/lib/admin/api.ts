@@ -95,7 +95,7 @@ export type AdminUserDetail = NonNullable<ReturnType<typeof useAdminUser>["data"
 export function useUpdateAccess(uuid: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { admin: boolean; permissions: StaffPermission[] }) =>
+    mutationFn: (body: { admin: boolean; super_admin?: boolean; permissions: StaffPermission[] }) =>
       mutate(() => api.PUT("/admin/users/{user}/access", { params: { path: { user: uuid } }, body })),
     onSuccess: (res) => queryClient.setQueryData(["admin", "user", uuid], res.data),
   });

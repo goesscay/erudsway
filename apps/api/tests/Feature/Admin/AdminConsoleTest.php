@@ -119,7 +119,7 @@ describe('users', function () {
             ->assertJsonPath('data.can_impersonate', true);
     });
 
-    it('lets only admins change staff access, never their own, and keeps one admin', function () {
+    it('lets admins give staff permissions, never their own access, and not touch admins', function () {
         $admin = makeUser(Role::Admin);
         $target = makeUser();
         $url = "/api/v1/admin/users/{$target->uuid}/access";
@@ -129,13 +129,39 @@ describe('users', function () {
         $this->actingAs($admin)->putJson($url, ['admin' => false, 'permissions' => ['view_reports', 'view_audit_logs']])->assertOk()
             ->assertJsonPath('data.direct_permissions', ['view_audit_logs', 'view_reports']);
         expect($target->fresh()->can('view_reports'))->toBeTrue()
-            ->and(AuditLog::query()->where('action', 'user.access_changed')->sole()->after)->toBe(['admin' => false, 'permissions' => ['view_audit_logs', 'view_reports']]);
+            ->and(AuditLog::query()->where('action', 'user.access_changed')->sole()->after)->toBe(['admin' => false, 'super_admin' => false, 'permissions' => ['view_audit_logs', 'view_reports']]);
 
         $this->actingAs($admin)->putJson("/api/v1/admin/users/{$admin->uuid}/access", ['admin' => false, 'permissions' => []])->assertJsonPath('error.code', 'OWN_ACCESS');
-        $this->actingAs($admin)->putJson($url, ['admin' => true, 'permissions' => []])->assertOk()->assertJsonPath('data.is_admin', true);
-        $this->actingAs($target->fresh())->putJson("/api/v1/admin/users/{$admin->uuid}/access", ['admin' => false, 'permissions' => []])->assertOk();
-        $this->actingAs($admin->fresh())->putJson($url, ['admin' => false, 'permissions' => []])->assertForbidden(); // no longer an admin
+        // Making, changing or removing an admin needs a super admin.
+        $this->actingAs($admin)->putJson($url, ['admin' => true, 'permissions' => []])->assertForbidden()->assertJsonPath('error.code', 'SUPER_ADMIN_ONLY');
+        $other = makeUser(Role::Admin);
+        $this->actingAs($admin)->putJson("/api/v1/admin/users/{$other->uuid}/access", ['admin' => false, 'permissions' => []])->assertForbidden();
+        expect($other->fresh()->hasRole('admin'))->toBeTrue();
+    });
+
+    it('lets super admins make and remove admins and super admins, keeping one of each', function () {
+        $super = makeUser(Role::Admin);
+        $super->assignRole(Role::SuperAdmin->value);
+        $target = makeUser();
+        $url = "/api/v1/admin/users/{$target->uuid}/access";
+
+        $this->actingAs($super)->putJson($url, ['admin' => true, 'permissions' => []])->assertOk()
+            ->assertJsonPath('data.is_admin', true)->assertJsonPath('data.is_super_admin', false);
+        $this->actingAs($super)->putJson($url, ['admin' => true, 'super_admin' => true, 'permissions' => []])->assertOk()
+            ->assertJsonPath('data.is_super_admin', true);
+        expect($target->fresh()->getRoleNames()->sort()->values()->all())->toBe(['admin', 'student', 'super_admin']);
+
+        // The new super admin can demote the first; the last one can't be removed.
+        $this->actingAs($target->fresh())->putJson("/api/v1/admin/users/{$super->uuid}/access", ['admin' => false, 'super_admin' => false, 'permissions' => []])->assertOk();
+        expect($super->fresh()->hasRole('admin'))->toBeFalse();
+        $this->actingAs($super->fresh())->putJson($url, ['admin' => false, 'permissions' => []])->assertForbidden();
         $this->actingAs($target->fresh())->putJson("/api/v1/admin/users/{$target->uuid}/access", ['admin' => false, 'permissions' => []])->assertJsonPath('error.code', 'OWN_ACCESS');
+    });
+
+    it('promotes a super admin from the command line', function () {
+        $user = makeUser();
+        $this->artisan('identity:promote-admin', ['email' => $user->email, '--super' => true])->assertSuccessful();
+        expect($user->fresh()->hasRole('admin'))->toBeTrue()->and($user->fresh()->hasRole('super_admin'))->toBeTrue();
     });
 });
 

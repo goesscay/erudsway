@@ -75,6 +75,7 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
 
   const u = user.data;
   const isAdmin = me.roles.includes("admin");
+  const isSuper = me.roles.includes("super_admin");
   const self = me.id === u.id;
 
   return (
@@ -92,6 +93,17 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
             <h1 className="flex flex-wrap items-center gap-3 text-h2">
               {u.name}
               <StatusPill status={u.status} />
+              {u.is_super_admin ? (
+                <span className="inline-flex h-6 items-center rounded-sm bg-navy-900 px-2 text-[0.7rem] font-bold tracking-wide text-white">
+                  Super admin
+                </span>
+              ) : (
+                u.is_admin && (
+                  <span className="inline-flex h-6 items-center rounded-sm bg-navy-100 px-2 text-[0.7rem] font-bold tracking-wide text-navy-800">
+                    Admin
+                  </span>
+                )
+              )}
             </h1>
             <p className="text-sm text-stone-500">
               {u.email}
@@ -179,7 +191,12 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
               )}
             </dl>
           </section>
-          <StaffAccess user={u} canEdit={isAdmin && !self} self={self} />
+          <StaffAccess
+            user={u}
+            canEdit={isAdmin && !self && (isSuper || !u.is_admin)}
+            canManageAdmins={isSuper}
+            self={self}
+          />
         </aside>
       </div>
 
@@ -237,27 +254,47 @@ function ViewAs({ user }: { user: AdminUserDetail }) {
   );
 }
 
-function StaffAccess({ user, canEdit, self }: { user: AdminUserDetail; canEdit: boolean; self: boolean }) {
+function StaffAccess({
+  user,
+  canEdit,
+  canManageAdmins,
+  self,
+}: {
+  user: AdminUserDetail;
+  canEdit: boolean;
+  canManageAdmins: boolean;
+  self: boolean;
+}) {
   const update = useUpdateAccess(user.id);
   const [admin, setAdmin] = useState(user.is_admin);
+  const [superAdmin, setSuperAdmin] = useState(user.is_super_admin);
   const [perms, setPerms] = useState<StaffPermission[]>(user.direct_permissions as StaffPermission[]);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const dirty = admin !== user.is_admin || [...perms].sort().join() !== [...user.direct_permissions].sort().join();
+  const dirty =
+    admin !== user.is_admin ||
+    superAdmin !== user.is_super_admin ||
+    [...perms].sort().join() !== [...user.direct_permissions].sort().join();
 
   const save = () => {
-    const summary = admin
-      ? `Make ${user.name} an admin? Admins can do everything, including changing other staff’s access.`
-      : perms.length === 0
-        ? `Remove all staff access from ${user.name}?`
-        : `Give ${user.name} access to: ${PERMISSIONS.filter((p) => perms.includes(p.key))
-            .map((p) => p.label)
-            .join(", ")}?`;
+    const summary = superAdmin
+      ? `Make ${user.name} a super admin? Super admins can do everything, including adding and removing admins.`
+      : admin
+        ? `Make ${user.name} an admin? Admins can do everything except manage other admins.`
+        : perms.length === 0
+          ? `Remove all staff access from ${user.name}?`
+          : `Give ${user.name} access to: ${PERMISSIONS.filter((p) => perms.includes(p.key))
+              .map((p) => p.label)
+              .join(", ")}?`;
     if (!window.confirm(summary)) return;
     setError(null);
     setSaved(false);
     update.mutate(
-      { admin, permissions: admin ? [] : perms },
+      {
+        admin: admin || superAdmin,
+        ...(canManageAdmins ? { super_admin: superAdmin } : {}),
+        permissions: admin || superAdmin ? [] : perms,
+      },
       {
         onSuccess: () => setSaved(true),
         onError: (e) => setError(e instanceof ApiRequestError ? e.message : "Couldn’t save."),
@@ -273,7 +310,11 @@ function StaffAccess({ user, canEdit, self }: { user: AdminUserDetail; canEdit: 
       <div className="space-y-3 px-5 py-4 text-sm">
         {!canEdit && (
           <p className="text-xs text-stone-500">
-            {self ? "You can’t change your own access. Ask another admin." : "Only admins can change staff access."}
+            {self
+              ? "You can’t change your own access. Ask another admin."
+              : user.is_admin
+                ? "Only a super admin can change an admin’s access."
+                : "Only admins can change staff access."}
           </p>
         )}
         {error && <FormAlert>{error}</FormAlert>}
@@ -281,25 +322,46 @@ function StaffAccess({ user, canEdit, self }: { user: AdminUserDetail; canEdit: 
         <label className="flex items-start gap-3">
           <input
             type="checkbox"
-            checked={admin}
-            disabled={!canEdit}
+            checked={superAdmin}
+            disabled={!canEdit || !canManageAdmins}
+            onChange={(e) => {
+              setSuperAdmin(e.target.checked);
+              if (e.target.checked) setAdmin(true);
+            }}
+            className="mt-0.5 size-4 accent-[var(--navy-900)]"
+          />
+          <span>
+            <span className="block font-semibold text-ink">Super admin</span>
+            <span className="block text-xs text-stone-500">
+              Everything an admin can do, plus adding, removing and changing admins.
+            </span>
+          </span>
+        </label>
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={admin || superAdmin}
+            disabled={!canEdit || !canManageAdmins || superAdmin}
             onChange={(e) => setAdmin(e.target.checked)}
             className="mt-0.5 size-4 accent-[var(--navy-900)]"
           />
           <span>
             <span className="block font-semibold text-ink">Administrator</span>
             <span className="block text-xs text-stone-500">
-              Every permission, plus managing staff access and viewing as users.
+              Every permission, plus giving staff permissions and viewing as users. Only a super admin can make admins.
             </span>
           </span>
         </label>
-        <fieldset disabled={!canEdit || admin} className="space-y-2.5 border-t border-line pt-3 disabled:opacity-60">
+        <fieldset
+          disabled={!canEdit || admin || superAdmin}
+          className="space-y-2.5 border-t border-line pt-3 disabled:opacity-60"
+        >
           <legend className="sr-only">Individual permissions</legend>
           {PERMISSIONS.map((p) => (
             <label key={p.key} className="flex items-start gap-3">
               <input
                 type="checkbox"
-                checked={admin || perms.includes(p.key)}
+                checked={admin || superAdmin || perms.includes(p.key)}
                 onChange={(e) => setPerms(e.target.checked ? [...perms, p.key] : perms.filter((x) => x !== p.key))}
                 className="mt-0.5 size-4 accent-[var(--navy-900)]"
               />

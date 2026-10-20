@@ -14246,6 +14246,9 @@
                                                 "is_admin": {
                                                     "type": "boolean"
                                                 },
+                                                "is_super_admin": {
+                                                    "type": "boolean"
+                                                },
                                                 "permissions": {
                                                     "type": "array",
                                                     "items": {
@@ -14382,6 +14385,7 @@
                                                 "last_login_at",
                                                 "roles",
                                                 "is_admin",
+                                                "is_super_admin",
                                                 "permissions",
                                                 "direct_permissions",
                                                 "instructor",
@@ -14418,7 +14422,7 @@
         "/admin/users/{user}/access": {
             "put": {
                 "operationId": "admin.users.access",
-                "summary": "Admin only: make someone an admin, or give them individual staff permissions.\nNobody can change their own access, and the last admin can't be removed",
+                "summary": "Give someone individual staff permissions (any admin), or make or remove an admin or a\nsuper admin (super admins only \u2014 as is changing anything for an existing admin).\nNobody can change their own access; the last admin and last super admin stay",
                 "tags": [
                     "UserAccess"
                 ],
@@ -14441,6 +14445,9 @@
                                 "type": "object",
                                 "properties": {
                                     "admin": {
+                                        "type": "boolean"
+                                    },
+                                    "super_admin": {
                                         "type": "boolean"
                                     },
                                     "permissions": {
@@ -14506,6 +14513,9 @@
                                                 "is_admin": {
                                                     "type": "boolean"
                                                 },
+                                                "is_super_admin": {
+                                                    "type": "boolean"
+                                                },
                                                 "permissions": {
                                                     "type": "array",
                                                     "items": {
@@ -14642,6 +14652,7 @@
                                                 "last_login_at",
                                                 "roles",
                                                 "is_admin",
+                                                "is_super_admin",
                                                 "permissions",
                                                 "direct_permissions",
                                                 "instructor",
@@ -19043,10 +19054,12 @@
             },
             "Role": {
                 "type": "string",
+                "description": "| |\n|---|\n| `student` <br/>  |\n| `instructor` <br/>  |\n| `admin` <br/>  |\n| `super_admin` <br/> Held together with Admin. The only role that can make, remove or change admins (including other super admins); otherwise the same as an admin. |",
                 "enum": [
                     "student",
                     "instructor",
-                    "admin"
+                    "admin",
+                    "super_admin"
                 ],
                 "title": "Role"
             },

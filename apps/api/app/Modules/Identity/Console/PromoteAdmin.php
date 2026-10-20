@@ -15,9 +15,10 @@ class PromoteAdmin extends Command
 {
     protected $signature = 'identity:promote-admin
         {email : Email of an existing account}
-        {--mark-verified : Also mark the email verified (for servers that can’t send mail yet)}';
+        {--mark-verified : Also mark the email verified (for servers that can’t send mail yet)}
+        {--super : Make them a super admin (admin plus managing other admins)}';
 
-    protected $description = 'Grant the admin role to an existing user';
+    protected $description = 'Grant the admin (or super admin) role to an existing user';
 
     public function handle(AuditLogger $audit): int
     {
@@ -42,15 +43,16 @@ class PromoteAdmin extends Command
             return self::FAILURE;
         }
 
-        if ($user->hasRole(Role::Admin->value)) {
-            $this->info("{$email} is already an admin.");
+        $role = $this->option('super') ? Role::SuperAdmin : Role::Admin;
+        if ($user->hasRole($role->value) && $user->hasRole(Role::Admin->value)) {
+            $this->info("{$email} is already ".($role === Role::SuperAdmin ? 'a super admin.' : 'an admin.'));
 
             return self::SUCCESS;
         }
 
-        $user->assignRole(Role::Admin->value);
-        $audit->record('user.promoted_admin', $user, after: ['role' => Role::Admin->value, 'via' => 'console']);
-        $this->info("{$email} is now an admin.");
+        $user->assignRole(array_values(array_unique([Role::Admin->value, $role->value])));
+        $audit->record('user.promoted_admin', $user, after: ['role' => $role->value, 'via' => 'console']);
+        $this->info("{$email} is now ".($role === Role::SuperAdmin ? 'a super admin.' : 'an admin.'));
 
         return self::SUCCESS;
     }

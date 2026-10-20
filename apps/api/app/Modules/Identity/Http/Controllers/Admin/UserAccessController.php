@@ -41,6 +41,7 @@ class UserAccessController extends Controller
             /** @var list<string> */
             'roles' => $user->getRoleNames()->values()->all(),
             'is_admin' => $user->hasRole(Role::Admin->value),
+            'is_super_admin' => $user->hasRole(Role::SuperAdmin->value),
             // Staff permissions, whether given directly or through the admin role.
             /** @var list<string> */
             'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
@@ -77,13 +78,15 @@ class UserAccessController extends Controller
     }
 
     /**
-     * Admin only: make someone an admin, or give them individual staff permissions.
-     * Nobody can change their own access, and the last admin can't be removed.
+     * Give someone individual staff permissions (any admin), or make or remove an admin or a
+     * super admin (super admins only — as is changing anything for an existing admin).
+     * Nobody can change their own access; the last admin and last super admin stay.
      */
     public function updateAccess(Request $request, User $user, AuditLogger $audit): JsonResponse
     {
         $data = $request->validate([
             'admin' => ['required', 'boolean'],
+            'super_admin' => ['sometimes', 'boolean'],
             'permissions' => ['present', 'array'],
             'permissions.*' => [Rule::enum(Permission::class)],
         ]);
@@ -96,23 +99,38 @@ class UserAccessController extends Controller
             throw new DomainException('OWN_ACCESS', 'You can’t change your own access. Ask another admin.', 422);
         }
         $wasAdmin = $user->hasRole(Role::Admin->value);
-        if ($wasAdmin && ! $data['admin'] && User::role(Role::Admin->value)->count() <= 1) {
+        $wasSuper = $user->hasRole(Role::SuperAdmin->value);
+        // A super admin is always an admin too.
+        $super = (bool) ($data['super_admin'] ?? $wasSuper);
+        $admin = (bool) $data['admin'] || $super;
+        if (($admin !== $wasAdmin || $super !== $wasSuper || $wasAdmin) && ! $actor->hasRole(Role::SuperAdmin->value)) {
+            throw new DomainException('SUPER_ADMIN_ONLY', 'Only a super admin can make, remove or change an admin.', 403);
+        }
+        if ($wasAdmin && ! $admin && User::role(Role::Admin->value)->count() <= 1) {
             throw new DomainException('LAST_ADMIN', 'There must always be at least one admin.', 422);
         }
+        if ($wasSuper && ! $super && User::role(Role::SuperAdmin->value)->count() <= 1) {
+            throw new DomainException('LAST_SUPER_ADMIN', 'There must always be at least one super admin.', 422);
+        }
 
-        $before = ['admin' => $wasAdmin, 'permissions' => $user->permissions->pluck('name')->sort()->values()->all()];
+        $before = ['admin' => $wasAdmin, 'super_admin' => $wasSuper, 'permissions' => $user->permissions->pluck('name')->sort()->values()->all()];
         $permissions = array_values(array_unique($data['permissions']));
         sort($permissions);
 
-        DB::transaction(function () use ($user, $data, $permissions, $wasAdmin) {
-            if ($data['admin'] && ! $wasAdmin) {
+        DB::transaction(function () use ($user, $admin, $super, $permissions, $wasAdmin, $wasSuper) {
+            if ($admin && ! $wasAdmin) {
                 $user->assignRole(Role::Admin->value);
-            } elseif (! $data['admin'] && $wasAdmin) {
+            } elseif (! $admin && $wasAdmin) {
                 $user->removeRole(Role::Admin->value);
+            }
+            if ($super && ! $wasSuper) {
+                $user->assignRole(Role::SuperAdmin->value);
+            } elseif (! $super && $wasSuper) {
+                $user->removeRole(Role::SuperAdmin->value);
             }
             $user->syncPermissions($permissions);
         });
-        $audit->record('user.access_changed', $user, $before, ['admin' => (bool) $data['admin'], 'permissions' => $permissions], $actor);
+        $audit->record('user.access_changed', $user, $before, ['admin' => $admin, 'super_admin' => $super, 'permissions' => $permissions], $actor);
 
         return $this->show($user->fresh() ?? $user);
     }

@@ -2579,8 +2579,9 @@ export interface paths {
         };
         get?: never;
         /**
-         * Admin only: make someone an admin, or give them individual staff permissions.
-         *     Nobody can change their own access, and the last admin can't be removed
+         * Give someone individual staff permissions (any admin), or make or remove an admin or a
+         *     super admin (super admins only — as is changing anything for an existing admin).
+         *     Nobody can change their own access; the last admin and last super admin stay
          */
         put: operations["admin.users.access"];
         post?: never;
@@ -3631,9 +3632,15 @@ export interface components {
         ReviewStatus: "visible" | "flagged" | "hidden";
         /**
          * Role
+         * @description | |
+         *     |---|
+         *     | `student` <br/>  |
+         *     | `instructor` <br/>  |
+         *     | `admin` <br/>  |
+         *     | `super_admin` <br/> Held together with Admin. The only role that can make, remove or change admins (including other super admins); otherwise the same as an admin. |
          * @enum {string}
          */
-        Role: "student" | "instructor" | "admin";
+        Role: "student" | "instructor" | "admin" | "super_admin";
         /**
          * SaleChannel
          * @enum {string}
@@ -9847,6 +9854,7 @@ export interface operations {
                             last_login_at: string | null;
                             roles: string[];
                             is_admin: boolean;
+                            is_super_admin: boolean;
                             permissions: string[];
                             direct_permissions: string[];
                             instructor: {
@@ -9897,6 +9905,7 @@ export interface operations {
             content: {
                 "application/json": {
                     admin: boolean;
+                    super_admin?: boolean;
                     permissions: components["schemas"]["Permission"][];
                 };
             };
@@ -9919,6 +9928,7 @@ export interface operations {
                             last_login_at: string | null;
                             roles: string[];
                             is_admin: boolean;
+                            is_super_admin: boolean;
                             permissions: string[];
                             direct_permissions: string[];
                             instructor: {
