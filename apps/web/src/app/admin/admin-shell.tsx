@@ -203,7 +203,10 @@ function PathAwareNavList(props: { sections: ReturnType<typeof visible>; onNavig
   return <NavList {...props} pathname={usePathname()} />;
 }
 
-/** The first group (Overview) is always open; the others fold, and the choice is remembered. */
+/**
+ * The first group (Overview) is always open. The others start folded and open one at a time:
+ * opening a group folds whichever was open. The open group is remembered.
+ */
 function NavList({
   sections,
   pathname,
@@ -216,21 +219,15 @@ function NavList({
   rail?: boolean;
 }) {
   const idBase = useId();
-  const [collapsedPref, setCollapsedPref] = useLocalPref("admin.nav.collapsed", "");
-  const collapsed = new Set(collapsedPref.split("|").filter(Boolean));
+  const [openGroup, setOpenGroup] = useLocalPref("admin.nav.open", "");
   const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));
-  const toggle = (title: string) => {
-    const next = new Set(collapsed);
-    if (next.has(title)) next.delete(title);
-    else next.add(title);
-    setCollapsedPref([...next].join("|"));
-  };
+  const toggle = (title: string) => setOpenGroup(openGroup === title ? "" : title);
 
   return (
     <div className={cn("mt-6", rail ? "space-y-3" : "space-y-4")}>
       {sections.map((g, index) => {
         const pinned = index === 0;
-        const open = pinned || rail || !collapsed.has(g.title);
+        const open = pinned || rail || openGroup === g.title;
         const listId = `${idBase}-${g.title.toLowerCase().replace(/[^a-z]+/g, "-")}`;
         return (
           <div key={g.title} className={cn(rail && index > 0 && "border-t border-white/10 pt-3")}>
