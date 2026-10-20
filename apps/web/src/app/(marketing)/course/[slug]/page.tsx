@@ -103,8 +103,10 @@ async function CourseView({ params }: { params: Params }) {
   const previewVideos = lectures.filter((l) => l.is_free_preview && l.kind === "video");
   const previews = lectures.filter((l) => l.is_free_preview).length;
   // Editions with an access period: show it when they all share one.
-  const periods = [...new Set(course.editions.map((e) => e.access_days))];
-  const accessDays = course.editions.length > 0 && periods.length === 1 ? periods[0] : null;
+  // Older API responses (e.g. while a deploy rolls out) have no editions.
+  const editions = course.editions ?? [];
+  const periods = [...new Set(editions.map((e) => e.access_days))];
+  const accessDays = editions.length > 0 && periods.length === 1 ? periods[0] : null;
   const updated = new Date(course.updated_at).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
   return (
@@ -275,8 +277,8 @@ async function CourseView({ params }: { params: Params }) {
               )}
             </PreviewTrigger>
             <div className="space-y-4 p-6">
-              {course.editions.length > 0 ? (
-                <EditionPurchase slug={course.slug} editions={course.editions} />
+              {editions.length > 0 ? (
+                <EditionPurchase slug={course.slug} editions={editions} />
               ) : (
                 <>
                   <Price price={course.price} className="font-serif text-3xl font-semibold" />
