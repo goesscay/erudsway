@@ -39,14 +39,23 @@ class PasswordResetController extends Controller
      */
     public function reset(ResetPasswordRequest $request): JsonResponse
     {
-        $status = Password::reset(
-            $request->safe()->only(['email', 'password', 'password_confirmation', 'token']),
-            function (User $user, string $password) {
-                $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
-                LegacyPasswords::clear($user);
-                event(new PasswordReset($user));
-            },
-        );
+        $credentials = $request->safe()->only(['email', 'password', 'password_confirmation', 'token']);
+        $setPassword = function (User $user, string $password) {
+            $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+            LegacyPasswords::clear($user);
+            event(new PasswordReset($user));
+        };
+
+        $status = Password::reset($credentials, $setPassword);
+        if ($status === Password::INVALID_TOKEN) {
+            // A link from an account staff created. Using it proves the email is theirs.
+            $status = Password::broker('invites')->reset($credentials, function (User $user, string $password) use ($setPassword) {
+                $setPassword($user, $password);
+                if (! $user->hasVerifiedEmail()) {
+                    $user->markEmailAsVerified();
+                }
+            });
+        }
 
         if ($status !== Password::PASSWORD_RESET) {
             throw ValidationException::withMessages([

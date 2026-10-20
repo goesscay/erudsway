@@ -95,10 +95,112 @@ export type AdminUserDetail = NonNullable<ReturnType<typeof useAdminUser>["data"
 export function useUpdateAccess(uuid: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { admin: boolean; super_admin?: boolean; permissions: StaffPermission[] }) =>
+    mutationFn: (body: { admin: boolean; super_admin?: boolean; roles?: string[]; permissions: StaffPermission[] }) =>
       mutate(() => api.PUT("/admin/users/{user}/access", { params: { path: { user: uuid } }, body })),
-    onSuccess: (res) => queryClient.setQueryData(["admin", "user", uuid], res.data),
+    onSuccess: async (res) => {
+      queryClient.setQueryData(["admin", "user", uuid], res.data);
+      await queryClient.invalidateQueries({ queryKey: rolesKey });
+    },
   });
+}
+
+export function useUpdateUser(uuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { name: string; email: string }) =>
+      mutate(() => api.PATCH("/admin/users/{user}", { params: { path: { user: uuid } }, body })),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "user", uuid] });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { name: string; email: string; roles: string[] }) =>
+      mutate(() => api.POST("/admin/users", { body: { ...body, ...(body.roles.length ? {} : { roles: undefined }) } })),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      await queryClient.invalidateQueries({ queryKey: rolesKey });
+    },
+  });
+}
+
+/** Email the "set your password" link again. */
+export async function resendInvite(uuid: string) {
+  await mutate(() => api.POST("/admin/users/{user}/invite", { params: { path: { user: uuid } } }));
+}
+
+const rolesKey = ["admin", "roles"];
+
+export function useRoles() {
+  return useQuery({
+    queryKey: [...rolesKey, "list"],
+    queryFn: async () => (await unwrap(api.GET("/admin/roles"))).data.items,
+  });
+}
+export type AdminRole = NonNullable<ReturnType<typeof useRoles>["data"]>[number];
+
+export function useSaveRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id?: number;
+      name: string;
+      description: string | null;
+      permissions: StaffPermission[];
+    }) =>
+      id === undefined
+        ? mutate(() => api.POST("/admin/roles", { body }))
+        : mutate(() => api.PUT("/admin/roles/{role}", { params: { path: { role: id } }, body })),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: rolesKey }),
+  });
+}
+
+export function useDeleteRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => mutate(() => api.DELETE("/admin/roles/{role}", { params: { path: { role: id } } })),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: rolesKey });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "user"] });
+    },
+  });
+}
+
+export function usePermissions() {
+  return useQuery({
+    queryKey: [...rolesKey, "permissions"],
+    queryFn: async () => (await unwrap(api.GET("/admin/permissions"))).data.items,
+  });
+}
+export type PermissionInfo = NonNullable<ReturnType<typeof usePermissions>["data"]>[number];
+
+export function usePermissionHolders(key: StaffPermission | null) {
+  return useQuery({
+    queryKey: [...rolesKey, "holders", key],
+    queryFn: async () =>
+      (await unwrap(api.GET("/admin/permissions/{permission}/users", { params: { path: { permission: key! } } }))).data
+        .items,
+    enabled: key !== null,
+  });
+}
+
+/** Display names for the built-in roles; custom roles show as named. */
+export function roleLabel(name: string) {
+  return (
+    (
+      { student: "Learner", instructor: "Instructor", admin: "Administrator", super_admin: "Super admin" } as Record<
+        string,
+        string
+      >
+    )[name] ?? name
+  );
 }
 
 /** Start "view as". The whole app re-reads who is signed in. */

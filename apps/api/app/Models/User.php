@@ -126,4 +126,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasRole(Role::Instructor->value);
     }
+
+    /**
+     * Custom staff roles held (not the built-in ones), sorted by name.
+     *
+     * @return list<string>
+     */
+    public function customRoleNames(): array
+    {
+        return $this->getRoleNames()->reject(fn (string $name) => Role::tryFrom($name) !== null)->sort()->values()->all();
+    }
 }

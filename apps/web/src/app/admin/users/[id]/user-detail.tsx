@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Eye, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Ban, Eye, Mail, Pencil, RotateCcw, ShieldCheck } from "lucide-react";
 import { formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
@@ -13,7 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   impersonate,
+  resendInvite,
+  roleLabel,
   useAdminUser,
+  usePermissions,
+  useRoles,
   useUpdateAccess,
   type AdminUserDetail,
   type StaffPermission,
@@ -22,35 +26,7 @@ import { ApiRequestError } from "@/lib/api/client";
 import type { CurrentUser } from "@/lib/auth/session";
 import { formatCount, formatPaise } from "@/lib/format";
 import { CourseAccessSheet } from "../course-access";
-
-const PERMISSIONS: { key: StaffPermission; label: string; help: string }[] = [
-  {
-    key: "review_instructor_applications",
-    label: "Instructor applications",
-    help: "Approve or reject people applying to teach.",
-  },
-  {
-    key: "moderate_courses",
-    label: "Course and review moderation",
-    help: "Review courses before they go live; hide reported reviews and Q&A.",
-  },
-  {
-    key: "manage_courses",
-    label: "Course management",
-    help: "Edit any course in the builder, publish, archive or feature it, and change its instructor.",
-  },
-  {
-    key: "manage_categories",
-    label: "Categories",
-    help: "Add, rename, reorder, hide and delete catalogue categories.",
-  },
-  { key: "manage_fulfilment", label: "Fulfilment", help: "Simulator logins and doubt sessions that editions include." },
-  { key: "manage_users", label: "Users", help: "Find users, suspend them, grant or revoke course access." },
-  { key: "manage_finance", label: "Finance", help: "Orders, refunds, coupons, payouts and the ledger." },
-  { key: "view_reports", label: "Reports", help: "The dashboard numbers and every report, with CSV exports." },
-  { key: "manage_settings", label: "Settings", help: "GST, invoice, refund and payout settings." },
-  { key: "view_audit_logs", label: "Audit log", help: "See and export the record of staff actions." },
-];
+import { EditDetailsDialog, reactivateUser, SuspendDialog } from "../user-dialogs";
 
 export function UserDetail({ id }: { id: string }) {
   return <RequireAuth permission="manage_users">{(me) => <Detail id={id} me={me} />}</RequireAuth>;
@@ -58,7 +34,11 @@ export function UserDetail({ id }: { id: string }) {
 
 function Detail({ id, me }: { id: string; me: CurrentUser }) {
   const user = useAdminUser(id);
+  const queryClient = useQueryClient();
   const [accessOpen, setAccessOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [suspending, setSuspending] = useState(false);
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   if (user.isPending) return <Skeleton className="m-8 h-96" />;
   if (user.isError) {
@@ -77,6 +57,19 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
   const isAdmin = me.roles.includes("admin");
   const isSuper = me.roles.includes("super_admin");
   const self = me.id === u.id;
+  const canEditDetails = self || isSuper || !u.is_admin;
+  const canSuspend = !self && !u.is_admin;
+  const person = { id: u.id, name: u.name, email: u.email };
+
+  const sendInvite = async () => {
+    setNotice(null);
+    try {
+      await resendInvite(u.id);
+      setNotice({ tone: "success", text: `Sent a new “set your password” email to ${u.email}.` });
+    } catch (e) {
+      setNotice({ tone: "error", text: e instanceof ApiRequestError ? e.message : "Couldn’t send the email." });
+    }
+  };
 
   return (
     <>
@@ -111,12 +104,50 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {canEditDetails && (
+              <Button variant="outline" onClick={() => setEditing(true)}>
+                <Pencil /> Edit details
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setAccessOpen(true)}>
               Course access
             </Button>
             {isAdmin && !self && <ViewAs user={u} />}
+            {u.invite_pending && (
+              <Button variant="outline" onClick={sendInvite} title="They haven’t signed in yet">
+                <Mail /> Resend invite
+              </Button>
+            )}
+            {canSuspend &&
+              (u.status === "suspended" ? (
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setNotice(null);
+                    try {
+                      await reactivateUser(u.id, queryClient);
+                    } catch (e) {
+                      setNotice({
+                        tone: "error",
+                        text: e instanceof ApiRequestError ? e.message : "Couldn’t reactivate.",
+                      });
+                    }
+                  }}
+                >
+                  <RotateCcw /> Reactivate
+                </Button>
+              ) : (
+                <Button variant="outline" className="text-destructive" onClick={() => setSuspending(true)}>
+                  <Ban /> Suspend
+                </Button>
+              ))}
           </div>
         </div>
+        {notice && (
+          <div className="mt-4">
+            <FormAlert tone={notice.tone === "success" ? "success" : undefined}>{notice.text}</FormAlert>
+          </div>
+        )}
       </header>
 
       <div className="grid gap-6 px-4 py-6 sm:px-8 xl:grid-cols-[1fr_380px]">
@@ -172,9 +203,7 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
             <dl className="space-y-2">
               <Row label="Joined">{formatDate(u.created_at)}</Row>
               <Row label="Last sign-in">{formatDate(u.last_login_at)}</Row>
-              <Row label="Roles">
-                <span className="capitalize">{u.roles.join(", ") || "—"}</span>
-              </Row>
+              <Row label="Roles">{u.roles.map(roleLabel).join(", ") || "—"}</Row>
               {u.instructor && (
                 <Row label="Teaches as">
                   {u.instructor.slug ? (
@@ -200,10 +229,9 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
         </aside>
       </div>
 
-      <CourseAccessSheet
-        user={accessOpen ? { id: u.id, name: u.name, email: u.email } : null}
-        onClose={() => setAccessOpen(false)}
-      />
+      <CourseAccessSheet user={accessOpen ? person : null} onClose={() => setAccessOpen(false)} />
+      <EditDetailsDialog user={editing ? person : null} onClose={() => setEditing(false)} />
+      <SuspendDialog user={suspending ? person : null} onClose={() => setSuspending(false)} />
     </>
   );
 }
@@ -266,26 +294,42 @@ function StaffAccess({
   self: boolean;
 }) {
   const update = useUpdateAccess(user.id);
+  const permissionList = usePermissions();
+  const roleList = useRoles();
+  const customRoles = (roleList.data ?? []).filter((r) => !r.built_in);
   const [admin, setAdmin] = useState(user.is_admin);
   const [superAdmin, setSuperAdmin] = useState(user.is_super_admin);
+  const [roles, setRoles] = useState<string[]>(user.custom_roles);
   const [perms, setPerms] = useState<StaffPermission[]>(user.direct_permissions as StaffPermission[]);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const dirty =
     admin !== user.is_admin ||
     superAdmin !== user.is_super_admin ||
+    [...roles].sort().join() !== [...user.custom_roles].sort().join() ||
     [...perms].sort().join() !== [...user.direct_permissions].sort().join();
+  // Permissions the chosen roles give (so a direct tick isn't needed for them).
+  const fromRoles = (key: string) =>
+    customRoles.filter((r) => roles.includes(r.name) && r.permissions.includes(key)).map((r) => r.name);
 
   const save = () => {
     const summary = superAdmin
       ? `Make ${user.name} a super admin? Super admins can do everything, including adding and removing admins.`
       : admin
         ? `Make ${user.name} an admin? Admins can do everything except manage other admins.`
-        : perms.length === 0
+        : perms.length === 0 && roles.length === 0
           ? `Remove all staff access from ${user.name}?`
-          : `Give ${user.name} access to: ${PERMISSIONS.filter((p) => perms.includes(p.key))
-              .map((p) => p.label)
-              .join(", ")}?`;
+          : `Give ${user.name} ${[
+              roles.length ? `the role${roles.length > 1 ? "s" : ""} ${roles.join(", ")}` : "",
+              perms.length
+                ? `these permissions directly: ${(permissionList.data ?? [])
+                    .filter((p) => perms.includes(p.key))
+                    .map((p) => p.label)
+                    .join(", ")}`
+                : "",
+            ]
+              .filter(Boolean)
+              .join(", and ")}?`;
     if (!window.confirm(summary)) return;
     setError(null);
     setSaved(false);
@@ -293,6 +337,7 @@ function StaffAccess({
       {
         admin: admin || superAdmin,
         ...(canManageAdmins ? { super_admin: superAdmin } : {}),
+        roles: admin || superAdmin ? [] : roles,
         permissions: admin || superAdmin ? [] : perms,
       },
       {
@@ -356,21 +401,63 @@ function StaffAccess({
           disabled={!canEdit || admin || superAdmin}
           className="space-y-2.5 border-t border-line pt-3 disabled:opacity-60"
         >
-          <legend className="sr-only">Individual permissions</legend>
-          {PERMISSIONS.map((p) => (
-            <label key={p.key} className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={admin || superAdmin || perms.includes(p.key)}
-                onChange={(e) => setPerms(e.target.checked ? [...perms, p.key] : perms.filter((x) => x !== p.key))}
-                className="mt-0.5 size-4 accent-[var(--navy-900)]"
-              />
-              <span>
-                <span className="block font-semibold text-ink">{p.label}</span>
-                <span className="block text-xs text-stone-500">{p.help}</span>
-              </span>
-            </label>
-          ))}
+          <legend className="float-left mb-1 w-full text-xs font-bold tracking-wide text-stone-500 uppercase">
+            Staff roles
+          </legend>
+          {customRoles.length === 0 ? (
+            <p className="clear-left text-xs text-stone-500">
+              No custom roles yet.{" "}
+              <Link href="/admin/roles" className="font-semibold text-navy-800 hover:underline">
+                Roles &amp; permissions
+              </Link>
+            </p>
+          ) : (
+            customRoles.map((r) => (
+              <label key={r.id} className="clear-left flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={roles.includes(r.name)}
+                  onChange={(e) => setRoles(e.target.checked ? [...roles, r.name] : roles.filter((x) => x !== r.name))}
+                  className="mt-0.5 size-4 accent-[var(--navy-900)]"
+                />
+                <span>
+                  <span className="block font-semibold text-ink">{r.name}</span>
+                  <span className="block text-xs text-stone-500">
+                    {r.description ? `${r.description} · ` : ""}
+                    {r.permissions.length} permission{r.permissions.length === 1 ? "" : "s"}
+                  </span>
+                </span>
+              </label>
+            ))
+          )}
+        </fieldset>
+        <fieldset
+          disabled={!canEdit || admin || superAdmin}
+          className="space-y-2.5 border-t border-line pt-3 disabled:opacity-60"
+        >
+          <legend className="float-left mb-1 w-full text-xs font-bold tracking-wide text-stone-500 uppercase">
+            Permissions given directly
+          </legend>
+          {(permissionList.data ?? []).map((p) => {
+            const via = admin || superAdmin ? [] : fromRoles(p.key);
+            return (
+              <label key={p.key} className="clear-left flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={admin || superAdmin || perms.includes(p.key)}
+                  onChange={(e) => setPerms(e.target.checked ? [...perms, p.key] : perms.filter((x) => x !== p.key))}
+                  className="mt-0.5 size-4 accent-[var(--navy-900)]"
+                />
+                <span>
+                  <span className="block font-semibold text-ink">{p.label}</span>
+                  <span className="block text-xs text-stone-500">{p.description}</span>
+                  {via.length > 0 && (
+                    <span className="mt-0.5 block text-xs font-semibold text-success">Also from: {via.join(", ")}</span>
+                  )}
+                </span>
+              </label>
+            );
+          })}
         </fieldset>
         {canEdit && (
           <Button size="sm" onClick={save} disabled={!dirty || update.isPending}>

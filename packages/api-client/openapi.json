@@ -13158,6 +13158,500 @@
                 }
             }
         },
+        "/admin/roles": {
+            "get": {
+                "operationId": "admin.roles.index",
+                "summary": "Every role (built-in first) with its permissions and how many people hold it",
+                "tags": [
+                    "Role"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "built_in": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "permissions": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "users_count": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "label",
+                                                            "description",
+                                                            "built_in",
+                                                            "permissions",
+                                                            "users_count"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin.roles.store",
+                "summary": "Super admins only: a new staff role made of the chosen permissions",
+                "tags": [
+                    "Role"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SaveRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "label": {
+                                                    "type": "string"
+                                                },
+                                                "description": {},
+                                                "built_in": {
+                                                    "type": "boolean"
+                                                },
+                                                "permissions": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                                "users_count": {
+                                                    "type": "integer",
+                                                    "const": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "label",
+                                                "description",
+                                                "built_in",
+                                                "permissions",
+                                                "users_count"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/admin/roles/{role}": {
+            "put": {
+                "operationId": "admin.roles.update",
+                "summary": "Super admins only: rename a custom role or change its permissions (applies to everyone who holds it)",
+                "tags": [
+                    "Role"
+                ],
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "description": "The role ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SaveRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "label": {
+                                                    "type": "string"
+                                                },
+                                                "description": {},
+                                                "built_in": {
+                                                    "type": "boolean"
+                                                },
+                                                "permissions": {
+                                                    "anyOf": [
+                                                        {
+                                                            "type": "array"
+                                                        },
+                                                        {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                                "users_count": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "label",
+                                                "description",
+                                                "built_in",
+                                                "permissions",
+                                                "users_count"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "admin.roles.destroy",
+                "summary": "Super admins only: delete a custom role. Everyone who held it loses its permissions",
+                "tags": [
+                    "Role"
+                ],
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "description": "The role ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/permissions": {
+            "get": {
+                "operationId": "admin.permissions.index",
+                "summary": "Every permission, what it allows, and how many people hold it (directly or through a role)",
+                "tags": [
+                    "Role"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "review_instructor_applications",
+                                                                    "moderate_courses",
+                                                                    "manage_courses",
+                                                                    "manage_categories",
+                                                                    "manage_fulfilment",
+                                                                    "manage_users",
+                                                                    "manage_finance",
+                                                                    "view_reports",
+                                                                    "manage_settings",
+                                                                    "view_audit_logs"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "description": {
+                                                                "type": "string"
+                                                            },
+                                                            "users_count": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "key",
+                                                            "label",
+                                                            "description",
+                                                            "users_count"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/permissions/{permission}/users": {
+            "get": {
+                "operationId": "admin.permissions.users",
+                "summary": "Who holds a permission, and through what: given directly, or through which roles",
+                "tags": [
+                    "Role"
+                ],
+                "parameters": [
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "required": true,
+                        "description": "The permission ID",
+                        "schema": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "email": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "active",
+                                                                    "suspended"
+                                                                ]
+                                                            },
+                                                            "via": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "email",
+                                                            "status",
+                                                            "via"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/orders": {
             "get": {
                 "operationId": "commerce.admin.orders.index",
@@ -13878,8 +14372,9 @@
                     {
                         "name": "role",
                         "in": "query",
+                        "description": "Any role name, built-in or custom.",
                         "schema": {
-                            "$ref": "#/components/schemas/Role"
+                            "type": "string"
                         }
                     },
                     {
@@ -14057,6 +14552,421 @@
                         "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
+            },
+            "post": {
+                "operationId": "admin.users.store",
+                "summary": "Create an account for someone and email them a link to set their password. Only admins\ncan give custom roles at the same time",
+                "tags": [
+                    "User"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AdminUserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AdminUserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/admin/users/{user}": {
+            "patch": {
+                "operationId": "admin.users.update",
+                "summary": "Correct someone's name or email. A new email must be verified again. Only a super admin\ncan change an admin's details",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AdminUserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AdminUserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "get": {
+                "operationId": "admin.users.show",
+                "summary": "Everything support needs about one user",
+                "tags": [
+                    "UserAccess"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "email_verified": {
+                                                    "type": "boolean"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "active",
+                                                        "suspended"
+                                                    ]
+                                                },
+                                                "created_at": {
+                                                    "type": "string"
+                                                },
+                                                "last_login_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "is_admin": {
+                                                    "type": "boolean"
+                                                },
+                                                "is_super_admin": {
+                                                    "type": "boolean"
+                                                },
+                                                "permissions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "direct_permissions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "custom_roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "permission_sources": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "invite_pending": {
+                                                    "type": "boolean",
+                                                    "description": "They've never signed in, so the \"set your password\" email can be sent again."
+                                                },
+                                                "instructor": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "display_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "slug": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "display_name",
+                                                        "slug"
+                                                    ]
+                                                },
+                                                "stats": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "enrollments": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "completed": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "certificates": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "orders": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "spent": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "enrollments",
+                                                        "completed",
+                                                        "certificates",
+                                                        "orders",
+                                                        "spent"
+                                                    ]
+                                                },
+                                                "recent_orders": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "number": {
+                                                                "type": "string"
+                                                            },
+                                                            "total": {
+                                                                "type": "integer"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "paid_at": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "number",
+                                                            "total",
+                                                            "status",
+                                                            "paid_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "activity": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "action": {
+                                                                "type": "string"
+                                                            },
+                                                            "by": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "about_this_user": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "action",
+                                                            "by",
+                                                            "about_this_user",
+                                                            "created_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "can_impersonate": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "email_verified",
+                                                "status",
+                                                "created_at",
+                                                "last_login_at",
+                                                "roles",
+                                                "is_admin",
+                                                "is_super_admin",
+                                                "permissions",
+                                                "direct_permissions",
+                                                "custom_roles",
+                                                "permission_sources",
+                                                "invite_pending",
+                                                "instructor",
+                                                "stats",
+                                                "recent_orders",
+                                                "activity",
+                                                "can_impersonate"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/users/{user}/invite": {
+            "post": {
+                "operationId": "admin.users.invite",
+                "summary": "Email the \"set your password\" link again, for someone who hasn't signed in yet",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`AdminUserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AdminUserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/admin/users/{user}/suspend": {
@@ -14180,245 +15090,6 @@
                 }
             }
         },
-        "/admin/users/{user}": {
-            "get": {
-                "operationId": "admin.users.show",
-                "summary": "Everything support needs about one user",
-                "tags": [
-                    "UserAccess"
-                ],
-                "parameters": [
-                    {
-                        "name": "user",
-                        "in": "path",
-                        "required": true,
-                        "description": "The user UUID",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "email_verified": {
-                                                    "type": "boolean"
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "active",
-                                                        "suspended"
-                                                    ]
-                                                },
-                                                "created_at": {
-                                                    "type": "string"
-                                                },
-                                                "last_login_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                },
-                                                "roles": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "is_admin": {
-                                                    "type": "boolean"
-                                                },
-                                                "is_super_admin": {
-                                                    "type": "boolean"
-                                                },
-                                                "permissions": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "direct_permissions": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "instructor": {
-                                                    "type": [
-                                                        "object",
-                                                        "null"
-                                                    ],
-                                                    "properties": {
-                                                        "display_name": {
-                                                            "type": "string"
-                                                        },
-                                                        "slug": {
-                                                            "type": [
-                                                                "string",
-                                                                "null"
-                                                            ]
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "display_name",
-                                                        "slug"
-                                                    ]
-                                                },
-                                                "stats": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "enrollments": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "completed": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "certificates": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "orders": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "spent": {
-                                                            "type": "integer"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "enrollments",
-                                                        "completed",
-                                                        "certificates",
-                                                        "orders",
-                                                        "spent"
-                                                    ]
-                                                },
-                                                "recent_orders": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "number": {
-                                                                "type": "string"
-                                                            },
-                                                            "total": {
-                                                                "type": "integer"
-                                                            },
-                                                            "status": {
-                                                                "type": "string"
-                                                            },
-                                                            "paid_at": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "number",
-                                                            "total",
-                                                            "status",
-                                                            "paid_at"
-                                                        ]
-                                                    }
-                                                },
-                                                "activity": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "action": {
-                                                                "type": "string"
-                                                            },
-                                                            "by": {
-                                                                "type": [
-                                                                    "string",
-                                                                    "null"
-                                                                ]
-                                                            },
-                                                            "about_this_user": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "created_at": {
-                                                                "type": "string"
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "action",
-                                                            "by",
-                                                            "about_this_user",
-                                                            "created_at"
-                                                        ]
-                                                    }
-                                                },
-                                                "can_impersonate": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "name",
-                                                "email",
-                                                "email_verified",
-                                                "status",
-                                                "created_at",
-                                                "last_login_at",
-                                                "roles",
-                                                "is_admin",
-                                                "is_super_admin",
-                                                "permissions",
-                                                "direct_permissions",
-                                                "instructor",
-                                                "stats",
-                                                "recent_orders",
-                                                "activity",
-                                                "can_impersonate"
-                                            ]
-                                        },
-                                        "meta": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "data",
-                                        "meta"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "$ref": "#/components/responses/ModelNotFoundException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/admin/users/{user}/access": {
             "put": {
                 "operationId": "admin.users.access",
@@ -14442,25 +15113,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "admin": {
-                                        "type": "boolean"
-                                    },
-                                    "super_admin": {
-                                        "type": "boolean"
-                                    },
-                                    "permissions": {
-                                        "type": "array",
-                                        "items": {
-                                            "$ref": "#/components/schemas/Permission"
-                                        }
-                                    }
-                                },
-                                "required": [
-                                    "admin",
-                                    "permissions"
-                                ]
+                                "$ref": "#/components/schemas/UpdateAccessRequest"
                             }
                         }
                     }
@@ -14528,6 +15181,25 @@
                                                         "type": "string"
                                                     }
                                                 },
+                                                "custom_roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "permission_sources": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "invite_pending": {
+                                                    "type": "boolean",
+                                                    "description": "They've never signed in, so the \"set your password\" email can be sent again."
+                                                },
                                                 "instructor": {
                                                     "type": [
                                                         "object",
@@ -14655,6 +15327,9 @@
                                                 "is_super_admin",
                                                 "permissions",
                                                 "direct_permissions",
+                                                "custom_roles",
+                                                "permission_sources",
+                                                "invite_pending",
                                                 "instructor",
                                                 "stats",
                                                 "recent_orders",
@@ -14674,9 +15349,6 @@
                             }
                         }
                     },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
                     },
@@ -14685,6 +15357,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -18548,7 +19223,7 @@
             },
             "Permission": {
                 "type": "string",
-                "description": "Fine-grained staff permissions. The admin role holds all of them; support staff can be given a subset (e.g. moderation without finance).\n",
+                "description": "Fine-grained staff permissions. The admin role holds all of them; other staff get a subset, directly or through a custom role (e.g. moderation without finance).\n",
                 "enum": [
                     "review_instructor_applications",
                     "moderate_courses",
@@ -19052,17 +19727,6 @@
                 ],
                 "title": "ReviewStatus"
             },
-            "Role": {
-                "type": "string",
-                "description": "| |\n|---|\n| `student` <br/>  |\n| `instructor` <br/>  |\n| `admin` <br/>  |\n| `super_admin` <br/> Held together with Admin. The only role that can make, remove or change admins (including other super admins); otherwise the same as an admin. |",
-                "enum": [
-                    "student",
-                    "instructor",
-                    "admin",
-                    "super_admin"
-                ],
-                "title": "Role"
-            },
             "SaleChannel": {
                 "type": "string",
                 "enum": [
@@ -19071,6 +19735,36 @@
                     "platform_promoted"
                 ],
                 "title": "SaleChannel"
+            },
+            "SaveRoleRequest": {
+                "type": "object",
+                "description": "Create or edit a custom staff role.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 50
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 300
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "permissions"
+                ],
+                "title": "SaveRoleRequest"
             },
             "StoreEditionRequest": {
                 "type": "object",
@@ -19168,6 +19862,34 @@
                     "teaching_experience"
                 ],
                 "title": "StoreInstructorApplicationRequest"
+            },
+            "StoreUserRequest": {
+                "type": "object",
+                "description": "Staff create an account; the person sets their own password from an emailed link.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 80
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 190
+                    },
+                    "roles": {
+                        "type": "array",
+                        "description": "Custom staff roles to give straight away (admins only).",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "email"
+                ],
+                "title": "StoreUserRequest"
             },
             "SubmissionResource": {
                 "type": "object",
@@ -19299,6 +20021,36 @@
                     "online"
                 ],
                 "title": "TeachingExperience"
+            },
+            "UpdateAccessRequest": {
+                "type": "object",
+                "description": "A user's staff access: the admin switches, custom roles, and permissions given directly.",
+                "properties": {
+                    "admin": {
+                        "type": "boolean"
+                    },
+                    "super_admin": {
+                        "type": "boolean"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "description": "Custom staff roles. Leave out to keep the current ones.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
+                    }
+                },
+                "required": [
+                    "admin",
+                    "permissions"
+                ],
+                "title": "UpdateAccessRequest"
             },
             "UpdateCourseRequest": {
                 "type": "object",
@@ -19482,6 +20234,23 @@
                     }
                 },
                 "title": "UpdateProfileRequest"
+            },
+            "UpdateUserRequest": {
+                "type": "object",
+                "description": "Staff correct a user's name or email.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 80
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 190
+                    }
+                },
+                "title": "UpdateUserRequest"
             },
             "UserResource": {
                 "type": "object",

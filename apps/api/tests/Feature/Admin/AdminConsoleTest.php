@@ -129,7 +129,7 @@ describe('users', function () {
         $this->actingAs($admin)->putJson($url, ['admin' => false, 'permissions' => ['view_reports', 'view_audit_logs']])->assertOk()
             ->assertJsonPath('data.direct_permissions', ['view_audit_logs', 'view_reports']);
         expect($target->fresh()->can('view_reports'))->toBeTrue()
-            ->and(AuditLog::query()->where('action', 'user.access_changed')->sole()->after)->toBe(['admin' => false, 'super_admin' => false, 'permissions' => ['view_audit_logs', 'view_reports']]);
+            ->and(AuditLog::query()->where('action', 'user.access_changed')->sole()->after)->toBe(['admin' => false, 'super_admin' => false, 'roles' => [], 'permissions' => ['view_audit_logs', 'view_reports']]);
 
         $this->actingAs($admin)->putJson("/api/v1/admin/users/{$admin->uuid}/access", ['admin' => false, 'permissions' => []])->assertJsonPath('error.code', 'OWN_ACCESS');
         // Making, changing or removing an admin needs a super admin.

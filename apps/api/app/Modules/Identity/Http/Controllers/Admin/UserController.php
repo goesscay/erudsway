@@ -6,13 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Enums\UserStatus;
+use App\Modules\Identity\Http\Requests\StoreUserRequest;
+use App\Modules\Identity\Http\Requests\UpdateUserRequest;
 use App\Modules\Identity\Http\Resources\AdminUserResource;
+use App\Modules\Identity\Notifications\AccountInvite;
 use App\Modules\Platform\Services\AuditLogger;
 use App\Support\Http\DomainException;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -25,7 +31,8 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'q' => ['sometimes', 'string', 'max:100'],
-            'role' => ['sometimes', Rule::enum(Role::class)],
+            // Any role name, built-in or custom.
+            'role' => ['sometimes', 'string', Rule::exists('roles', 'name')],
             'status' => ['sometimes', Rule::enum(UserStatus::class)],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
             'page' => ['sometimes', 'integer', 'min:1'],
@@ -43,6 +50,84 @@ class UserController extends Controller
             ->paginate($validated['per_page'] ?? 20);
 
         return AdminUserResource::collection($users);
+    }
+
+    /**
+     * Create an account for someone and email them a link to set their password. Only admins
+     * can give custom roles at the same time.
+     */
+    public function store(StoreUserRequest $request, AuditLogger $audit): AdminUserResource
+    {
+        /** @var User $actor */
+        $actor = $request->user();
+        /** @var array{name: string, email: string, roles?: list<string>} $data */
+        $data = $request->validated();
+        $roles = array_values(array_unique($data['roles'] ?? []));
+        if ($roles !== [] && ! $actor->hasRole(Role::Admin->value)) {
+            throw new DomainException('FORBIDDEN', 'Only admins can give staff roles.', 403);
+        }
+
+        $user = DB::transaction(function () use ($data, $roles) {
+            $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => Str::random(64)]);
+            $user->profile()->create();
+            $user->assignRole([Role::Student->value, ...$roles]);
+
+            return $user;
+        });
+        $audit->record('user.created', $user, null, ['name' => $user->name, 'email' => $user->email, 'roles' => $roles], $actor);
+        $this->sendInvite($user);
+
+        return new AdminUserResource($user->load('roles'));
+    }
+
+    /**
+     * Correct someone's name or email. A new email must be verified again. Only a super admin
+     * can change an admin's details.
+     */
+    public function update(UpdateUserRequest $request, User $user, AuditLogger $audit): AdminUserResource
+    {
+        /** @var User $actor */
+        $actor = $request->user();
+        if ($user->hasRole(Role::Admin->value) && ! $actor->is($user) && ! $actor->hasRole(Role::SuperAdmin->value)) {
+            throw new DomainException('SUPER_ADMIN_ONLY', 'Only a super admin can change an admin’s details.', 403);
+        }
+        /** @var array{name?: string, email?: string} $data */
+        $data = $request->validated();
+        $before = $user->only(['name', 'email']);
+        $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
+
+        $user->fill($data);
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+        if ($user->isDirty()) {
+            $user->save();
+            $audit->record('user.details_changed', $user, $before, $user->only(['name', 'email']), $actor);
+            if ($emailChanged) {
+                $user->sendEmailVerificationNotification();
+            }
+        }
+
+        return new AdminUserResource($user->load('roles'));
+    }
+
+    /** Email the "set your password" link again, for someone who hasn't signed in yet. */
+    public function invite(User $user, AuditLogger $audit): AdminUserResource
+    {
+        if ($user->last_login_at !== null) {
+            throw new DomainException('ALREADY_SIGNED_IN', 'This person has already signed in. They can use “Forgot password” if they need to.', 422);
+        }
+        $this->sendInvite($user);
+        $audit->record('user.invite_sent', $user, null, ['email' => $user->email]);
+
+        return new AdminUserResource($user->load('roles'));
+    }
+
+    private function sendInvite(User $user): void
+    {
+        /** @var PasswordBroker $broker */
+        $broker = Password::broker('invites');
+        $user->notify(new AccountInvite($broker->createToken($user)));
     }
 
     /** Block a user from signing in or using the API. */

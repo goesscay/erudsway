@@ -99,6 +99,13 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        // "Set your password" links for accounts that staff create.
+        'invites' => [
+            'provider' => 'users',
+            'table' => 'account_invite_tokens',
+            'expire' => 4320,
+            'throttle' => 60,
+        ],
     ],
 
     /*

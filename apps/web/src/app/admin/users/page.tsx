@@ -1,39 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useDeferredValue, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 import type { components } from "@erudsway/api-client";
 import { AdminPageHeader, formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { FormAlert } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { api, ApiRequestError, mutate, unwrap } from "@/lib/api/client";
+import { roleLabel, useRoles } from "@/lib/admin/api";
+import { api, unwrap } from "@/lib/api/client";
 import { useMe } from "@/lib/auth/session";
 import { CourseAccessSheet } from "./course-access";
+import { AddUserDialog, reactivateUser, SuspendDialog } from "./user-dialogs";
 
 type AdminUser = components["schemas"]["AdminUserResource"];
 
-const roleFilters = [
-  { value: "", label: "All roles" },
-  { value: "student", label: "Students" },
-  { value: "instructor", label: "Instructors" },
-  { value: "admin", label: "Admins" },
-];
-
 export default function UsersPage() {
-  return <RequireAuth permission="manage_users">{() => <UsersTable />}</RequireAuth>;
+  return (
+    <RequireAuth permission="manage_users">
+      {() => (
+        <Suspense fallback={<Skeleton className="m-8 h-96" />}>
+          <UsersTable />
+        </Suspense>
+      )}
+    </RequireAuth>
+  );
 }
 
 function UsersTable() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const role = searchParams.get("role") ?? "";
   const [q, setQ] = useState("");
-  const [role, setRole] = useState("");
+  const [status, setStatus] = useState<"" | "active" | "suspended">("");
   const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const roles = useRoles();
   const [target, setTarget] = useState<AdminUser | null>(null);
   const [accessFor, setAccessFor] = useState<AdminUser | null>(null);
   const deferredQ = useDeferredValue(q.trim());
@@ -41,14 +48,15 @@ function UsersTable() {
   const queryClient = useQueryClient();
 
   const list = useQuery({
-    queryKey: ["admin", "users", deferredQ, role, page],
+    queryKey: ["admin", "users", deferredQ, role, status, page],
     queryFn: () =>
       unwrap(
         api.GET("/admin/users", {
           params: {
             query: {
               ...(deferredQ && { q: deferredQ }),
-              ...(role && { role: role as "student" | "instructor" | "admin" }),
+              ...(role && { role }),
+              ...(status && { status }),
               page,
             },
           },
@@ -59,14 +67,20 @@ function UsersTable() {
   const rows = (list.data?.data ?? []) as AdminUser[];
   const meta = (list.data as { meta?: { total: number; last_page: number } } | undefined)?.meta;
 
-  const reactivate = async (user: AdminUser) => {
-    await mutate(() => api.POST("/admin/users/{user}/reactivate", { params: { path: { user: user.id } } }));
-    await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+  const reactivate = (user: AdminUser) => reactivateUser(user.id, queryClient);
+  const setRole = (value: string) => {
+    router.replace(value ? `${pathname}?${new URLSearchParams({ role: value })}` : pathname, { scroll: false });
+    setPage(1);
   };
+  const isAdmin = !!me?.roles.includes("admin");
 
   return (
     <>
-      <AdminPageHeader title="Users" description={meta ? `${meta.total.toLocaleString("en-IN")} accounts` : undefined} />
+      <AdminPageHeader title="Users" description={meta ? `${meta.total.toLocaleString("en-IN")} accounts` : undefined}>
+        <Button onClick={() => setAdding(true)}>
+          <UserPlus /> Add user
+        </Button>
+      </AdminPageHeader>
       <div className="px-8 py-6">
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <div className="relative w-full max-w-sm">
@@ -86,17 +100,29 @@ function UsersTable() {
           <select
             aria-label="Filter by role"
             value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="h-10 rounded-md border border-input bg-white px-3 text-sm"
+          >
+            <option value="">All roles</option>
+            {(roles.data ?? []).map((r) => (
+              <option key={r.id} value={r.name}>
+                {r.label}
+              </option>
+            ))}
+            {role && !roles.data?.some((r) => r.name === role) && <option value={role}>{roleLabel(role)}</option>}
+          </select>
+          <select
+            aria-label="Filter by status"
+            value={status}
             onChange={(e) => {
-              setRole(e.target.value);
+              setStatus(e.target.value as "" | "active" | "suspended");
               setPage(1);
             }}
             className="h-10 rounded-md border border-input bg-white px-3 text-sm"
           >
-            {roleFilters.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
+            <option value="">Any status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
           </select>
         </div>
 
@@ -130,7 +156,10 @@ function UsersTable() {
                 {rows.map((u) => (
                   <tr key={u.id} className="hover:bg-paper">
                     <td className="px-5 py-3">
-                      <Link href={`/admin/users/${u.id}`} className="font-semibold text-ink hover:text-navy-800 hover:underline">
+                      <Link
+                        href={`/admin/users/${u.id}`}
+                        className="font-semibold text-ink hover:text-navy-800 hover:underline"
+                      >
                         {u.name}
                       </Link>
                       <p className="text-xs text-stone-500">
@@ -138,17 +167,22 @@ function UsersTable() {
                         {!u.email_verified && <span className="ml-1.5 text-gold-600">· unverified</span>}
                       </p>
                     </td>
-                    <td className="px-5 py-3 text-stone-700 capitalize">{u.roles.join(", ")}</td>
+                    <td className="px-5 py-3 text-stone-700">{u.roles.map(roleLabel).join(", ")}</td>
                     <td className="px-5 py-3">
                       <StatusPill status={u.status} />
                     </td>
-                    <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">{formatDate(u.created_at)}</td>
-                    <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">{formatDate(u.last_login_at)}</td>
+                    <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">
+                      {formatDate(u.created_at)}
+                    </td>
+                    <td className="tabular hidden px-5 py-3 text-stone-700 md:table-cell">
+                      {formatDate(u.last_login_at)}
+                    </td>
                     <td className="space-x-1 px-5 py-3 text-right whitespace-nowrap">
                       <Button size="sm" variant="outline" onClick={() => setAccessFor(u)}>
                         Courses
                       </Button>
-                      {u.id !== me?.id && !u.roles.includes("admin") &&
+                      {u.id !== me?.id &&
+                        !u.roles.includes("admin") &&
                         (u.status === "suspended" ? (
                           <Button size="sm" variant="outline" onClick={() => reactivate(u)}>
                             Reactivate
@@ -182,58 +216,8 @@ function UsersTable() {
       </div>
 
       <SuspendDialog user={target} onClose={() => setTarget(null)} />
+      <AddUserDialog open={adding} canGiveRoles={isAdmin} onClose={() => setAdding(false)} />
       <CourseAccessSheet user={accessFor} onClose={() => setAccessFor(null)} />
     </>
-  );
-}
-
-function SuspendDialog({ user, onClose }: { user: AdminUser | null; onClose: () => void }) {
-  const queryClient = useQueryClient();
-  const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = async () => {
-    if (!user) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await mutate(() =>
-        api.POST("/admin/users/{user}/suspend", { params: { path: { user: user.id } }, body: { reason } }),
-      );
-      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      setReason("");
-      onClose();
-    } catch (e) {
-      setError(e instanceof ApiRequestError ? (e.fields.reason?.[0] ?? e.message) : "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Dialog open={!!user} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Suspend {user?.name}?</DialogTitle>
-          <DialogDescription>
-            They will be signed out everywhere and won&rsquo;t be able to log in until reactivated. Purchases are kept.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2">
-          {error && <FormAlert>{error}</FormAlert>}
-          <Label htmlFor="suspend-reason">Reason (recorded in the audit log)</Label>
-          <Textarea id="suspend-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={submit} disabled={busy || reason.trim().length < 5}>
-            {busy ? "Suspending…" : "Suspend account"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

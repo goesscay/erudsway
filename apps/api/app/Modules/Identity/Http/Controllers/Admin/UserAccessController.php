@@ -8,6 +8,7 @@ use App\Modules\Certificates\Models\Certificate;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Identity\Enums\Permission;
 use App\Modules\Identity\Enums\Role;
+use App\Modules\Identity\Http\Requests\UpdateAccessRequest;
 use App\Modules\Identity\Http\Resources\UserResource;
 use App\Modules\Identity\Services\Impersonation;
 use App\Modules\Learning\Models\Enrollment;
@@ -18,7 +19,7 @@ use App\Support\Http\DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role as RoleModel;
 
 /** One user in depth, staff access, and "view as". Requires `manage_users`. */
 class UserAccessController extends Controller
@@ -47,6 +48,14 @@ class UserAccessController extends Controller
             'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
             /** @var list<string> */
             'direct_permissions' => $user->permissions->pluck('name')->values()->all(),
+            // Custom staff roles (not student, instructor, admin or super admin).
+            /** @var list<string> */
+            'custom_roles' => $user->customRoleNames(),
+            // Where each permission comes from: "Direct" and/or role names.
+            /** @var array<string, list<string>> */
+            'permission_sources' => $this->permissionSources($user),
+            // They've never signed in, so the "set your password" email can be sent again.
+            'invite_pending' => $user->last_login_at === null,
             /** @var array{display_name: string, slug: string|null}|null */
             'instructor' => $user->instructorProfile ? ['display_name' => $user->instructorProfile->display_name, 'slug' => $user->instructorProfile->slug] : null,
             'stats' => [
@@ -82,14 +91,10 @@ class UserAccessController extends Controller
      * super admin (super admins only — as is changing anything for an existing admin).
      * Nobody can change their own access; the last admin and last super admin stay.
      */
-    public function updateAccess(Request $request, User $user, AuditLogger $audit): JsonResponse
+    public function updateAccess(UpdateAccessRequest $request, User $user, AuditLogger $audit): JsonResponse
     {
-        $data = $request->validate([
-            'admin' => ['required', 'boolean'],
-            'super_admin' => ['sometimes', 'boolean'],
-            'permissions' => ['present', 'array'],
-            'permissions.*' => [Rule::enum(Permission::class)],
-        ]);
+        /** @var array{admin: bool, super_admin?: bool, roles?: list<string>, permissions: list<string>} $data */
+        $data = $request->validated();
         /** @var User $actor */
         $actor = $request->user();
         if (! $actor->hasRole(Role::Admin->value)) {
@@ -113,11 +118,21 @@ class UserAccessController extends Controller
             throw new DomainException('LAST_SUPER_ADMIN', 'There must always be at least one super admin.', 422);
         }
 
-        $before = ['admin' => $wasAdmin, 'super_admin' => $wasSuper, 'permissions' => $user->permissions->pluck('name')->sort()->values()->all()];
+        $currentRoles = $user->customRoleNames();
+        $before = ['admin' => $wasAdmin, 'super_admin' => $wasSuper, 'roles' => $currentRoles, 'permissions' => $user->permissions->pluck('name')->sort()->values()->all()];
         $permissions = array_values(array_unique($data['permissions']));
         sort($permissions);
+        $roles = array_values(array_unique($data['roles'] ?? $currentRoles));
+        sort($roles);
 
-        DB::transaction(function () use ($user, $admin, $super, $permissions, $wasAdmin, $wasSuper) {
+        DB::transaction(function () use ($user, $admin, $super, $permissions, $wasAdmin, $wasSuper, $roles, $currentRoles) {
+            foreach (array_diff($currentRoles, $roles) as $name) {
+                $user->removeRole($name);
+            }
+            $added = array_values(array_diff($roles, $currentRoles));
+            if ($added !== []) {
+                $user->assignRole($added);
+            }
             if ($admin && ! $wasAdmin) {
                 $user->assignRole(Role::Admin->value);
             } elseif (! $admin && $wasAdmin) {
@@ -130,9 +145,31 @@ class UserAccessController extends Controller
             }
             $user->syncPermissions($permissions);
         });
-        $audit->record('user.access_changed', $user, $before, ['admin' => $admin, 'super_admin' => $super, 'permissions' => $permissions], $actor);
+        $audit->record('user.access_changed', $user, $before, ['admin' => $admin, 'super_admin' => $super, 'roles' => $roles, 'permissions' => $permissions], $actor);
 
         return $this->show($user->fresh() ?? $user);
+    }
+
+    /** @return array<string, list<string>> */
+    private function permissionSources(User $user): array
+    {
+        $sources = [];
+        foreach ($user->getDirectPermissions()->pluck('name') as $name) {
+            $sources[$name][] = 'Direct';
+        }
+        $roles = RoleModel::query()->whereIn('name', $user->getRoleNames())->where('guard_name', 'web')->with('permissions')->get();
+        foreach ($roles as $role) {
+            $builtIn = Role::tryFrom($role->name);
+            // Admins and super admins hold every permission.
+            $names = in_array($builtIn, [Role::Admin, Role::SuperAdmin], true)
+                ? array_map(fn (Permission $p) => $p->value, Permission::cases())
+                : $role->permissions->pluck('name')->all();
+            foreach ($names as $name) {
+                $sources[$name][] = $builtIn?->label() ?? $role->name;
+            }
+        }
+
+        return array_map(fn (array $list): array => array_values(array_unique($list)), $sources);
     }
 
     /** Admin only: start viewing the site as this user (read-only). */

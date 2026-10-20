@@ -2,6 +2,7 @@
 
 use App\Modules\Identity\Enums\Permission;
 use App\Modules\Identity\Http\Controllers\Admin\InstructorApplicationController as AdminApplications;
+use App\Modules\Identity\Http\Controllers\Admin\RoleController as AdminRoles;
 use App\Modules\Identity\Http\Controllers\Admin\UserAccessController as UserAccess;
 use App\Modules\Identity\Http\Controllers\Admin\UserController as AdminUsers;
 use App\Modules\Identity\Http\Controllers\AuthController;
@@ -50,11 +51,23 @@ Route::middleware(['auth:sanctum', EnsureAccountActive::class])->group(function 
             ->prefix('users')->name('users.')
             ->group(function () {
                 Route::get('/', [AdminUsers::class, 'index'])->name('index');
+                Route::post('/', [AdminUsers::class, 'store'])->middleware('throttle:30,1')->name('store');
                 Route::get('{user}', [UserAccess::class, 'show'])->name('show');
+                Route::patch('{user}', [AdminUsers::class, 'update'])->name('update');
+                Route::post('{user}/invite', [AdminUsers::class, 'invite'])->middleware('throttle:10,1')->name('invite');
                 Route::put('{user}/access', [UserAccess::class, 'updateAccess'])->name('access');
                 Route::post('{user}/impersonate', [UserAccess::class, 'impersonate'])->middleware('throttle:10,1')->name('impersonate');
                 Route::post('{user}/suspend', [AdminUsers::class, 'suspend'])->name('suspend');
                 Route::post('{user}/reactivate', [AdminUsers::class, 'reactivate'])->name('reactivate');
             });
+
+        Route::middleware('can:'.Permission::ManageUsers->value)->group(function () {
+            Route::get('roles', [AdminRoles::class, 'index'])->name('roles.index');
+            Route::post('roles', [AdminRoles::class, 'store'])->name('roles.store');
+            Route::put('roles/{role}', [AdminRoles::class, 'update'])->name('roles.update');
+            Route::delete('roles/{role}', [AdminRoles::class, 'destroy'])->name('roles.destroy');
+            Route::get('permissions', [AdminRoles::class, 'permissions'])->name('permissions.index');
+            Route::get('permissions/{permission}/users', [AdminRoles::class, 'holders'])->name('permissions.users');
+        });
     });
 });

@@ -15,6 +15,7 @@ import {
   LibraryBig,
   LayoutDashboard,
   Landmark,
+  KeyRound,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
@@ -60,6 +61,7 @@ const groups: { title: string; items: Item[] }[] = [
       { href: "/admin/course-reviews", label: "Course reviews", icon: BookCheck, permission: "moderate_courses" },
       { href: "/admin/reviews", label: "Learner reviews", icon: MessageSquareWarning, permission: "moderate_courses" },
       { href: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
+      { href: "/admin/roles", label: "Roles & permissions", icon: KeyRound, permission: "manage_users" },
     ],
   },
   {

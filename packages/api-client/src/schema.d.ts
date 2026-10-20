@@ -2403,6 +2403,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every role (built-in first) with its permissions and how many people hold it */
+        get: operations["admin.roles.index"];
+        put?: never;
+        /** Super admins only: a new staff role made of the chosen permissions */
+        post: operations["admin.roles.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Super admins only: rename a custom role or change its permissions (applies to everyone who holds it) */
+        put: operations["admin.roles.update"];
+        post?: never;
+        /** Super admins only: delete a custom role. Everyone who held it loses its permissions */
+        delete: operations["admin.roles.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every permission, what it allows, and how many people hold it (directly or through a role) */
+        get: operations["admin.permissions.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/permissions/{permission}/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who holds a permission, and through what: given directly, or through which roles */
+        get: operations["admin.permissions.users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/orders": {
         parameters: {
             query?: never;
@@ -2512,7 +2582,49 @@ export interface paths {
         /** Search users by name or email, optionally filtered by role or status */
         get: operations["admin.users.index"];
         put?: never;
+        /**
+         * Create an account for someone and email them a link to set their password. Only admins
+         *     can give custom roles at the same time
+         */
+        post: operations["admin.users.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everything support needs about one user */
+        get: operations["admin.users.show"];
+        put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct someone's name or email. A new email must be verified again. Only a super admin
+         *     can change an admin's details
+         */
+        patch: operations["admin.users.update"];
+        trace?: never;
+    };
+    "/admin/users/{user}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Email the "set your password" link again, for someone who hasn't signed in yet */
+        post: operations["admin.users.invite"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2547,23 +2659,6 @@ export interface paths {
         put?: never;
         /** Restore a suspended user's access */
         post: operations["admin.users.reactivate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/users/{user}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Everything support needs about one user */
-        get: operations["admin.users.show"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3492,7 +3587,7 @@ export interface components {
         PayoutStatus: "draft" | "approved" | "paid" | "cancelled";
         /**
          * Permission
-         * @description Fine-grained staff permissions. The admin role holds all of them; support staff can be given a subset (e.g. moderation without finance).
+         * @description Fine-grained staff permissions. The admin role holds all of them; other staff get a subset, directly or through a custom role (e.g. moderation without finance).
          * @enum {string}
          */
         Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
@@ -3631,21 +3726,19 @@ export interface components {
          */
         ReviewStatus: "visible" | "flagged" | "hidden";
         /**
-         * Role
-         * @description | |
-         *     |---|
-         *     | `student` <br/>  |
-         *     | `instructor` <br/>  |
-         *     | `admin` <br/>  |
-         *     | `super_admin` <br/> Held together with Admin. The only role that can make, remove or change admins (including other super admins); otherwise the same as an admin. |
-         * @enum {string}
-         */
-        Role: "student" | "instructor" | "admin" | "super_admin";
-        /**
          * SaleChannel
          * @enum {string}
          */
         SaleChannel: "organic" | "instructor_referral" | "platform_promoted";
+        /**
+         * SaveRoleRequest
+         * @description Create or edit a custom staff role.
+         */
+        SaveRoleRequest: {
+            name: string;
+            description: string | null;
+            permissions: components["schemas"]["Permission"][];
+        };
         /**
          * StoreEditionRequest
          * @description A new edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).
@@ -3668,6 +3761,17 @@ export interface components {
             teaching_experience: components["schemas"]["TeachingExperience"];
             /** Format: uri */
             sample_url?: string | null;
+        };
+        /**
+         * StoreUserRequest
+         * @description Staff create an account; the person sets their own password from an emailed link.
+         */
+        StoreUserRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            /** @description Custom staff roles to give straight away (admins only). */
+            roles?: string[];
         };
         /** SubmissionResource */
         SubmissionResource: {
@@ -3705,6 +3809,17 @@ export interface components {
          * @enum {string}
          */
         TeachingExperience: "none" | "informal" | "classroom" | "online";
+        /**
+         * UpdateAccessRequest
+         * @description A user's staff access: the admin switches, custom roles, and permissions given directly.
+         */
+        UpdateAccessRequest: {
+            admin: boolean;
+            super_admin?: boolean;
+            /** @description Custom staff roles. Leave out to keep the current ones. */
+            roles?: string[];
+            permissions: components["schemas"]["Permission"][];
+        };
         /** UpdateCourseRequest */
         UpdateCourseRequest: {
             title?: string;
@@ -3747,6 +3862,15 @@ export interface components {
             bio?: string | null;
             phone?: string | null;
             timezone?: string;
+        };
+        /**
+         * UpdateUserRequest
+         * @description Staff correct a user's name or email.
+         */
+        UpdateUserRequest: {
+            name?: string;
+            /** Format: email */
+            email?: string;
         };
         /** UserResource */
         UserResource: {
@@ -9440,6 +9564,212 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "admin.roles.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: number;
+                                name: string;
+                                label: string;
+                                description: string | null;
+                                built_in: boolean;
+                                permissions: string[];
+                                users_count: number;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "admin.roles.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveRoleRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                            name: string;
+                            label: string;
+                            description: unknown;
+                            built_in: boolean;
+                            permissions: unknown[] | string[];
+                            /** @constant */
+                            users_count: 0;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.roles.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The role ID */
+                role: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveRoleRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                            name: string;
+                            label: string;
+                            description: unknown;
+                            built_in: boolean;
+                            permissions: unknown[] | string[];
+                            users_count: number;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.roles.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The role ID */
+                role: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.permissions.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                /** @enum {string} */
+                                key: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
+                                label: string;
+                                description: string;
+                                users_count: number;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "admin.permissions.users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The permission ID */
+                permission: components["schemas"]["Permission"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: string;
+                                name: string;
+                                email: string;
+                                /** @enum {string} */
+                                status: "active" | "suspended";
+                                via: string[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "commerce.admin.orders.index": {
         parameters: {
             query?: {
@@ -9710,7 +10040,8 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
-                role?: components["schemas"]["Role"];
+                /** @description Any role name, built-in or custom. */
+                role?: string;
                 status?: components["schemas"]["UserStatus"];
                 per_page?: number;
                 page?: number;
@@ -9760,6 +10091,168 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.users.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreUserRequest"];
+            };
+        };
+        responses: {
+            /** @description `AdminUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminUserResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.users.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            email: string;
+                            email_verified: boolean;
+                            /** @enum {string} */
+                            status: "active" | "suspended";
+                            created_at: string;
+                            last_login_at: string | null;
+                            roles: string[];
+                            is_admin: boolean;
+                            is_super_admin: boolean;
+                            permissions: string[];
+                            direct_permissions: string[];
+                            custom_roles: string[];
+                            permission_sources: {
+                                [key: string]: string[];
+                            };
+                            /** @description They've never signed in, so the "set your password" email can be sent again. */
+                            invite_pending: boolean;
+                            instructor: {
+                                display_name: string;
+                                slug: string | null;
+                            } | null;
+                            stats: {
+                                enrollments: number;
+                                completed: number;
+                                certificates: number;
+                                orders: number;
+                                spent: number;
+                            };
+                            recent_orders: {
+                                number: string;
+                                total: number;
+                                status: string;
+                                paid_at: string | null;
+                            }[];
+                            activity: {
+                                action: string;
+                                by: string | null;
+                                about_this_user: boolean;
+                                created_at: string;
+                            }[];
+                            can_impersonate: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "admin.users.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRequest"];
+            };
+        };
+        responses: {
+            /** @description `AdminUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminUserResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "admin.users.invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The user UUID */
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AdminUserResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminUserResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "admin.users.suspend": {
@@ -9825,72 +10318,6 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
-    "admin.users.show": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The user UUID */
-                user: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: {
-                            id: string;
-                            name: string;
-                            email: string;
-                            email_verified: boolean;
-                            /** @enum {string} */
-                            status: "active" | "suspended";
-                            created_at: string;
-                            last_login_at: string | null;
-                            roles: string[];
-                            is_admin: boolean;
-                            is_super_admin: boolean;
-                            permissions: string[];
-                            direct_permissions: string[];
-                            instructor: {
-                                display_name: string;
-                                slug: string | null;
-                            } | null;
-                            stats: {
-                                enrollments: number;
-                                completed: number;
-                                certificates: number;
-                                orders: number;
-                                spent: number;
-                            };
-                            recent_orders: {
-                                number: string;
-                                total: number;
-                                status: string;
-                                paid_at: string | null;
-                            }[];
-                            activity: {
-                                action: string;
-                                by: string | null;
-                                about_this_user: boolean;
-                                created_at: string;
-                            }[];
-                            can_impersonate: string;
-                        };
-                        meta: string;
-                    };
-                };
-            };
-            401: components["responses"]["AuthenticationException"];
-            403: components["responses"]["AuthorizationException"];
-            404: components["responses"]["ModelNotFoundException"];
-        };
-    };
     "admin.users.access": {
         parameters: {
             query?: never;
@@ -9903,11 +10330,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    admin: boolean;
-                    super_admin?: boolean;
-                    permissions: components["schemas"]["Permission"][];
-                };
+                "application/json": components["schemas"]["UpdateAccessRequest"];
             };
         };
         responses: {
@@ -9931,6 +10354,12 @@ export interface operations {
                             is_super_admin: boolean;
                             permissions: string[];
                             direct_permissions: string[];
+                            custom_roles: string[];
+                            permission_sources: {
+                                [key: string]: string[];
+                            };
+                            /** @description They've never signed in, so the "set your password" email can be sent again. */
+                            invite_pending: boolean;
                             instructor: {
                                 display_name: string;
                                 slug: string | null;
