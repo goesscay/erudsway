@@ -154,8 +154,9 @@ class RefundService
         $this->enroller->markRefunded($order->user, $item->course, $item->upgradeFrom);
         $this->audit->record('refund.approved', $refund, null, ['auto' => $refund->auto_approved, 'amount' => $refund->amount], $staff);
 
-        if ($payment === null) {
-            // Nothing was charged (fully discounted order): access simply ends.
+        if ($payment === null || $payment->gateway === Order::GATEWAY_OFFLINE) {
+            // Nothing was charged (fully discounted order), or the money was taken offline and
+            // staff return it the same way: access simply ends.
             $this->markProcessed($refund);
 
             return $refund->refresh();

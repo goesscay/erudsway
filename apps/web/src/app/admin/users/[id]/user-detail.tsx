@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, Eye, Mail, Pencil, RotateCcw, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Ban, Eye, HandCoins, Mail, Pencil, RotateCcw, ShieldCheck } from "lucide-react";
+import { OfflinePaymentSheet } from "@/components/admin/offline-payment-sheet";
 import { formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
@@ -38,6 +39,7 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
   const [accessOpen, setAccessOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [suspending, setSuspending] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   if (user.isPending) return <Skeleton className="m-8 h-96" />;
@@ -112,6 +114,11 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
             <Button variant="outline" onClick={() => setAccessOpen(true)}>
               Course access
             </Button>
+            {me.permissions.includes("manage_finance") && u.status === "active" && (
+              <Button variant="outline" onClick={() => setRecording(true)}>
+                <HandCoins /> Record offline payment
+              </Button>
+            )}
             {isAdmin && !self && <ViewAs user={u} />}
             {u.invite_pending && (
               <Button variant="outline" onClick={sendInvite} title="They haven’t signed in yet">
@@ -232,6 +239,7 @@ function Detail({ id, me }: { id: string; me: CurrentUser }) {
       <CourseAccessSheet user={accessOpen ? person : null} onClose={() => setAccessOpen(false)} />
       <EditDetailsDialog user={editing ? person : null} onClose={() => setEditing(false)} />
       <SuspendDialog user={suspending ? person : null} onClose={() => setSuspending(false)} />
+      <OfflinePaymentSheet open={recording} learner={person} onClose={() => setRecording(false)} />
     </>
   );
 }

@@ -38,6 +38,9 @@ class Order extends Model
 {
     use HasUuids;
 
+    /** `gateway` for payments staff recorded by hand (cash, bank transfer…). */
+    public const GATEWAY_OFFLINE = 'offline';
+
     protected $fillable = ['number', 'user_id', 'status', 'currency', 'subtotal', 'discount_total', 'tax_total', 'total', 'coupon_code', 'gateway', 'billing_snapshot', 'ip', 'user_agent'];
 
     /** @return list<string> */

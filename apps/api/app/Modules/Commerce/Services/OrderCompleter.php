@@ -75,6 +75,47 @@ class OrderCompleter
         return $order->refresh();
     }
 
+    /**
+     * Money staff took outside the website (cash, bank transfer…). Same pipeline as a gateway
+     * payment — access, ledger, GST invoice and receipt — with no gateway fee.
+     *
+     * @param  array{method: string, reference: string|null, received_on: string, note: string|null, recorded_by: int}  $details
+     */
+    public function completeOffline(Order $order, array $details): Order
+    {
+        $completed = DB::transaction(function () use ($order, $details) {
+            /** @var Order $locked */
+            $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
+            if ($locked->isPaid() || $locked->gateway !== Order::GATEWAY_OFFLINE) {
+                return null;
+            }
+
+            Payment::query()->create([
+                'order_id' => $locked->id,
+                'gateway' => Order::GATEWAY_OFFLINE,
+                'gateway_payment_id' => 'offline_'.$locked->uuid,
+                'status' => 'captured',
+                'amount' => $locked->total,
+                'fee' => 0,
+                'tax_on_fee' => 0,
+                'method' => $details['method'],
+                'raw' => $details,
+                'captured_at' => now(),
+            ]);
+
+            $this->settleItems($locked, 0);
+            $this->markPaid($locked);
+
+            return $locked;
+        });
+
+        if ($completed !== null) {
+            IssueInvoice::dispatch($completed->id);
+        }
+
+        return $order->refresh();
+    }
+
     /** Fully discounted orders: nothing to charge, no invoice. */
     public function completeWithoutPayment(Order $order): void
     {

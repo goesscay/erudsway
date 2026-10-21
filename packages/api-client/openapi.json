@@ -2932,6 +2932,38 @@
                                                                 "address"
                                                             ]
                                                         },
+                                                        "offline_payment": {
+                                                            "type": [
+                                                                "object",
+                                                                "null"
+                                                            ],
+                                                            "properties": {
+                                                                "method": {
+                                                                    "type": "string"
+                                                                },
+                                                                "method_label": {
+                                                                    "type": "string"
+                                                                },
+                                                                "reference": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "received_on": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "method",
+                                                                "method_label",
+                                                                "reference",
+                                                                "received_on"
+                                                            ]
+                                                        },
                                                         "items": {
                                                             "type": "array",
                                                             "items": {
@@ -3054,6 +3086,7 @@
                                                         "paid_at",
                                                         "refund_window_ends_at",
                                                         "billing",
+                                                        "offline_payment",
                                                         "items",
                                                         "invoice"
                                                     ]
@@ -9206,6 +9239,275 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/offline-payments/learners": {
+            "get": {
+                "operationId": "commerce.admin.offline-payments.learners",
+                "summary": "Find the learner who paid, by name or email (finance staff may not have user management)",
+                "tags": [
+                    "OfflinePayment"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "email": {
+                                                                "type": "string"
+                                                            },
+                                                            "suspended": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "email",
+                                                            "suspended"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/offline-payments/quote": {
+            "get": {
+                "operationId": "commerce.admin.offline-payments.quote",
+                "summary": "The price this learner would pay for a course or edition (less if it's an upgrade), and whether they can buy it",
+                "tags": [
+                    "OfflinePayment"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "course",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "edition_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "list_price": {
+                                                    "type": [
+                                                        "integer",
+                                                        "string"
+                                                    ]
+                                                },
+                                                "upgrade_from": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "problem": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Why it can't be sold to this learner, if it can't.",
+                                                    "enum": [
+                                                        "This course is no longer available.",
+                                                        "This course is free \u2014 enroll from the course page.",
+                                                        "You can\u2019t buy your own course.",
+                                                        "You already have this course.",
+                                                        "You already have this edition or a higher one.",
+                                                        "This course can\u2019t be bought right now.",
+                                                        null
+                                                    ]
+                                                },
+                                                "methods": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "value": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "cash",
+                                                                    "bank_transfer",
+                                                                    "upi",
+                                                                    "cheque",
+                                                                    "card",
+                                                                    "other"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "value",
+                                                            "label"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "title",
+                                                "list_price",
+                                                "upgrade_from",
+                                                "problem",
+                                                "methods"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/offline-payments": {
+            "post": {
+                "operationId": "commerce.admin.offline-payments.store",
+                "summary": "Record the payment: creates a paid order, gives access, and emails the GST invoice",
+                "tags": [
+                    "OfflinePayment"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecordOfflinePaymentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OrderResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OrderResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -18766,6 +19068,19 @@
                 ],
                 "title": "NoteResource"
             },
+            "OfflinePaymentMethod": {
+                "type": "string",
+                "description": "How a learner paid when staff record a payment taken outside the website.\n",
+                "enum": [
+                    "cash",
+                    "bank_transfer",
+                    "upi",
+                    "cheque",
+                    "card",
+                    "other"
+                ],
+                "title": "OfflinePaymentMethod"
+            },
             "OrderResource": {
                 "type": "object",
                 "properties": {
@@ -18861,6 +19176,38 @@
                             "gstin",
                             "business_name",
                             "address"
+                        ]
+                    },
+                    "offline_payment": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "method": {
+                                "type": "string"
+                            },
+                            "method_label": {
+                                "type": "string"
+                            },
+                            "reference": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "received_on": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "method",
+                            "method_label",
+                            "reference",
+                            "received_on"
                         ]
                     },
                     "items": {
@@ -18985,6 +19332,7 @@
                     "paid_at",
                     "refund_window_ends_at",
                     "billing",
+                    "offline_payment",
                     "items",
                     "invoice"
                 ],
@@ -19398,6 +19746,132 @@
                     "last_activity_at"
                 ],
                 "title": "QuestionResource"
+            },
+            "RecordOfflinePaymentRequest": {
+                "type": "object",
+                "description": "Staff record a course a learner paid for outside the website.",
+                "properties": {
+                    "user": {
+                        "type": "string",
+                        "description": "The learner's id (uuid)."
+                    },
+                    "course": {
+                        "type": "string",
+                        "description": "The course's slug."
+                    },
+                    "edition_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "description": "Amount received in paise, GST included. At most the course price.",
+                        "minimum": 100
+                    },
+                    "method": {
+                        "$ref": "#/components/schemas/OfflinePaymentMethod"
+                    },
+                    "reference": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 100
+                    },
+                    "received_on": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "note": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 500
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Billing details for the GST invoice.",
+                        "minLength": 2,
+                        "maxLength": 120
+                    },
+                    "state_code": {
+                        "type": "string",
+                        "enum": [
+                            "01",
+                            "02",
+                            "03",
+                            "04",
+                            "05",
+                            "06",
+                            "07",
+                            "08",
+                            "09",
+                            "10",
+                            "11",
+                            "12",
+                            "13",
+                            "14",
+                            "15",
+                            "16",
+                            "17",
+                            "18",
+                            "19",
+                            "20",
+                            "21",
+                            "22",
+                            "23",
+                            "24",
+                            "26",
+                            "27",
+                            "29",
+                            "30",
+                            "31",
+                            "32",
+                            "33",
+                            "34",
+                            "35",
+                            "36",
+                            "37",
+                            "38",
+                            "97"
+                        ]
+                    },
+                    "gstin": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "minLength": 15,
+                        "maxLength": 15
+                    },
+                    "business_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 160
+                    },
+                    "address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 300
+                    }
+                },
+                "required": [
+                    "user",
+                    "course",
+                    "amount",
+                    "method",
+                    "received_on",
+                    "name",
+                    "state_code"
+                ],
+                "title": "RecordOfflinePaymentRequest"
             },
             "RefundResource": {
                 "type": "object",

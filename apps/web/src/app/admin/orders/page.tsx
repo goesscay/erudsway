@@ -2,8 +2,9 @@
 
 import { useDeferredValue, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { HandCoins, Search } from "lucide-react";
 import type { components } from "@erudsway/api-client";
+import { OfflinePaymentSheet } from "@/components/admin/offline-payment-sheet";
 import { AdminPageHeader, formatDate, StatusPill } from "@/components/admin/page-header";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { FormAlert } from "@/components/forms/field";
@@ -52,6 +53,7 @@ function Orders() {
   const [status, setStatus] = useState<StatusFilter>("");
   const [page, setPage] = useState(1);
   const [refunding, setRefunding] = useState<{ order: Order; item: Item } | null>(null);
+  const [recording, setRecording] = useState(false);
   const deferredQ = useDeferredValue(q.trim());
   const list = useQuery({
     queryKey: ["admin", "orders", deferredQ, status, page],
@@ -67,10 +69,11 @@ function Orders() {
 
   return (
     <>
-      <AdminPageHeader
-        title="Orders"
-        description={meta ? plural(meta.total, "order") : "Every checkout, paid or not."}
-      />
+      <AdminPageHeader title="Orders" description={meta ? plural(meta.total, "order") : "Every checkout, paid or not."}>
+        <Button onClick={() => setRecording(true)}>
+          <HandCoins /> Record offline payment
+        </Button>
+      </AdminPageHeader>
       <div className="px-8 py-6">
         <div className="mb-5 flex flex-wrap gap-3">
           <label className="relative max-w-sm flex-1">
@@ -132,6 +135,14 @@ function Orders() {
                     <td className="px-5 py-3">
                       <p className="font-mono text-xs font-semibold whitespace-nowrap text-ink">{o.number}</p>
                       <p className="text-xs text-stone-500">{formatDate(o.paid_at ?? o.created_at)}</p>
+                      {o.offline_payment && (
+                        <p className="mt-1 text-xs font-semibold text-gold-600">
+                          Offline · {o.offline_payment.method_label}
+                          {o.offline_payment.reference && (
+                            <span className="block font-normal text-stone-500">{o.offline_payment.reference}</span>
+                          )}
+                        </p>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <p className="text-ink">{o.billing.name}</p>
@@ -196,6 +207,7 @@ function Orders() {
         )}
       </div>
       <RefundDialog target={refunding} onClose={() => setRefunding(null)} />
+      <OfflinePaymentSheet open={recording} onClose={() => setRecording(false)} />
     </>
   );
 }

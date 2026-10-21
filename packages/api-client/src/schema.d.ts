@@ -1818,6 +1818,57 @@ export interface paths {
         patch: operations["engagement.preferences.update"];
         trace?: never;
     };
+    "/admin/offline-payments/learners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find the learner who paid, by name or email (finance staff may not have user management) */
+        get: operations["commerce.admin.offline-payments.learners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/offline-payments/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The price this learner would pay for a course or edition (less if it's an upgrade), and whether they can buy it */
+        get: operations["commerce.admin.offline-payments.quote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/offline-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the payment: creates a paid order, gives access, and emails the GST invoice */
+        post: operations["commerce.admin.offline-payments.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders": {
         parameters: {
             query?: never;
@@ -3479,6 +3530,12 @@ export interface components {
             created_at: string;
             updated_at: string;
         };
+        /**
+         * OfflinePaymentMethod
+         * @description How a learner paid when staff record a payment taken outside the website.
+         * @enum {string}
+         */
+        OfflinePaymentMethod: "cash" | "bank_transfer" | "upi" | "cheque" | "card" | "other";
         /** OrderResource */
         OrderResource: {
             id: string;
@@ -3503,6 +3560,12 @@ export interface components {
                 business_name: string | null;
                 address: string | null;
             };
+            offline_payment: {
+                method: string;
+                method_label: string;
+                reference: string | null;
+                received_on: string | null;
+            } | null;
             items: {
                 id: number;
                 course: {
@@ -3631,6 +3694,31 @@ export interface components {
                 status: "visible" | "hidden";
                 created_at: string;
             }[];
+        };
+        /**
+         * RecordOfflinePaymentRequest
+         * @description Staff record a course a learner paid for outside the website.
+         */
+        RecordOfflinePaymentRequest: {
+            /** @description The learner's id (uuid). */
+            user: string;
+            /** @description The course's slug. */
+            course: string;
+            edition_id?: number | null;
+            /** @description Amount received in paise, GST included. At most the course price. */
+            amount: number;
+            method: components["schemas"]["OfflinePaymentMethod"];
+            reference?: string | null;
+            /** Format: date-time */
+            received_on: string;
+            note?: string | null;
+            /** @description Billing details for the GST invoice. */
+            name: string;
+            /** @enum {string} */
+            state_code: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08" | "09" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21" | "22" | "23" | "24" | "26" | "27" | "29" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "97";
+            gstin?: string | null;
+            business_name?: string | null;
+            address?: string | null;
         };
         /** RefundResource */
         RefundResource: {
@@ -5184,6 +5272,12 @@ export interface operations {
                                     business_name: string | null;
                                     address: string | null;
                                 };
+                                offline_payment: {
+                                    method: string;
+                                    method_label: string;
+                                    reference: string | null;
+                                    received_on: string | null;
+                                } | null;
                                 items: {
                                     id: number;
                                     course: {
@@ -8035,6 +8129,112 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.offline-payments.learners": {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: string;
+                                name: string;
+                                email: string;
+                                suspended: boolean;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.offline-payments.quote": {
+        parameters: {
+            query: {
+                user: string;
+                course: string;
+                edition_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            title: string;
+                            list_price: number | string;
+                            upgrade_from: string | null;
+                            /**
+                             * @description Why it can't be sold to this learner, if it can't.
+                             * @enum {string|null}
+                             */
+                            problem: "This course is no longer available." | "This course is free — enroll from the course page." | "You can’t buy your own course." | "You already have this course." | "You already have this edition or a higher one." | "This course can’t be bought right now." | null;
+                            methods: {
+                                /** @enum {string} */
+                                value: "cash" | "bank_transfer" | "upi" | "cheque" | "card" | "other";
+                                label: string;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "commerce.admin.offline-payments.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordOfflinePaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
         };
     };

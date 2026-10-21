@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Commerce\Http\Controllers\Admin\CouponController;
+use App\Modules\Commerce\Http\Controllers\Admin\OfflinePaymentController;
 use App\Modules\Commerce\Http\Controllers\Admin\SalesController;
 use App\Modules\Commerce\Http\Controllers\CartController;
 use App\Modules\Commerce\Http\Controllers\CheckoutController;
@@ -43,6 +44,9 @@ Route::name('commerce.')->group(function () {
             Route::post('coupons', [CouponController::class, 'store'])->name('coupons.store');
             Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
             Route::get('orders', [SalesController::class, 'orders'])->name('orders.index');
+            Route::get('offline-payments/learners', [OfflinePaymentController::class, 'learners'])->name('offline-payments.learners');
+            Route::get('offline-payments/quote', [OfflinePaymentController::class, 'quote'])->name('offline-payments.quote');
+            Route::post('offline-payments', [OfflinePaymentController::class, 'store'])->middleware('throttle:30,1')->name('offline-payments.store');
             Route::get('refunds', [SalesController::class, 'refunds'])->name('refunds.index');
             Route::post('refunds/{refund}/approve', [SalesController::class, 'approve'])->name('refunds.approve');
             Route::post('order-items/{item}/refund', [SalesController::class, 'refundItem'])->name('refunds.issue');

@@ -49,7 +49,7 @@ class Checkout
 
         $order = DB::transaction(function () use ($user, $quote, $billing, $request) {
             $order = Order::query()->create([
-                'number' => $this->number(),
+                'number' => self::newOrderNumber(),
                 'user_id' => $user->id,
                 'status' => OrderStatus::Pending,
                 'currency' => (string) config('commerce.currency'),
@@ -112,7 +112,7 @@ class Checkout
     }
 
     /** e.g. ER261019-7K3QZP: date plus a random suffix, short enough for gateway receipts. */
-    private function number(): string
+    public static function newOrderNumber(): string
     {
         do {
             $number = 'ER'.now('Asia/Kolkata')->format('ymd').'-'.Str::upper(Str::random(6));

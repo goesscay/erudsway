@@ -30,7 +30,7 @@ class SalesController extends Controller
             ->when($data['q'] ?? null, fn ($q, $term) => $q->where(fn ($w) => $w
                 ->where('number', 'like', "%{$term}%")
                 ->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$term}%")->orWhere('name', 'like', "%{$term}%"))))
-            ->with(['items.course', 'items.refunds', 'invoice', 'user:id,name,email'])
+            ->with(['items.course', 'items.refunds', 'invoice', 'payments', 'user:id,name,email'])
             ->latest()
             ->paginate(25);
 

@@ -2,9 +2,11 @@
 
 namespace App\Modules\Commerce\Http\Resources;
 
+use App\Modules\Commerce\Enums\OfflinePaymentMethod;
 use App\Modules\Commerce\Enums\RefundStatus;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\OrderItem;
+use App\Modules\Commerce\Models\Payment;
 use App\Modules\Commerce\Models\Refund;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +34,9 @@ class OrderResource extends JsonResource
             'paid_at' => $this->paid_at?->toIso8601String(),
             'refund_window_ends_at' => $windowEnds?->toIso8601String(),
             'billing' => $this->billing_snapshot,
+            // Paid outside the website and recorded by staff: how, and their reference.
+            /** @var array{method: string, method_label: string, reference: string|null, received_on: string|null}|null */
+            'offline_payment' => $this->offlinePayment(),
             /** @var list<array{id: int, course: array{slug: string, title: string, thumbnail_url: string|null}, list_price: int, discount: int, amount: int, refund: array{status: 'requested'|'rejected'|'processing'|'processed'|'failed', amount: int, decision_note: string|null}|null, refundable: bool}> */
             'items' => $this->items->map(function (OrderItem $item) use ($windowEnds) {
                 /** @var Refund|null $refund */
@@ -52,6 +57,25 @@ class OrderResource extends JsonResource
             'invoice' => $this->isPaid() && $this->total > 0
                 ? ['number' => $this->invoice->number ?? null, 'download_url' => url("/api/v1/orders/{$this->uuid}/invoice")]
                 : null,
+        ];
+    }
+
+    /** @return array{method: string, method_label: string, reference: string|null, received_on: string|null}|null */
+    private function offlinePayment(): ?array
+    {
+        if ($this->gateway !== Order::GATEWAY_OFFLINE) {
+            return null;
+        }
+        /** @var Payment|null $payment */
+        $payment = $this->payments->first();
+        $raw = (array) ($payment->raw ?? []);
+        $method = OfflinePaymentMethod::tryFrom((string) ($payment->method ?? ''));
+
+        return [
+            'method' => $method->value ?? 'other',
+            'method_label' => $method?->label() ?? 'Offline',
+            'reference' => isset($raw['reference']) ? (string) $raw['reference'] : null,
+            'received_on' => isset($raw['received_on']) ? (string) $raw['received_on'] : null,
         ];
     }
 }
