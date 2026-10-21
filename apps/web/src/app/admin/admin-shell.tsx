@@ -46,7 +46,7 @@ const groups: { title: string; items: Item[] }[] = [
     ],
   },
   {
-    title: "Catalogue and people",
+    title: "Catalogue",
     items: [
       {
         href: "/admin/instructor-applications",
@@ -59,8 +59,6 @@ const groups: { title: string; items: Item[] }[] = [
       { href: "/admin/fulfilment", label: "Fulfilment", icon: PackageCheck, permission: "manage_fulfilment" },
       { href: "/admin/course-reviews", label: "Course reviews", icon: BookCheck, permission: "moderate_courses" },
       { href: "/admin/reviews", label: "Learner reviews", icon: MessageSquareWarning, permission: "moderate_courses" },
-      { href: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
-      { href: "/admin/roles", label: "Roles & permissions", icon: KeyRound, permission: "manage_users" },
     ],
   },
   {
@@ -76,6 +74,8 @@ const groups: { title: string; items: Item[] }[] = [
   {
     title: "System",
     items: [
+      { href: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
+      { href: "/admin/roles", label: "Roles & permissions", icon: KeyRound, permission: "manage_users" },
       { href: "/admin/settings", label: "Settings", icon: Settings, permission: "manage_settings" },
       { href: "/admin/audit", label: "Audit log", icon: FileClock, permission: "view_audit_logs" },
     ],
