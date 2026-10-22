@@ -151,6 +151,7 @@ install -m 644 "$SRC/php-fpm/erudsway.conf" /etc/php/8.5/fpm/pool.d/erudsway.con
 say "Nginx"
 install -m 644 "$SRC/nginx/erudsway-zones.conf" /etc/nginx/conf.d/erudsway-zones.conf
 install -m 644 "$SRC/nginx/erudsway-php.conf" /etc/nginx/snippets/erudsway-php.conf
+install -m 644 "$SRC/nginx/moodle-redirects.conf" /etc/nginx/snippets/erudsway-moodle-redirects.conf
 if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
     fill "$SRC/nginx/site.conf" > /etc/nginx/sites-available/erudsway
 else
