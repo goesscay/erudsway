@@ -6,11 +6,15 @@ use App\Models\User;
 use App\Modules\Catalog\Enums\CourseStatus;
 use App\Modules\Catalog\Models\Course;
 use App\Modules\Catalog\Models\CourseEdition;
+use App\Modules\Learning\Models\Enrollment;
 use App\Modules\Learning\Services\Entitlements;
 
 /** Whether a course can be bought by this person right now, and if not, why. */
 class Purchasability
 {
+    /** How close to the end of a time-limited edition a learner can renew it. */
+    public const RENEWAL_WINDOW_DAYS = 30;
+
     public function __construct(private readonly Entitlements $entitlements) {}
 
     /**
@@ -36,12 +40,27 @@ class Purchasability
             if ($enrollment !== null) {
                 $current = $enrollment->edition;
                 $isUpgrade = $edition !== null && $current !== null && $edition->position > $current->position;
+                if ($isUpgrade || ($edition !== null && self::isRenewal($enrollment, $edition))) {
+                    return null;
+                }
 
-                return $isUpgrade ? null : ($current !== null && $edition !== null ? 'EDITION_OWNED' : 'ALREADY_ENROLLED');
+                return $current !== null && $edition !== null ? 'EDITION_OWNED' : 'ALREADY_ENROLLED';
             }
         }
 
         return null;
+    }
+
+    /**
+     * Buying the same time-limited edition again near the end of its access period: the new
+     * period starts when the current one ends.
+     */
+    public static function isRenewal(Enrollment $enrollment, CourseEdition $edition): bool
+    {
+        return $enrollment->edition_id === $edition->id
+            && $edition->access_days !== null
+            && $enrollment->expires_at !== null
+            && $enrollment->expires_at->lte(now()->addDays(self::RENEWAL_WINDOW_DAYS));
     }
 
     public static function message(string $problem): string

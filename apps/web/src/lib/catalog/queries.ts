@@ -60,3 +60,13 @@ export async function getInstructor(slug: string): Promise<InstructorPage | null
   cacheTag("catalog");
   return (await get<{ data: InstructorPage }>(`/instructors/${encodeURIComponent(slug)}`))?.data ?? null;
 }
+
+export type SimulatorInfo = { trial_days: number; plans_course: string | null; login_url: string };
+
+/** The GST simulator trial length and the course that sells simulator plans. */
+export async function getSimulatorInfo(): Promise<SimulatorInfo | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("catalog");
+  return (await get<{ data: SimulatorInfo }>("/simulator"))?.data ?? null;
+}

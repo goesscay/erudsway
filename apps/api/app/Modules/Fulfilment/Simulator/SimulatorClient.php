@@ -51,6 +51,15 @@ class SimulatorClient
         }
     }
 
+    /** Remove a login (and its practice data and sessions). One that's already gone counts as removed. */
+    public function deleteGstUser(int $id): void
+    {
+        $response = $this->http()->delete('/gst/users/'.$id);
+        if ($response->status() !== 404) {
+            $response->throw();
+        }
+    }
+
     /** A one-time link (valid about a minute) that signs the learner straight into their simulator login. */
     public function signInLink(string $username): string
     {

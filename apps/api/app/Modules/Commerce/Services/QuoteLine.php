@@ -21,6 +21,7 @@ final class QuoteLine
         public readonly ?string $problem,
         public readonly ?CourseEdition $edition = null,
         public readonly ?CourseEdition $upgradeFrom = null,
+        public readonly bool $renewal = false,
     ) {}
 
     /** What the invoice line says: the course, plus the edition (and upgrade) where there is one. */
@@ -30,6 +31,12 @@ final class QuoteLine
             return $this->course->title;
         }
 
-        return $this->course->title.' — '.$this->edition->name.($this->upgradeFrom ? " (upgrade from {$this->upgradeFrom->name})" : '');
+        $note = match (true) {
+            $this->upgradeFrom !== null => " (upgrade from {$this->upgradeFrom->name})",
+            $this->renewal => ' (renewal)',
+            default => '',
+        };
+
+        return $this->course->title.' — '.$this->edition->name.$note;
     }
 }

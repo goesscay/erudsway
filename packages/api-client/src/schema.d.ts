@@ -2623,6 +2623,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/simulator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Facts the public page needs: the trial length and the course that sells simulator plans */
+        get: operations["fulfilment.simulator.info"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/simulator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in learner's trial or paid access, with their practice login when it's live */
+        get: operations["fulfilment.simulator.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/simulator/trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start the free trial (once per account). The login is ready within moments */
+        post: operations["fulfilment.simulator.trial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/simulator/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A one-time link that signs the learner into their live practice login */
+        post: operations["fulfilment.simulator.open"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -3351,7 +3419,7 @@ export interface components {
             /** @enum {string} */
             type: "simulator_access" | "doubt_session";
             /** @enum {string} */
-            type_label: "GST simulator access" | "Faculty doubt session";
+            type_label: "GST simulator access" | "GST simulator trial" | "Faculty doubt session";
             /** @enum {string} */
             status: "pending" | "awaiting_learner" | "requested" | "scheduled" | "done" | "failed" | "cancelled";
             learner: {
@@ -3889,9 +3957,14 @@ export interface components {
         };
         /**
          * TaskType
+         * @description | |
+         *     |---|
+         *     | `simulator_access` <br/>  |
+         *     | `simulator_trial` <br/> A free 7-day simulator login the learner starts themselves (one per account). |
+         *     | `doubt_session` <br/>  |
          * @enum {string}
          */
-        TaskType: "simulator_access" | "doubt_session";
+        TaskType: "simulator_access" | "simulator_trial" | "doubt_session";
         /**
          * TeachingExperience
          * @enum {string}
@@ -10234,6 +10307,128 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "fulfilment.simulator.info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            trial_days: number;
+                            /** @description Its editions are the simulator plans (null until `simulator:setup-plans` has run). */
+                            plans_course: string | null;
+                            login_url: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+        };
+    };
+    "fulfilment.simulator.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            state: "trial" | "paid" | "preparing" | "trial_ended" | "none";
+                            ends_at: string | null;
+                            trial_ends_at: string | null;
+                            can_start_trial: string;
+                            login: {
+                                username: string;
+                                password: string | null;
+                                gstin: string | null;
+                            } | null;
+                            course_slug: string | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "fulfilment.simulator.trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            state: "trial" | "paid" | "preparing" | "trial_ended" | "none";
+                            ends_at: string | null;
+                            trial_ends_at: string | null;
+                            can_start_trial: string;
+                            login: {
+                                username: string;
+                                password: string | null;
+                                gstin: string | null;
+                            } | null;
+                            course_slug: string | null;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "fulfilment.simulator.open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            url: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
         };
     };
     "admin.users.index": {

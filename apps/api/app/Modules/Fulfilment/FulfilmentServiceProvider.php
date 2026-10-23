@@ -2,9 +2,12 @@
 
 namespace App\Modules\Fulfilment;
 
+use App\Modules\Fulfilment\Console\SetupSimulatorPlans;
+use App\Modules\Fulfilment\Console\SweepSimulatorAccess;
 use App\Modules\Fulfilment\Listeners\CreateFulfilmentTasks;
 use App\Modules\Learning\Events\EditionGranted;
 use App\Support\Modules\ModuleServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -24,5 +27,14 @@ class FulfilmentServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         Event::listen(EditionGranted::class, CreateFulfilmentTasks::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([SetupSimulatorPlans::class, SweepSimulatorAccess::class]);
+        }
+
+        // Ended trials and plans lose their simulator login; learners are reminded before that.
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('simulator:sweep')->hourly()->withoutOverlapping();
+        });
     }
 }

@@ -42,12 +42,15 @@ class Pricing
             $edition ??= $course->editions->isNotEmpty() ? $this->editions->default($course) : null;
             $problem = $this->purchasability->problem($course, $user, $edition);
             $upgradeFrom = null;
+            $renewal = false;
             if ($edition === null) {
                 $list = (int) ($course->priceTier->amount ?? 0);
             } else {
                 $current = $user !== null && $problem === null ? $this->entitlements->enrollment($user, $course)?->edition : null;
-                $upgradeFrom = $current;
-                $list = $current !== null ? (int) $this->editions->upgradePrice($current, $edition) : $edition->price();
+                // Renewing the same edition costs its full price; a higher edition costs the difference.
+                $renewal = $current !== null && $current->id === $edition->id;
+                $upgradeFrom = $renewal ? null : $current;
+                $list = $current !== null && ! $renewal ? (int) $this->editions->upgradePrice($current, $edition) : $edition->price();
             }
             $applies = $problem === null && $coupon !== null && $this->couponCovers($coupon, $course);
             $discount = $applies ? min($list, $coupon->discountFor($list)) : 0;
@@ -66,6 +69,7 @@ class Pricing
                 problem: $problem,
                 edition: $edition,
                 upgradeFrom: $upgradeFrom,
+                renewal: $renewal,
             );
         }
 

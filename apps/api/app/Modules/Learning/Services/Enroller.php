@@ -57,7 +57,10 @@ class Enroller
     {
         $previous = $enrollment->edition;
         $ends = $edition->access_days === null ? null : now()->addDays($edition->access_days);
-        if ($ends !== null && $enrollment->expires_at !== null && $enrollment->expires_at->isAfter($ends) && $previous !== null) {
+        if ($ends !== null && $previous?->id === $edition->id && $enrollment->expires_at?->isFuture()) {
+            // A renewal: the new period starts when the current one ends.
+            $ends = $enrollment->expires_at->copy()->addDays($edition->access_days);
+        } elseif ($ends !== null && $enrollment->expires_at !== null && $enrollment->expires_at->isAfter($ends) && $previous !== null) {
             $ends = $enrollment->expires_at;
         }
         $enrollment->forceFill(['edition_id' => $edition->id, 'expires_at' => $ends])->save();

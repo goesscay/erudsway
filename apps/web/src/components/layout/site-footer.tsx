@@ -6,6 +6,7 @@ const columns: { title: string; links: [string, string][] }[] = [
     title: "Learn",
     links: [
       ["All courses", "/courses"],
+      ["GST Simulator — free trial", "/gst-simulator"],
       ["GST", "/courses/gst"],
       ["Income Tax", "/courses/income-tax"],
       ["Audit & Assurance", "/courses/audit-assurance"],

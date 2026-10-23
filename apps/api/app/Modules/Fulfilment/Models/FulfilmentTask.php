@@ -29,6 +29,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $last_error
  * @property int|null $handled_by
  * @property Carbon|null $completed_at
+ * @property Carbon|null $access_ends_at When a simulator login's trial or plan ends
+ * @property Carbon|null $reminded_at When the learner was told it's ending soon
+ * @property Carbon|null $removed_at When the login was removed from the simulator
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read User $user
@@ -61,6 +64,9 @@ class FulfilmentTask extends Model
             'data' => 'encrypted:array',
             'scheduled_for' => 'datetime',
             'completed_at' => 'datetime',
+            'access_ends_at' => 'datetime',
+            'reminded_at' => 'datetime',
+            'removed_at' => 'datetime',
         ];
     }
 

@@ -22,6 +22,10 @@ return [
     'simulator' => [
         'url' => env('SIMULATOR_URL', 'https://simulator.erudsway.com'),
         'key' => env('SIMULATOR_API_KEY'),
+        // The free trial anyone can start from the GST Simulator page, and the course that sells
+        // simulator-only plans (created by `php artisan simulator:setup-plans`).
+        'trial_days' => (int) env('SIMULATOR_TRIAL_DAYS', 7),
+        'plans_course' => env('SIMULATOR_PLANS_COURSE', 'gst-simulator'),
     ],
 
     'resend' => [

@@ -14655,6 +14655,314 @@
                 }
             }
         },
+        "/simulator": {
+            "get": {
+                "operationId": "fulfilment.simulator.info",
+                "summary": "Facts the public page needs: the trial length and the course that sells simulator plans",
+                "tags": [
+                    "Simulator"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "trial_days": {
+                                                    "type": "integer"
+                                                },
+                                                "plans_course": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Its editions are the simulator plans (null until `simulator:setup-plans` has run)."
+                                                },
+                                                "login_url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "trial_days",
+                                                "plans_course",
+                                                "login_url"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/me/simulator": {
+            "get": {
+                "operationId": "fulfilment.simulator.show",
+                "summary": "The signed-in learner's trial or paid access, with their practice login when it's live",
+                "tags": [
+                    "Simulator"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "state": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "trial",
+                                                        "paid",
+                                                        "preparing",
+                                                        "trial_ended",
+                                                        "none"
+                                                    ]
+                                                },
+                                                "ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "trial_ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "can_start_trial": {
+                                                    "type": "string"
+                                                },
+                                                "login": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "username": {
+                                                            "type": "string"
+                                                        },
+                                                        "password": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "gstin": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "username",
+                                                        "password",
+                                                        "gstin"
+                                                    ]
+                                                },
+                                                "course_slug": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "state",
+                                                "ends_at",
+                                                "trial_ends_at",
+                                                "can_start_trial",
+                                                "login",
+                                                "course_slug"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/simulator/trial": {
+            "post": {
+                "operationId": "fulfilment.simulator.trial",
+                "summary": "Start the free trial (once per account). The login is ready within moments",
+                "tags": [
+                    "Simulator"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "state": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "trial",
+                                                        "paid",
+                                                        "preparing",
+                                                        "trial_ended",
+                                                        "none"
+                                                    ]
+                                                },
+                                                "ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "trial_ends_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "can_start_trial": {
+                                                    "type": "string"
+                                                },
+                                                "login": {
+                                                    "type": [
+                                                        "object",
+                                                        "null"
+                                                    ],
+                                                    "properties": {
+                                                        "username": {
+                                                            "type": "string"
+                                                        },
+                                                        "password": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "gstin": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "username",
+                                                        "password",
+                                                        "gstin"
+                                                    ]
+                                                },
+                                                "course_slug": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "state",
+                                                "ends_at",
+                                                "trial_ends_at",
+                                                "can_start_trial",
+                                                "login",
+                                                "course_slug"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me/simulator/open": {
+            "post": {
+                "operationId": "fulfilment.simulator.open",
+                "summary": "A one-time link that signs the learner into their live practice login",
+                "tags": [
+                    "Simulator"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "url"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "operationId": "admin.users.index",
@@ -18267,6 +18575,7 @@
                         "type": "string",
                         "enum": [
                             "GST simulator access",
+                            "GST simulator trial",
                             "Faculty doubt session"
                         ]
                     },
@@ -20480,8 +20789,10 @@
             },
             "TaskType": {
                 "type": "string",
+                "description": "| |\n|---|\n| `simulator_access` <br/>  |\n| `simulator_trial` <br/> A free 7-day simulator login the learner starts themselves (one per account). |\n| `doubt_session` <br/>  |",
                 "enum": [
                     "simulator_access",
+                    "simulator_trial",
                     "doubt_session"
                 ],
                 "title": "TaskType"

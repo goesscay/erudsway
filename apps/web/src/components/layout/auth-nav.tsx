@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Award, Heart, LogOut, MonitorPlay, Presentation, Receipt, Settings, ShieldCheck } from "lucide-react";
+import {
+  Award,
+  Calculator,
+  Heart,
+  LogOut,
+  MonitorPlay,
+  Presentation,
+  Receipt,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { CartLink } from "@/components/commerce/cart-link";
 import { InstructorAvatar } from "@/components/course/instructor-avatar";
 import { NotificationBell } from "@/components/engagement/notification-bell";
@@ -18,16 +28,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isStaff, useMe, useSession } from "@/lib/auth/session";
+import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
 export function AuthNav() {
   const { data: me, isPending } = useMe();
+  const hydrated = useHydrated();
   const session = useSession();
   const router = useRouter();
 
   const cart = <CartLink />;
 
-  if (isPending) {
+  // Until hydration the server's placeholder is kept, even if /me has already answered.
+  if (!hydrated || isPending) {
     return (
       <div className="flex items-center gap-2">
         {cart}
@@ -39,6 +52,9 @@ export function AuthNav() {
   if (!me) {
     return (
       <>
+        <Link href="/gst-simulator" className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block">
+          GST Simulator
+        </Link>
         <Link href="/teach" className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block">
           Teach on Erudsway
         </Link>
@@ -57,6 +73,9 @@ export function AuthNav() {
 
   return (
     <>
+      <Link href="/gst-simulator" className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block">
+        GST Simulator
+      </Link>
       <Link
         href={instructor ? "/instructor" : "/teach"}
         className="hidden px-3 py-2 text-stone-700 hover:text-navy-900 lg:block"
@@ -88,6 +107,9 @@ export function AuthNav() {
           <DropdownMenuSeparator />
           <DropdownMenuItem render={<Link href="/my-learning" />}>
             <MonitorPlay /> My learning
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href="/gst-simulator" />}>
+            <Calculator /> GST Simulator
           </DropdownMenuItem>
           <DropdownMenuItem render={<Link href={instructor ? "/instructor" : "/teach"} />}>
             <Presentation /> {instructor ? "Instructor dashboard" : "Teach on Erudsway"}
