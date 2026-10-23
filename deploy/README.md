@@ -1,6 +1,6 @@
 # Deploying Erudsway
 
-The app runs on the existing VPS next to Moodle (erudsway.com) and the e-Filing simulator
+The app runs at erudsway.com on the VPS next to the e-Filing simulator
 (simulator.erudsway.com), without touching either. Layout on the server:
 
 ```
@@ -56,7 +56,7 @@ Deploy log: `/var/log/erudsway/deploy.log`.
 
 ## Backups
 
-`/etc/cron.d/erudsway-backup` runs `bin/backup` at 03:45 (after Moodle's at 03:15):
+`/etc/cron.d/erudsway-backup` runs `bin/backup` at 03:45:
 
 - PostgreSQL dump → `/var/backups/erudsway/db/` (last 14)
 - `storage/app` snapshot with hard links → `/var/backups/erudsway/files/` (last 7; unchanged videos
