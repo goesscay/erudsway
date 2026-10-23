@@ -11,9 +11,10 @@ export function RegisterIntro() {
   return <Intro forTrial={forTrial} login={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} />;
 }
 
-RegisterIntro.Fallback = function RegisterIntroFallback() {
+/** Shown until the address can be read (and when JavaScript is off). */
+export function RegisterIntroFallback() {
   return <Intro forTrial={false} login="/login" />;
-};
+}
 
 function Intro({ forTrial, login }: { forTrial: boolean; login: string }) {
   return (
