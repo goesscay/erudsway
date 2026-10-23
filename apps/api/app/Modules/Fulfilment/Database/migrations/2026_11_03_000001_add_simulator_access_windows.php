@@ -18,6 +18,14 @@ return new class extends Migration
             $table->timestamp('removed_at')->nullable()->after('reminded_at');
             $table->index(['type', 'status', 'removed_at']);
         });
+
+        // Logins handed out before this get the end date of the access that pays for them.
+        DB::table('fulfilment_tasks')->where('type', 'simulator_access')->whereNull('access_ends_at')->orderBy('id')->each(function (object $task) {
+            $ends = DB::table('enrollments')->where('user_id', $task->user_id)->where('course_id', $task->course_id)->value('expires_at');
+            if ($ends !== null) {
+                DB::table('fulfilment_tasks')->where('id', $task->id)->update(['access_ends_at' => $ends]);
+            }
+        });
     }
 
     public function down(): void
