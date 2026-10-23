@@ -55,7 +55,7 @@ class SimulatorAccess
     /**
      * Where the learner stands, for the GST Simulator page.
      *
-     * @return array{state: 'none'|'preparing'|'trial'|'paid'|'trial_ended', ends_at: string|null, trial_ends_at: string|null, can_start_trial: bool, login: array{username: string, password: string|null, gstin: string|null}|null, course_slug: string|null}
+     * @return array{state: 'none'|'preparing'|'trial'|'paid'|'trial_ended', ends_at: string|null, trial_ends_at: string|null, can_start_trial: bool, needs_phone: bool, login: array{username: string, password: string|null, gstin: string|null}|null, course_slug: string|null}
      */
     public function state(User $user): array
     {
@@ -77,6 +77,8 @@ class SimulatorAccess
             'ends_at' => $live?->access_ends_at?->toIso8601String(),
             'trial_ends_at' => $trial?->access_ends_at?->toIso8601String(),
             'can_start_trial' => $trial === null && $live === null && $preparing === null,
+            // Starting the trial needs a mobile number on the profile.
+            'needs_phone' => empty($user->profile()->value('phone')),
             'login' => $live ? [
                 'username' => (string) ($live->data['username'] ?? ''),
                 'password' => isset($live->data['password']) ? (string) $live->data['password'] : null,

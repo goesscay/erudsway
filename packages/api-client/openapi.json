@@ -14752,6 +14752,10 @@
                                                 "can_start_trial": {
                                                     "type": "string"
                                                 },
+                                                "needs_phone": {
+                                                    "type": "string",
+                                                    "description": "Starting the trial needs a mobile number on the profile."
+                                                },
                                                 "login": {
                                                     "type": [
                                                         "object",
@@ -14792,6 +14796,7 @@
                                                 "ends_at",
                                                 "trial_ends_at",
                                                 "can_start_trial",
+                                                "needs_phone",
                                                 "login",
                                                 "course_slug"
                                             ]
@@ -14817,10 +14822,19 @@
         "/me/simulator/trial": {
             "post": {
                 "operationId": "fulfilment.simulator.trial",
-                "summary": "Start the free trial (once per account). The login is ready within moments",
+                "summary": "Start the free trial (once per account). The login is ready within moments. A mobile\nnumber is required: send `phone` if the profile doesn't have one yet (it's saved there)",
                 "tags": [
                     "Simulator"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StartTrialRequest"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "201": {
                         "description": "",
@@ -14857,6 +14871,10 @@
                                                 "can_start_trial": {
                                                     "type": "string"
                                                 },
+                                                "needs_phone": {
+                                                    "type": "string",
+                                                    "description": "Starting the trial needs a mobile number on the profile."
+                                                },
                                                 "login": {
                                                     "type": [
                                                         "object",
@@ -14897,6 +14915,7 @@
                                                 "ends_at",
                                                 "trial_ends_at",
                                                 "can_start_trial",
+                                                "needs_phone",
                                                 "login",
                                                 "course_slug"
                                             ]
@@ -14912,6 +14931,9 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -20321,6 +20343,14 @@
                     "password": {
                         "type": "string"
                     },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Mobile number (asked for when signing up for the simulator trial; optional otherwise).",
+                        "maxLength": 20
+                    },
                     "accept_terms": {
                         "description": "Under-18s can't register until guardian consent exists (Terms \u00a73, Privacy \u00a77).",
                         "enum": [
@@ -20548,6 +20578,20 @@
                     "permissions"
                 ],
                 "title": "SaveRoleRequest"
+            },
+            "StartTrialRequest": {
+                "type": "object",
+                "description": "Start the free simulator trial. A mobile number is needed; send it here if the profile has none.",
+                "properties": {
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 20
+                    }
+                },
+                "title": "StartTrialRequest"
             },
             "StoreEditionRequest": {
                 "type": "object",

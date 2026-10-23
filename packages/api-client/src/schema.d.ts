@@ -2666,7 +2666,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start the free trial (once per account). The login is ready within moments */
+        /**
+         * Start the free trial (once per account). The login is ready within moments. A mobile
+         *     number is required: send `phone` if the profile doesn't have one yet (it's saved there)
+         */
         post: operations["fulfilment.simulator.trial"];
         delete?: never;
         options?: never;
@@ -3825,6 +3828,8 @@ export interface components {
             /** Format: email */
             email: string;
             password: string;
+            /** @description Mobile number (asked for when signing up for the simulator trial; optional otherwise). */
+            phone?: string | null;
             /**
              * @description Under-18s can't register until guardian consent exists (Terms §3, Privacy §7).
              * @enum {unknown}
@@ -3894,6 +3899,13 @@ export interface components {
             name: string;
             description: string | null;
             permissions: components["schemas"]["Permission"][];
+        };
+        /**
+         * StartTrialRequest
+         * @description Start the free simulator trial. A mobile number is needed; send it here if the profile has none.
+         */
+        StartTrialRequest: {
+            phone?: string | null;
         };
         /**
          * StoreEditionRequest
@@ -10357,6 +10369,8 @@ export interface operations {
                             ends_at: string | null;
                             trial_ends_at: string | null;
                             can_start_trial: string;
+                            /** @description Starting the trial needs a mobile number on the profile. */
+                            needs_phone: string;
                             login: {
                                 username: string;
                                 password: string | null;
@@ -10378,7 +10392,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StartTrialRequest"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -10392,6 +10410,8 @@ export interface operations {
                             ends_at: string | null;
                             trial_ends_at: string | null;
                             can_start_trial: string;
+                            /** @description Starting the trial needs a mobile number on the profile. */
+                            needs_phone: string;
                             login: {
                                 username: string;
                                 password: string | null;
@@ -10404,6 +10424,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "fulfilment.simulator.open": {

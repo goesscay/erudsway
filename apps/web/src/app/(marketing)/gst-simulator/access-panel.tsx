@@ -5,11 +5,14 @@ import { useState } from "react";
 import { Check, Copy, ExternalLink, Loader2, MailCheck, Sparkles } from "lucide-react";
 import { FormAlert } from "@/components/forms/field";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiRequestError } from "@/lib/api/client";
 import { useMe } from "@/lib/auth/session";
 import { simulatorSignInLink, useSimulatorState, useStartTrial, type SimulatorState } from "@/lib/simulator/api";
 import { useHydrated } from "@/lib/use-hydrated";
+import { isIndianMobile, mobileMessage } from "@/lib/validation/auth";
 
 const NEXT = "/gst-simulator";
 
@@ -97,6 +100,8 @@ function Unverified({ email }: { email: string }) {
 function Signed({ state, trialDays, loginUrl }: { state: SimulatorState; trialDays: number; loginUrl: string }) {
   const start = useStartTrial();
   const [error, setError] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   if (state.state === "preparing") {
     return (
@@ -145,15 +150,43 @@ function Signed({ state, trialDays, loginUrl }: { state: SimulatorState; trialDa
         ))}
       </ul>
       {error && <FormAlert>{error}</FormAlert>}
+      {state.needs_phone && (
+        <div className="space-y-1.5">
+          <Label htmlFor="trial-phone">Mobile number</Label>
+          <Input
+            id="trial-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="98765 43210"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              setPhoneError(null);
+            }}
+            aria-invalid={phoneError ? true : undefined}
+            aria-describedby="trial-phone-note"
+          />
+          <p id="trial-phone-note" className={phoneError ? "text-xs text-destructive" : "text-xs text-stone-500"}>
+            {phoneError ?? "Needed for your trial. Saved to your profile; we never share it."}
+          </p>
+        </div>
+      )}
       <Button
         size="lg"
         className="w-full"
         disabled={start.isPending || !state.can_start_trial}
         onClick={() => {
           setError(null);
-          start.mutate(undefined, {
-            onError: (e) =>
-              setError(e instanceof ApiRequestError ? e.message : "Something went wrong. Please try again."),
+          if (state.needs_phone && !isIndianMobile(phone.trim())) {
+            setPhoneError(mobileMessage);
+            return;
+          }
+          start.mutate(state.needs_phone ? phone.trim() : undefined, {
+            onError: (e) => {
+              if (e instanceof ApiRequestError && e.fields.phone?.[0]) setPhoneError(e.fields.phone[0]);
+              else setError(e instanceof ApiRequestError ? e.message : "Something went wrong. Please try again.");
+            },
           });
         }}
       >

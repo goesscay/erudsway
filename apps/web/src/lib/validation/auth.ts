@@ -16,10 +16,25 @@ export const loginSchema = z.object({
 });
 export type LoginValues = z.infer<typeof loginSchema>;
 
+/** An Indian mobile number however it's typed: 98765 43210, +91 98765-43210, 098765 43210. */
+export function isIndianMobile(value: string): boolean {
+  let digits = value.replace(/[\s\-().]/g, "");
+  if (digits.startsWith("+91")) digits = digits.slice(3);
+  else if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  else if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
+  return /^[6-9]\d{9}$/.test(digits);
+}
+
+export const mobileMessage = "Enter a 10-digit Indian mobile number, e.g. 98765 43210.";
+
 export const registerSchema = z
   .object({
     name: z.string().trim().min(2, "Enter your full name.").max(80, "Keep it under 80 characters."),
     email,
+    phone: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || isIndianMobile(v), mobileMessage),
     password,
     password_confirmation: z.string(),
     accept_terms: z

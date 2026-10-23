@@ -8,28 +8,41 @@ import { Field, FormAlert, PasswordInput, TextInput } from "@/components/forms/f
 import { Button } from "@/components/ui/button";
 import { applyApiErrors } from "@/lib/api/form-errors";
 import { safeNext, useSession } from "@/lib/auth/session";
-import { registerSchema, type RegisterValues } from "@/lib/validation/auth";
+import { mobileMessage, registerSchema, type RegisterValues } from "@/lib/validation/auth";
 
 export function RegisterForm() {
   const router = useRouter();
   const params = useSearchParams();
   const session = useSession();
   const [formError, setFormError] = useState<string | null>(null);
+  // Signing up for the GST simulator trial: a mobile number is required.
+  const forTrial = (params.get("next") ?? "").startsWith("/gst-simulator");
 
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", password_confirmation: "", accept_terms: false },
+    defaultValues: { name: "", email: "", phone: "", password: "", password_confirmation: "", accept_terms: false },
   });
   const { errors, isSubmitting } = form.formState;
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
+    if (forTrial && values.phone === "") {
+      form.setError("phone", { message: `${mobileMessage} We need it for your free trial.` });
+      return;
+    }
     try {
       await session.register(values);
       router.replace(`/verify-email?next=${encodeURIComponent(safeNext(params.get("next")))}`);
     } catch (e) {
       setFormError(
-        applyApiErrors(e, form.setError, ["name", "email", "password", "password_confirmation", "accept_terms"]),
+        applyApiErrors(e, form.setError, [
+          "name",
+          "email",
+          "phone",
+          "password",
+          "password_confirmation",
+          "accept_terms",
+        ]),
       );
     }
   });
@@ -44,6 +57,24 @@ export function RegisterForm() {
 
       <Field label="Email" error={errors.email?.message}>
         {(p) => <TextInput {...p} type="email" autoComplete="email" {...form.register("email")} />}
+      </Field>
+
+      <Field
+        label="Mobile number"
+        optional={!forTrial}
+        error={errors.phone?.message}
+        hint={forTrial ? "For your free trial and important updates. We never share it." : "We never share it."}
+      >
+        {(p) => (
+          <TextInput
+            {...p}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="98765 43210"
+            {...form.register("phone")}
+          />
+        )}
       </Field>
 
       <Field

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Identity\Http\Requests;
 
+use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -21,6 +22,8 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['required', 'string', 'email:rfc', 'max:190', 'unique:users,email'],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
+            // Mobile number (asked for when signing up for the simulator trial; optional otherwise).
+            'phone' => ['nullable', 'string', 'max:20', Phone::rule()],
             // Under-18s can't register until guardian consent exists (Terms §3, Privacy §7).
             'accept_terms' => ['accepted'],
         ];

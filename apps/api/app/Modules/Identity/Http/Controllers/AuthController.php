@@ -10,6 +10,7 @@ use App\Modules\Identity\Http\Requests\RegisterRequest;
 use App\Modules\Identity\Http\Resources\UserResource;
 use App\Modules\Identity\Services\LegacyPasswords;
 use App\Support\Http\DomainException;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,7 @@ class AuthController extends Controller
     {
         /** @var array{name: string, email: string, password: string} $data */
         $data = $request->safe()->only(['name', 'email', 'password']);
-        $user = $register->handle($data);
+        $user = $register->handle($data, Phone::normalise($request->safe()->string('phone')->toString()));
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();

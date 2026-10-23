@@ -83,14 +83,14 @@ it('sets up the simulator plans once, sold by the platform with no instructor sh
 });
 
 it('starts a 7-day trial once per verified account and signs the learner in', function () {
-    $this->actingAs(makeUser(verified: false))->postJson('/api/v1/me/simulator/trial')
+    $this->actingAs(makeUser(verified: false))->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])
         ->assertForbidden()->assertJsonPath('error.code', 'EMAIL_UNVERIFIED');
 
     $learner = makeUser();
     $this->actingAs($learner)->getJson('/api/v1/me/simulator')->assertOk()
         ->assertJsonPath('data.state', 'none')->assertJsonPath('data.can_start_trial', true);
 
-    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')->assertCreated()
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])->assertCreated()
         ->assertJsonPath('data.state', 'trial')
         ->assertJsonPath('data.can_start_trial', false);
 
@@ -101,12 +101,12 @@ it('starts a 7-day trial once per verified account and signs the learner in', fu
     Notification::assertSentTo($learner, SimulatorTrialReady::class);
 
     $this->actingAs($learner)->postJson('/api/v1/me/simulator/open')->assertOk()->assertJsonPath('data.url', 'https://sim.test/sso?code=abc');
-    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')->assertStatus(409)->assertJsonPath('error.code', 'TRIAL_USED');
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])->assertStatus(409)->assertJsonPath('error.code', 'TRIAL_USED');
 });
 
 it('reminds near the end, then removes the trial login from the simulator', function () {
     $learner = makeUser();
-    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')->assertCreated();
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])->assertCreated();
 
     $this->travel(5 * 24 + 1)->hours();
     $this->artisan('simulator:sweep')->assertSuccessful();
@@ -128,7 +128,7 @@ it('reminds near the end, then removes the trial login from the simulator', func
 
 it('keeps the trial login when the learner buys a plan', function () {
     $learner = makeUser();
-    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')->assertCreated();
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])->assertCreated();
     $trialUsername = FulfilmentTask::query()->where('user_id', $learner->id)->sole()->data['username'];
 
     buyPlan($learner, 1);
@@ -180,5 +180,32 @@ it('won’t start a trial for someone who already has paid access', function () 
     $learner = makeUser();
     buyPlan($learner, 2);
 
-    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')->assertStatus(409)->assertJsonPath('error.code', 'ALREADY_HAS_ACCESS');
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '98765 43210'])->assertStatus(409)->assertJsonPath('error.code', 'ALREADY_HAS_ACCESS');
+});
+
+it('needs a mobile number to start the trial, and keeps it on the profile', function () {
+    $learner = makeUser();
+    $this->actingAs($learner)->getJson('/api/v1/me/simulator')->assertOk()->assertJsonPath('data.needs_phone', true);
+
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial')
+        ->assertUnprocessable()->assertJsonValidationErrorFor('phone', 'error.fields');
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '12345'])
+        ->assertUnprocessable()->assertJsonValidationErrorFor('phone', 'error.fields');
+    expect(FulfilmentTask::query()->count())->toBe(0);
+
+    $this->actingAs($learner)->postJson('/api/v1/me/simulator/trial', ['phone' => '+91-98765-43210'])
+        ->assertCreated()->assertJsonPath('data.needs_phone', false);
+    expect($learner->fresh()->profile->phone)->toBe('+91 98765 43210');
+});
+
+it('accepts a mobile number at sign-up', function () {
+    $this->withHeaders(spaHeaders())->postJson('/api/v1/auth/register', [
+        'name' => 'Divya Raman', 'email' => 'divya@example.com', 'phone' => '09876543210',
+        'password' => 'a-Strong-pass-2026', 'password_confirmation' => 'a-Strong-pass-2026', 'accept_terms' => true,
+    ])->assertCreated()->assertJsonPath('data.profile.phone', '+91 98765 43210');
+
+    $this->withHeaders(spaHeaders())->postJson('/api/v1/auth/register', [
+        'name' => 'Arun K', 'email' => 'arun@example.com', 'phone' => '55555',
+        'password' => 'a-Strong-pass-2026', 'password_confirmation' => 'a-Strong-pass-2026', 'accept_terms' => true,
+    ])->assertUnprocessable()->assertJsonValidationErrorFor('phone', 'error.fields');
 });
