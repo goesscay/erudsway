@@ -1,7 +1,7 @@
 # Deploying Erudsway
 
 The app runs at erudsway.com on the VPS next to the e-Filing simulator
-(simulator.erudsway.com), without touching either. Layout on the server:
+(simulator.erudsway.com and gst.erudsway.com), without touching it. Layout on the server:
 
 ```
 /var/www/erudsway/
