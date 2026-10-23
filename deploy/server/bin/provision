@@ -111,7 +111,7 @@ REDIS_PREFIX=erudsway_
 
 # Mail: no mail service on this server yet. Until one is configured, mail is written to the log.
 MAIL_MAILER=log
-MAIL_FROM_ADDRESS=no-reply@${DOMAIN#new.}
+MAIL_FROM_ADDRESS=support@${DOMAIN#new.}
 MAIL_FROM_NAME=Erudsway
 
 # Payments: without Razorpay keys the API refuses the fake gateway in production, so checkout
