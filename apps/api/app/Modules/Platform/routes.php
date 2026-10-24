@@ -5,9 +5,11 @@ use App\Modules\Identity\Http\Middleware\EnsureAccountActive;
 use App\Modules\Platform\Http\Controllers\AuditLogController;
 use App\Modules\Platform\Http\Controllers\HealthController;
 use App\Modules\Platform\Http\Controllers\SettingsController;
+use App\Modules\Platform\Http\Controllers\SiteConfigController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('health', HealthController::class)->name('platform.health');
+Route::get('site-config', SiteConfigController::class)->name('platform.site-config');
 
 Route::middleware(['auth:sanctum', EnsureAccountActive::class])->prefix('admin')->name('platform.admin.')->group(function () {
     Route::middleware('can:'.Permission::ManageSettings->value)->group(function () {

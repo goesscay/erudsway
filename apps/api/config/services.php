@@ -28,6 +28,13 @@ return [
         'plans_course' => env('SIMULATOR_PLANS_COURSE', 'gst-simulator'),
     ],
 
+    // Google Analytics 4. Both values can be changed by an administrator under Admin > Settings,
+    // which overrides these defaults; they are off until a Measurement ID is set and switched on.
+    'google_analytics' => [
+        'enabled' => (bool) env('GOOGLE_ANALYTICS_ENABLED', false),
+        'measurement_id' => env('GOOGLE_ANALYTICS_ID', ''),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],
