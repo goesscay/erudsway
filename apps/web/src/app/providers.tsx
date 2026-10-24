@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ImpersonationBanner } from "@/components/admin/impersonation-banner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -19,6 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ImpersonationBanner />
+        <GoogleAnalytics />
         {children}
       </TooltipProvider>
     </QueryClientProvider>

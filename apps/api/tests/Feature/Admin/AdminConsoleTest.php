@@ -194,3 +194,28 @@ describe('impersonation', function () {
         $this->actingAs($admin)->postJson("/api/v1/admin/users/{$suspended->uuid}/impersonate")->assertJsonPath('error.code', 'CANNOT_IMPERSONATE');
     });
 });
+
+describe('google analytics', function () {
+    it('is off until an administrator sets a valid Measurement ID and switches it on', function () {
+        $this->getJson('/api/v1/site-config')->assertOk()
+            ->assertExactJson(['data' => ['google_analytics' => ['enabled' => false, 'measurement_id' => null]]]);
+
+        $staff = makeStaff(Permission::ManageSettings);
+        $url = '/api/v1/admin/settings';
+        $this->actingAs($staff)->putJson($url, ['values' => ['services.google_analytics.measurement_id' => 'UA-123']])->assertUnprocessable();
+        $this->actingAs($staff)->putJson($url, ['values' => ['services.google_analytics.measurement_id' => 'G-GKTJPQG8T8']])->assertOk();
+
+        // An ID alone does nothing until the switch is on.
+        $this->getJson('/api/v1/site-config')->assertJsonPath('data.google_analytics.enabled', false);
+
+        $this->actingAs($staff)->putJson($url, ['values' => ['services.google_analytics.enabled' => true]])->assertOk();
+        $this->getJson('/api/v1/site-config')->assertOk()
+            ->assertJsonPath('data.google_analytics', ['enabled' => true, 'measurement_id' => 'G-GKTJPQG8T8']);
+
+        expect(AuditLog::query()->where('action', 'settings.updated')->count())->toBe(2);
+
+        // Resetting the switch returns to the default (off).
+        $this->actingAs($staff)->putJson($url, ['values' => ['services.google_analytics.enabled' => null]])->assertOk();
+        $this->getJson('/api/v1/site-config')->assertJsonPath('data.google_analytics.enabled', false);
+    });
+});
