@@ -5,3 +5,8 @@ packages:
 allowBuilds:
   sharp: false
   unrs-resolver: false
+
+# Security fixes for indirect dependencies (pnpm audit, 2026-10-24).
+overrides:
+  fast-uri: ">=3.1.9"
+  body-parser: ">=2.4.0"
