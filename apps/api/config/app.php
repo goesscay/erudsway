@@ -22,6 +22,9 @@ return [
     */
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
+    /* Where messages from the website's Contact page are sent. */
+    'support_email' => env('SUPPORT_EMAIL', 'support@erudsway.com'),
+
     /* Operations: where `ops:check` sends alerts, and where the nightly backups land. */
     'ops_alert_email' => env('OPS_ALERT_EMAIL', ''),
     'backup_dir' => env('BACKUP_DIR', ''),

@@ -25,13 +25,13 @@ const columns: { title: string; links: [string, string][] }[] = [
     title: "Company",
     links: [
       ["About Erudsway", "/about"],
+      ["Vision & mission", "/about#vision"],
       ["Contact us", "/contact"],
     ],
   },
   {
     title: "Support",
     links: [
-      ["Help centre", "/help"],
       ["Terms & Conditions", "/policies#terms"],
       ["Privacy policy", "/policies#privacy"],
       ["Refund & cancellation", "/policies#refund"],

@@ -3257,6 +3257,424 @@
                 }
             }
         },
+        "/contact/topics": {
+            "get": {
+                "operationId": "platform.contact.topics",
+                "summary": "The topics a visitor can choose",
+                "tags": [
+                    "Contact"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "value": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "course",
+                                                                    "payment",
+                                                                    "technical",
+                                                                    "simulator",
+                                                                    "teaching",
+                                                                    "partnership",
+                                                                    "other"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "value",
+                                                            "label"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/contact": {
+            "post": {
+                "operationId": "platform.contact.store",
+                "summary": "Send a message to the Erudsway team. It's kept for staff and emailed to the support inbox",
+                "tags": [
+                    "Contact"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreContactMessageRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "const": "Thanks \u2014 your message has reached our team. We usually reply within one working day."
+                                                }
+                                            },
+                                            "required": [
+                                                "message"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/admin/contact-messages": {
+            "get": {
+                "operationId": "platform.admin.contact.index",
+                "summary": "Newest first; filter by new or handled",
+                "tags": [
+                    "ContactMessage"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "new",
+                                "handled",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "email": {
+                                                                "type": "string"
+                                                            },
+                                                            "phone": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "topic": {
+                                                                "type": "string"
+                                                            },
+                                                            "topic_label": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "handled_by": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "handled_at": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "email",
+                                                            "phone",
+                                                            "topic",
+                                                            "topic_label",
+                                                            "message",
+                                                            "status",
+                                                            "handled_by",
+                                                            "handled_at",
+                                                            "created_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "new_count": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "new_count",
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/admin/contact-messages/{message}": {
+            "patch": {
+                "operationId": "platform.admin.contact.update",
+                "summary": "Mark a message handled (or new again)",
+                "tags": [
+                    "ContactMessage"
+                ],
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "required": true,
+                        "description": "The message UUID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "new",
+                                            "handled"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "phone": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "topic": {
+                                                    "type": "string"
+                                                },
+                                                "topic_label": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Course enquiry",
+                                                        "Payment, invoice or order",
+                                                        "Login or technical help",
+                                                        "GST simulator",
+                                                        "Teaching on Erudsway",
+                                                        "College or corporate partnership",
+                                                        "Something else"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "handled_by": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "handled_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "created_at": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "phone",
+                                                "topic",
+                                                "topic_label",
+                                                "message",
+                                                "status",
+                                                "handled_by",
+                                                "handled_at",
+                                                "created_at"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/admin/coupons": {
             "get": {
                 "operationId": "commerce.admin.coupons.index",
@@ -14985,6 +15403,63 @@
                 }
             }
         },
+        "/site-config": {
+            "get": {
+                "operationId": "platform.site-config",
+                "summary": "What the website needs before it renders: whether to load Google Analytics, and with which\nMeasurement ID. Only ever the public ID, never a secret. A short cache keeps an admin's\nchange from taking long to reach visitors",
+                "tags": [
+                    "SiteConfig"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "google_analytics": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "enabled": {
+                                                            "type": "string"
+                                                        },
+                                                        "measurement_id": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "enabled",
+                                                        "measurement_id"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "google_analytics"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/admin/users": {
             "get": {
                 "operationId": "admin.users.index",
@@ -17280,6 +17755,20 @@
                     "active"
                 ],
                 "title": "CommissionRuleResource"
+            },
+            "ContactTopic": {
+                "type": "string",
+                "description": "What a Contact page message is about.\n",
+                "enum": [
+                    "course",
+                    "payment",
+                    "technical",
+                    "simulator",
+                    "teaching",
+                    "partnership",
+                    "other"
+                ],
+                "title": "ContactTopic"
             },
             "CouponKind": {
                 "type": "string",
@@ -20593,6 +21082,52 @@
                 },
                 "title": "StartTrialRequest"
             },
+            "StoreContactMessageRequest": {
+                "type": "object",
+                "description": "A message from the website's Contact page.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 80
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 190
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 20
+                    },
+                    "topic": {
+                        "$ref": "#/components/schemas/ContactTopic"
+                    },
+                    "message": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 3000
+                    },
+                    "website": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Left empty by people; filled in by bots that complete every field.",
+                        "maxLength": 0
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "topic",
+                    "message"
+                ],
+                "title": "StoreContactMessageRequest"
+            },
             "StoreEditionRequest": {
                 "type": "object",
                 "description": "A new edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).",
@@ -21209,6 +21744,36 @@
             }
         },
         "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
             "AuthorizationException": {
                 "description": "Authorization error",
                 "content": {
@@ -21242,36 +21807,6 @@
                             },
                             "required": [
                                 "message"
-                            ]
-                        }
-                    }
-                }
-            },
-            "ValidationException": {
-                "description": "Validation error",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string",
-                                    "description": "Errors overview."
-                                },
-                                "errors": {
-                                    "type": "object",
-                                    "description": "A detailed description of each field that failed validation.",
-                                    "additionalProperties": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            },
-                            "required": [
-                                "message",
-                                "errors"
                             ]
                         }
                     }

@@ -570,6 +570,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/contact/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The topics a visitor can choose */
+        get: operations["platform.contact.topics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a message to the Erudsway team. It's kept for staff and emailed to the support inbox */
+        post: operations["platform.contact.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/contact-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Newest first; filter by new or handled */
+        get: operations["platform.admin.contact.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/contact-messages/{message}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark a message handled (or new again) */
+        patch: operations["platform.admin.contact.update"];
+        trace?: never;
+    };
     "/admin/coupons": {
         parameters: {
             query?: never;
@@ -2694,6 +2762,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/site-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What the website needs before it renders: whether to load Google Analytics, and with which
+         *     Measurement ID. Only ever the public ID, never a secret. A short cache keeps an admin's
+         *     change from taking long to reach visitors
+         */
+        get: operations["platform.site-config"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -3128,6 +3217,12 @@ export interface components {
             effective_to: string | null;
             active: string;
         };
+        /**
+         * ContactTopic
+         * @description What a Contact page message is about.
+         * @enum {string}
+         */
+        ContactTopic: "course" | "payment" | "technical" | "simulator" | "teaching" | "partnership" | "other";
         /**
          * CouponKind
          * @enum {string}
@@ -3908,6 +4003,20 @@ export interface components {
             phone?: string | null;
         };
         /**
+         * StoreContactMessageRequest
+         * @description A message from the website's Contact page.
+         */
+        StoreContactMessageRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            phone?: string | null;
+            topic: components["schemas"]["ContactTopic"];
+            message: string;
+            /** @description Left empty by people; filled in by bots that complete every field. */
+            website?: string | null;
+        };
+        /**
          * StoreEditionRequest
          * @description A new edition in the course builder. Simulator and doubt-session flags are staff-only (checked in the controller).
          */
@@ -4078,6 +4187,22 @@ export interface components {
         UserStatus: "active" | "suspended";
     };
     responses: {
+        /** @description Validation error */
+        ValidationException: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    /** @description Errors overview. */
+                    message: string;
+                    /** @description A detailed description of each field that failed validation. */
+                    errors: {
+                        [key: string]: string[];
+                    };
+                };
+            };
+        };
         /** @description Authorization error */
         AuthorizationException: {
             headers: {
@@ -4099,22 +4224,6 @@ export interface components {
                 "application/json": {
                     /** @description Error overview. */
                     message: string;
-                };
-            };
-        };
-        /** @description Validation error */
-        ValidationException: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": {
-                    /** @description Errors overview. */
-                    message: string;
-                    /** @description A detailed description of each field that failed validation. */
-                    errors: {
-                        [key: string]: string[];
-                    };
                 };
             };
         };
@@ -5441,6 +5550,159 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "platform.contact.topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                /** @enum {string} */
+                                value: "course" | "payment" | "technical" | "simulator" | "teaching" | "partnership" | "other";
+                                label: string;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+        };
+    };
+    "platform.contact.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreContactMessageRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            message: "Thanks — your message has reached our team. We usually reply within one working day.";
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "platform.admin.contact.index": {
+        parameters: {
+            query?: {
+                status?: "new" | "handled" | null;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: string;
+                                name: string;
+                                email: string;
+                                phone: string | null;
+                                topic: string;
+                                topic_label: string;
+                                message: string;
+                                status: string;
+                                handled_by: string | null;
+                                handled_at: string | null;
+                                created_at: string;
+                            }[];
+                            new_count: number;
+                            current_page: number;
+                            last_page: number;
+                            total: number;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "platform.admin.contact.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The message UUID */
+                message: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "new" | "handled";
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            email: string;
+                            phone: string | null;
+                            topic: string;
+                            /** @enum {string} */
+                            topic_label: "Course enquiry" | "Payment, invoice or order" | "Login or technical help" | "GST simulator" | "Teaching on Erudsway" | "College or corporate partnership" | "Something else";
+                            message: string;
+                            status: string;
+                            handled_by: string | null;
+                            handled_at: string | null;
+                            created_at: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
         };
@@ -10450,6 +10712,33 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "platform.site-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            google_analytics: {
+                                enabled: string;
+                                measurement_id: string | null;
+                            };
+                        };
+                        meta: string;
+                    };
+                };
+            };
         };
     };
     "admin.users.index": {

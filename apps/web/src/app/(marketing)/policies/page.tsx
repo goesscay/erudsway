@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ADDRESS, PHONE, PHONE_HREF, SUPPORT_EMAIL } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Legal policies",
@@ -6,11 +7,7 @@ export const metadata: Metadata = {
     "Terms & Conditions, Privacy, Refund & Cancellation, Professional Disclaimer, Cookies, Delivery & Access, Acceptable Use, Grievances and Policy Changes for Erudsway Educorp LLP.",
 };
 
-const SUPPORT = "support@erudsway.com";
-const PHONE = "+91 86080 59459";
-const PHONE_HREF = "tel:+918608059459";
-const ADDRESS =
-  "No. 7/7A, Sundaresan Street, Zamin Pallavaram, Thiripura Sundari Colony, Pallavaram, Tambaram, Tamil Nadu 600043, India";
+const SUPPORT = SUPPORT_EMAIL;
 
 const sections = [
   { id: "terms", title: "Terms & Conditions", effective: "1 October 2026" },

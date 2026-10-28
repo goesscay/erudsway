@@ -14,6 +14,7 @@ import {
   LibraryBig,
   LayoutDashboard,
   Landmark,
+  Inbox,
   KeyRound,
   Menu,
   PanelLeftClose,
@@ -76,6 +77,7 @@ const groups: { title: string; items: Item[] }[] = [
     items: [
       { href: "/admin/users", label: "Users", icon: Users, permission: "manage_users" },
       { href: "/admin/roles", label: "Roles & permissions", icon: KeyRound, permission: "manage_users" },
+      { href: "/admin/messages", label: "Messages", icon: Inbox, permission: "manage_users" },
       { href: "/admin/settings", label: "Settings", icon: Settings, permission: "manage_settings" },
       { href: "/admin/audit", label: "Audit log", icon: FileClock, permission: "view_audit_logs" },
     ],
