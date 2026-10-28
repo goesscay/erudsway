@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AuthPanel, DefaultPanel } from "@/components/auth/auth-panel";
 import { Logo } from "@/components/brand/logo";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
@@ -19,15 +21,10 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             strokeWidth="0.75"
           />
         </svg>
-        <Logo inverted />
-        <div className="relative mt-auto max-w-md">
-          <p className="font-serif text-[2.1rem] leading-[1.15] font-medium text-white">
-            Knowledge that moves minds.
-          </p>
-          <p className="mt-6 text-sm text-white/60">
-            Learn GST, income tax, audit and company law from chartered accountants, company secretaries and advocates who practise what they teach.
-          </p>
-        </div>
+        {/* Reading the address must happen inside Suspense; until then the usual panel shows. */}
+        <Suspense fallback={<DefaultPanel />}>
+          <AuthPanel />
+        </Suspense>
         <p className="relative mt-16 text-xs text-white/40">© 2026 Erudsway Educorp LLP</p>
       </aside>
 
