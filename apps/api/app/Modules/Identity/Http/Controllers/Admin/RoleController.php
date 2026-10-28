@@ -101,7 +101,7 @@ class RoleController extends Controller
     public function permissions(): JsonResponse
     {
         return ApiResponse::data([
-            /** @var list<array{key: 'review_instructor_applications'|'moderate_courses'|'manage_courses'|'manage_categories'|'manage_fulfilment'|'manage_users'|'manage_finance'|'view_reports'|'manage_settings'|'view_audit_logs', label: string, description: string, users_count: int}> */
+            /** @var list<array{key: 'review_instructor_applications'|'moderate_courses'|'manage_courses'|'manage_categories'|'manage_fulfilment'|'manage_users'|'manage_finance'|'view_reports'|'manage_settings'|'view_audit_logs'|'handle_support', label: string, description: string, users_count: int}> */
             'items' => array_map(fn (Permission $p) => [
                 'key' => $p->value,
                 'label' => $p->label(),

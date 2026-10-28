@@ -7,6 +7,7 @@ import { ShieldAlert } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasPermission, isStaff, useMe, type CurrentUser } from "@/lib/auth/session";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /**
  * Client-side gate for signed-in areas. This only shapes the UI — the API enforces
@@ -27,6 +28,8 @@ export function RequireAuth({
   children: (user: CurrentUser) => React.ReactNode;
 }) {
   const { data: me, isPending, isError } = useMe();
+  // The server always renders the skeleton; match it until hydration even if the account is cached.
+  const hydrated = useHydrated();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -40,7 +43,7 @@ export function RequireAuth({
     return <Notice title="We couldn't load your account" body="Check your connection and refresh the page." />;
   }
 
-  if (isPending || !me) {
+  if (!hydrated || isPending || !me) {
     return (
       <div className="mx-auto max-w-4xl space-y-4 px-6 py-16" aria-busy>
         <Skeleton className="h-10 w-64" />

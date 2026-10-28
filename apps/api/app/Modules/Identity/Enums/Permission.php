@@ -18,6 +18,7 @@ enum Permission: string
     case ViewReports = 'view_reports';
     case ManageSettings = 'manage_settings';
     case ViewAuditLogs = 'view_audit_logs';
+    case HandleSupport = 'handle_support';
 
     public function label(): string
     {
@@ -32,6 +33,7 @@ enum Permission: string
             self::ViewReports => 'Reports',
             self::ManageSettings => 'Settings',
             self::ViewAuditLogs => 'Audit log',
+            self::HandleSupport => 'Support tickets',
         };
     }
 
@@ -48,6 +50,7 @@ enum Permission: string
             self::ViewReports => 'The dashboard numbers and every report, with CSV exports.',
             self::ManageSettings => 'GST, invoice, refund and payout settings.',
             self::ViewAuditLogs => 'See and export the record of staff actions.',
+            self::HandleSupport => 'Answer Help Centre tickets: reply, add internal notes, assign and change status.',
         };
     }
 }

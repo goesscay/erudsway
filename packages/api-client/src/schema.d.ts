@@ -2783,6 +2783,178 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tickets, most recently active first; filter by status, topic, assignee or a search */
+        get: operations["support.admin.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Statuses, topics and the staff a ticket can be assigned to */
+        get: operations["support.admin.options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/support/tickets/{ticket}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ticket with its whole conversation, internal notes included */
+        get: operations["support.admin.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change the status or the assignee */
+        patch: operations["support.admin.update"];
+        trace?: never;
+    };
+    "/admin/support/tickets/{ticket}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply to the learner (emailed to them), or add an internal note with `internal` */
+        post: operations["support.admin.reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/support/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Topics and the learner's own courses, for the "Raise a ticket" form */
+        get: operations["support.options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The learner's tickets, most recently active first */
+        get: operations["support.tickets.index"];
+        put?: never;
+        /** Raise a ticket. The support team is emailed straight away */
+        post: operations["support.tickets.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/support/tickets/{ticket}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the learner's tickets with its conversation (internal notes left out) */
+        get: operations["support.tickets.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/support/tickets/{ticket}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply on the ticket. A resolved ticket reopens */
+        post: operations["support.tickets.reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/support/tickets/{ticket}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close the ticket when the problem is sorted */
+        post: operations["support.tickets.close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/support/attachments/{attachment}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download an attachment. Only the ticket's owner and support staff may */
+        get: operations["support.attachments.download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -3819,7 +3991,7 @@ export interface components {
          * @description Fine-grained staff permissions. The admin role holds all of them; other staff get a subset, directly or through a custom role (e.g. moderation without finance).
          * @enum {string}
          */
-        Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
+        Permission: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs" | "handle_support";
         /** PriceTierResource */
         PriceTierResource: {
             id: number;
@@ -3943,6 +4115,14 @@ export interface components {
                 lectures: number[];
             }[];
         };
+        /**
+         * ReplyRequest
+         * @description A message on a ticket, with up to three screenshots or PDFs of 5 MB each.
+         */
+        ReplyRequest: {
+            message: string;
+            attachments?: string[];
+        };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
             token: string;
@@ -4040,6 +4220,19 @@ export interface components {
             sample_url?: string | null;
         };
         /**
+         * StoreTicketRequest
+         * @description A new Help Centre ticket.
+         */
+        StoreTicketRequest: {
+            message: string;
+            attachments?: string[];
+            category: components["schemas"]["TicketCategory"];
+            subject: string;
+            course_id?: number | null;
+            module?: string | null;
+            order_reference?: string | null;
+        };
+        /**
          * StoreUserRequest
          * @description Staff create an account; the person sets their own password from an emailed link.
          */
@@ -4091,6 +4284,18 @@ export interface components {
          * @enum {string}
          */
         TeachingExperience: "none" | "informal" | "classroom" | "online";
+        /**
+         * TicketCategory
+         * @description Help Centre topics; a ticket is filed under one.
+         * @enum {string}
+         */
+        TicketCategory: "account" | "courses" | "gst_simulator" | "tds_simulator" | "payments" | "certificates" | "faculty" | "technical";
+        /**
+         * TicketStatus
+         * @description Open → In progress → Waiting for the learner → Resolved → Closed. A reply reopens a resolved ticket.
+         * @enum {string}
+         */
+        TicketStatus: "open" | "in_progress" | "waiting_learner" | "resolved" | "closed";
         /**
          * UpdateAccessRequest
          * @description A user's staff access: the admin switches, custom roles, and permissions given directly.
@@ -10266,7 +10471,7 @@ export interface operations {
                         data: {
                             items: {
                                 /** @enum {string} */
-                                key: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs";
+                                key: "review_instructor_applications" | "moderate_courses" | "manage_courses" | "manage_categories" | "manage_fulfilment" | "manage_users" | "manage_finance" | "view_reports" | "manage_settings" | "view_audit_logs" | "handle_support";
                                 label: string;
                                 description: string;
                                 users_count: number;
@@ -10739,6 +10944,594 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "support.admin.index": {
+        parameters: {
+            query?: {
+                status?: "active" | "open" | "in_progress" | "waiting_learner" | "resolved" | "closed" | null;
+                category?: components["schemas"]["TicketCategory"] | null;
+                assigned?: "me" | "unassigned" | null;
+                q?: string | null;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: string;
+                                number: string;
+                                subject: string;
+                                category: string;
+                                category_label: string;
+                                status: string;
+                                status_label: string;
+                                course: {
+                                    id: number;
+                                    title: string;
+                                } | null;
+                                module: string | null;
+                                order_reference: string | null;
+                                learner: {
+                                    name: string;
+                                    email: string;
+                                };
+                                assignee: {
+                                    id: number;
+                                    name: string;
+                                } | null;
+                                last_activity_at: string | null;
+                                created_at: string;
+                            }[];
+                            counts: {
+                                [key: string]: number;
+                            };
+                            current_page: number;
+                            last_page: number;
+                            total: number;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "support.admin.options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            statuses: {
+                                value: string;
+                                label: string;
+                            }[];
+                            categories: {
+                                value: string;
+                                label: string;
+                            }[];
+                            staff: {
+                                id: number;
+                                name: string;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "support.admin.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            number: string;
+                            subject: string;
+                            category: string;
+                            /** @enum {string} */
+                            category_label: "Account & Login" | "Courses & Learning" | "GST Simulator" | "TDS Simulator" | "Payments & Refunds" | "Certificates" | "Faculty & Instructors" | "Technical Support";
+                            status: string;
+                            /** @enum {string} */
+                            status_label: "Waiting for your reply" | "Open" | "In progress" | "Waiting for learner" | "Resolved" | "Closed";
+                            course: {
+                                id: number;
+                                title: string;
+                            } | null;
+                            module: string | null;
+                            order_reference: string | null;
+                            learner: {
+                                name: string;
+                                email: string;
+                            };
+                            assignee: {
+                                id: number;
+                                name: string;
+                            } | null;
+                            last_activity_at: string | null;
+                            created_at: string;
+                            messages: {
+                                id: number;
+                                body: string;
+                                from_staff: boolean;
+                                internal: boolean;
+                                author: string;
+                                created_at: string;
+                                attachments: {
+                                    id: string;
+                                    name: string;
+                                    mime: string;
+                                    size: number;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "support.admin.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    status?: components["schemas"]["TicketStatus"];
+                    assigned_to?: number | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            number: string;
+                            subject: string;
+                            category: string;
+                            /** @enum {string} */
+                            category_label: "Account & Login" | "Courses & Learning" | "GST Simulator" | "TDS Simulator" | "Payments & Refunds" | "Certificates" | "Faculty & Instructors" | "Technical Support";
+                            status: string;
+                            /** @enum {string} */
+                            status_label: "Waiting for your reply" | "Open" | "In progress" | "Waiting for learner" | "Resolved" | "Closed";
+                            course: {
+                                id: number;
+                                title: string;
+                            } | null;
+                            module: string | null;
+                            order_reference: string | null;
+                            learner: {
+                                name: string;
+                                email: string;
+                            };
+                            assignee: {
+                                id: number;
+                                name: string;
+                            } | null;
+                            last_activity_at: string | null;
+                            created_at: string;
+                            messages: {
+                                id: number;
+                                body: string;
+                                from_staff: boolean;
+                                internal: boolean;
+                                author: string;
+                                created_at: string;
+                                attachments: {
+                                    id: string;
+                                    name: string;
+                                    mime: string;
+                                    size: number;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "support.admin.reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["ReplyRequest"] & {
+                    internal?: boolean;
+                    status?: components["schemas"]["TicketStatus"] | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            number: string;
+                            subject: string;
+                            category: string;
+                            /** @enum {string} */
+                            category_label: "Account & Login" | "Courses & Learning" | "GST Simulator" | "TDS Simulator" | "Payments & Refunds" | "Certificates" | "Faculty & Instructors" | "Technical Support";
+                            status: string;
+                            /** @enum {string} */
+                            status_label: "Waiting for your reply" | "Open" | "In progress" | "Waiting for learner" | "Resolved" | "Closed";
+                            course: {
+                                id: number;
+                                title: string;
+                            } | null;
+                            module: string | null;
+                            order_reference: string | null;
+                            learner: {
+                                name: string;
+                                email: string;
+                            };
+                            assignee: {
+                                id: number;
+                                name: string;
+                            } | null;
+                            last_activity_at: string | null;
+                            created_at: string;
+                            messages: {
+                                id: number;
+                                body: string;
+                                from_staff: boolean;
+                                internal: boolean;
+                                author: string;
+                                created_at: string;
+                                attachments: {
+                                    id: string;
+                                    name: string;
+                                    mime: string;
+                                    size: number;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "support.options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            categories: {
+                                /** @enum {string} */
+                                value: "account" | "courses" | "gst_simulator" | "tds_simulator" | "payments" | "certificates" | "faculty" | "technical";
+                                label: string;
+                            }[];
+                            courses: {
+                                id: number;
+                                title: string;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "support.tickets.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            items: {
+                                id: string;
+                                number: string;
+                                subject: string;
+                                category: string;
+                                category_label: string;
+                                status: string;
+                                status_label: string;
+                                course: {
+                                    id: number;
+                                    title: string;
+                                } | null;
+                                module: string | null;
+                                order_reference: string | null;
+                                learner: {
+                                    name: string;
+                                    email: string;
+                                };
+                                assignee: {
+                                    id: number;
+                                    name: string;
+                                } | null;
+                                last_activity_at: string | null;
+                                created_at: string;
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "support.tickets.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["StoreTicketRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            number: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "support.tickets.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            number: string;
+                            subject: string;
+                            category: string;
+                            /** @enum {string} */
+                            category_label: "Account & Login" | "Courses & Learning" | "GST Simulator" | "TDS Simulator" | "Payments & Refunds" | "Certificates" | "Faculty & Instructors" | "Technical Support";
+                            status: string;
+                            /** @enum {string} */
+                            status_label: "Waiting for your reply" | "Open" | "In progress" | "Waiting for learner" | "Resolved" | "Closed";
+                            course: {
+                                id: number;
+                                title: string;
+                            } | null;
+                            module: string | null;
+                            order_reference: string | null;
+                            learner: {
+                                name: string;
+                                email: string;
+                            };
+                            assignee: {
+                                id: number;
+                                name: string;
+                            } | null;
+                            last_activity_at: string | null;
+                            created_at: string;
+                            messages: {
+                                id: number;
+                                body: string;
+                                from_staff: boolean;
+                                internal: boolean;
+                                author: string;
+                                created_at: string;
+                                attachments: {
+                                    id: string;
+                                    name: string;
+                                    mime: string;
+                                    size: number;
+                                }[];
+                            }[];
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "support.tickets.reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["ReplyRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            status: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "support.tickets.close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ticket UUID */
+                ticket: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            status: string;
+                        };
+                        meta: string;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "support.attachments.download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The attachment UUID */
+                attachment: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "admin.users.index": {

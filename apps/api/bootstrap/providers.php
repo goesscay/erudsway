@@ -14,6 +14,7 @@ use App\Modules\Learning\LearningServiceProvider;
 use App\Modules\Legacy\LegacyServiceProvider;
 use App\Modules\Media\MediaServiceProvider;
 use App\Modules\Platform\PlatformServiceProvider;
+use App\Modules\Support\SupportServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\HorizonServiceProvider;
 
@@ -34,4 +35,5 @@ return [
     AnalyticsServiceProvider::class,
     FulfilmentServiceProvider::class,
     LegacyServiceProvider::class,
+    SupportServiceProvider::class,
 ];
