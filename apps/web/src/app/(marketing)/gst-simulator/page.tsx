@@ -106,6 +106,27 @@ const trialSteps = [
   ["Keep going with a plan", "Choose a plan before the trial ends to keep the same login and your work."],
 ] as const;
 
+/** [feature, 3 months, 12 months]: true = included, false = not included, text = the detail. */
+const comparison: [string, boolean | string, boolean | string][] = [
+  ["Your own practice GSTIN (supplier + recipient)", true, true],
+  ["GSTR-1, 1A, 2A, 2B, 3B and IMS", true, true],
+  ["Challans, cash and credit ledgers, refunds, TDS/TCS", true, true],
+  ["ITC reconciliation, workpapers and guided exercises", true, true],
+  ["e-Invoicing (IRP) practice", true, true],
+  ["Practice attempts", "Unlimited", "Unlimited"],
+  ["Monthly filing cycles you can practise", "About 3", "A full year, incl. quarterly cycles"],
+  ["Simulator updates released during your plan", true, true],
+  ["Course videos, notes and downloadable files", false, false],
+  ["Access period", "90 days", "365 days"],
+];
+
+const planRules = [
+  "Access starts as soon as payment is confirmed; your practice login is ready within moments.",
+  "Bought during your free trial? You keep the same login and everything you’ve practised.",
+  "In the last 30 days of a plan you can buy it again; the new period starts when the current one ends.",
+  "We email you before your plan ends. When it ends, the practice login and its returns are removed.",
+];
+
 const faqs = [
   [
     "Is this the real GST portal?",
@@ -291,8 +312,7 @@ export default async function GstSimulatorPage() {
               Keep practising with a plan
             </h2>
             <p className="mt-3 text-[0.95rem] leading-relaxed text-stone-700">
-              Choose a plan during your trial and you keep the same login and everything you&rsquo;ve practised. Prices
-              include GST, with a GST invoice for every purchase.
+              Choose a plan during your trial and you keep the same login and everything you&rsquo;ve practised.
             </p>
           </div>
           {plans && plans.editions.length > 0 ? (
@@ -324,7 +344,7 @@ export default async function GstSimulatorPage() {
                       )}
                     </p>
                     <p className="text-xs text-stone-500">
-                      {e.access_days ? `${e.access_days} days of access` : "No end date"} · inclusive of GST
+                      {e.access_days ? `${e.access_days} days of access` : "No end date"}
                     </p>
                     {i > 0 && (
                       <p className="mt-4 text-xs font-semibold text-stone-500">
@@ -350,6 +370,84 @@ export default async function GstSimulatorPage() {
             <p className="mt-6 text-sm text-stone-600">
               Plans are being set up — start your free trial in the meantime.
             </p>
+          )}
+
+          {plans && plans.editions.length > 0 && (
+            <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1.4fr_1fr]">
+              <div>
+                <h3 className="font-sans text-lg font-bold text-ink">Compare the plans</h3>
+                <p className="mt-1 text-sm text-stone-600">
+                  Both plans include the same simulator. The difference is how long you can use it.
+                </p>
+                <div className="mt-4 overflow-x-auto rounded-lg border border-line bg-white">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-line bg-paper-2/60 text-xs font-semibold tracking-wide text-stone-500 uppercase">
+                      <tr>
+                        <th scope="col" className="px-4 py-3">
+                          What you get
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-center">
+                          3 months
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-center">
+                          12 months
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {comparison.map(([feature, three, twelve]) => (
+                        <tr key={feature}>
+                          <th scope="row" className="px-4 py-2.5 font-normal text-stone-800">
+                            {feature}
+                          </th>
+                          {[three, twelve].map((v, i) => (
+                            <td key={i} className="px-4 py-2.5 text-center text-stone-800">
+                              {v === true ? (
+                                <Check className="mx-auto size-4 text-success" aria-label="Included" />
+                              ) : v === false ? (
+                                <span className="text-stone-400" aria-label="Not included">
+                                  —
+                                </span>
+                              ) : (
+                                v
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="space-y-5">
+                <div className="rounded-lg border border-line bg-white p-5">
+                  <h3 className="font-sans text-base font-bold text-ink">How access works</h3>
+                  <ul className="mt-3 space-y-2 text-sm leading-relaxed text-stone-700">
+                    {planRules.map((rule) => (
+                      <li key={rule} className="flex gap-2">
+                        <Check className="mt-1 size-3.5 shrink-0 text-success" aria-hidden />
+                        {rule}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-gold-200 bg-gold-50/60 p-5">
+                  <h3 className="font-sans text-base font-bold text-ink">Plans or the GST course?</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-700">
+                    These plans are simulator practice only, with no lessons. To learn GST with videos and working
+                    files, take the{" "}
+                    <Link
+                      href="/course/gst-practical-mastery-registration-to-gstr-9c"
+                      className="font-semibold text-navy-800 underline underline-offset-2"
+                    >
+                      GST Practical Mastery course
+                    </Link>
+                    . Its Simulator Mastery package already includes simulator access for the course&rsquo;s access
+                    period, so you don&rsquo;t need a separate plan.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </section>

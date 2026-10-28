@@ -2,12 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { ArrowRight, Award, FileCheck2, IndianRupee, MonitorSmartphone } from "lucide-react";
-import { PhotoCredit } from "@/components/brand/photo-credit";
+import { ArrowRight, Award, IndianRupee, MonitorSmartphone } from "lucide-react";
 import { SectionHeading } from "@/components/brand/section-heading";
 import { CourseCard } from "@/components/course/course-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategories, searchCourses } from "@/lib/catalog/queries";
 import { photos } from "@/lib/demo-data";
@@ -67,25 +65,16 @@ export default function HomePage() {
                 className="object-cover"
               />
             </div>
-            <div className="absolute -bottom-6 left-4 w-[290px] rounded-md bg-white p-4 shadow-[0_18px_40px_-18px_rgb(0_27_64/0.45)] ring-1 ring-line sm:-left-8">
-              <p className="text-[0.7rem] font-semibold tracking-wide text-stone-500 uppercase">Continue learning</p>
-              <p className="mt-1 line-clamp-1 text-sm font-bold text-ink">GST Practitioner Course</p>
-              <p className="text-xs text-stone-500">Lecture 14 · Filing GSTR-3B</p>
-              <Progress value={62} className="mt-3 h-1.5" aria-label="62% complete" />
-              <p className="tabular mt-1.5 text-right text-[0.7rem] text-stone-500">62% complete</p>
-            </div>
-            <PhotoCredit photo={photos.hero} className="mt-9 text-right" />
           </div>
         </div>
       </section>
 
       {/* Assurance strip */}
       <section className="border-b border-line bg-white">
-        <ul className="mx-auto grid max-w-[1340px] gap-y-4 px-6 py-5 text-sm text-stone-700 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mx-auto grid max-w-[1340px] gap-y-4 px-6 py-5 text-sm text-stone-700 sm:grid-cols-3">
           {(
             [
               [IndianRupee, "Pay in rupees — UPI, cards, netbanking"],
-              [FileCheck2, "GST invoice with every purchase"],
               [MonitorSmartphone, "Learn at your own pace, on any device"],
               [Award, "Certificate of completion"],
             ] as const
@@ -175,7 +164,6 @@ export default function HomePage() {
             <Link href="/teach" className={cn(buttonVariants({ size: "lg" }), "mt-10")}>
               Start teaching today
             </Link>
-            <PhotoCredit photo={photos.teach} className="mt-6 text-white/40" />
           </div>
         </div>
       </section>

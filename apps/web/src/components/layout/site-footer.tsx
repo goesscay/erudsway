@@ -32,6 +32,7 @@ const columns: { title: string; links: [string, string][] }[] = [
   {
     title: "Support",
     links: [
+      ["Help centre", "/help"],
       ["Terms & Conditions", "/policies#terms"],
       ["Privacy policy", "/policies#privacy"],
       ["Refund & cancellation", "/policies#refund"],
@@ -47,8 +48,9 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Logo inverted />
           <p className="max-w-xs font-serif text-lg leading-snug text-white/80 italic">Knowledge that moves minds.</p>
-          <p className="max-w-xs text-sm text-white/55">
-            Tax, audit and compliance courses taught by practising professionals.
+          <p className="max-w-xs text-sm leading-relaxed text-white/55">
+            Empowering learners through practical, career-focused courses in Taxation, Accounting, Audit, Corporate Law
+            and Business Compliance, guided by experienced professionals.
           </p>
         </div>
         {columns.map((col) => (
@@ -69,7 +71,6 @@ export function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1340px] flex-wrap items-center justify-between gap-3 px-6 py-6 text-xs text-white/50">
           <p>© 2026 Erudsway Educorp LLP. All rights reserved.</p>
-          <p>Prices in INR, inclusive of GST. Courses are for education and are not professional advice.</p>
         </div>
       </div>
     </footer>

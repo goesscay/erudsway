@@ -287,7 +287,7 @@ async function CourseView({ params }: { params: Params }) {
               )}
               {course.price && (
                 <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
-                  <ShieldCheck className="size-3.5" aria-hidden /> Secure payment · GST invoice ·{" "}
+                  <ShieldCheck className="size-3.5" aria-hidden /> Secure payment ·{" "}
                   <Link href="/policies#refund" className="underline underline-offset-2">
                     Refund policy
                   </Link>

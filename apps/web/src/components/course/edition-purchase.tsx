@@ -25,7 +25,7 @@ export function EditionPurchase({ slug, editions }: { slug: string; editions: Ed
     <div className="space-y-4">
       <div>
         <p className="tabular font-serif text-3xl font-semibold text-ink">{formatPaise(current.price.amount)}</p>
-        <p className="text-xs text-stone-500">{current.name} · inclusive of GST</p>
+        <p className="text-xs text-stone-500">{current.name}</p>
       </div>
       <PurchaseActions slug={slug} free={false} edition={current.id} />
 
