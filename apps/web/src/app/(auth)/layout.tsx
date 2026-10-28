@@ -25,7 +25,6 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <Suspense fallback={<DefaultPanel />}>
           <AuthPanel />
         </Suspense>
-        <p className="relative mt-16 text-xs text-white/40">© 2026 Erudsway Educorp LLP</p>
       </aside>
 
       {/* Form */}

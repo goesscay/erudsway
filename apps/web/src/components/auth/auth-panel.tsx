@@ -43,42 +43,44 @@ export function DefaultPanel() {
           practise what they teach.
         </p>
       </div>
+      <p className="relative mt-16 text-xs text-white/40">© 2026 Erudsway Educorp LLP</p>
     </>
   );
 }
 
+/** The simulator walkthrough fills the whole panel; only the way back sits on top of it. */
 function TrialPanel() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <>
+    <figure className="absolute inset-0 m-0">
+      <video
+        // Silent and looping; with reduced motion it waits for the viewer to press play.
+        key={reducedMotion ? "still" : "moving"}
+        className="size-full object-cover"
+        poster="/media/gst-simulator-trial-poster.jpg"
+        autoPlay={!reducedMotion}
+        controls={reducedMotion}
+        muted
+        loop
+        playsInline
+        preload={reducedMotion ? "none" : "auto"}
+        aria-describedby="trial-video-caption"
+      >
+        <source src="/media/gst-simulator-trial.webm" type="video/webm" />
+        <source src="/media/gst-simulator-trial.mp4" type="video/mp4" />
+      </video>
+      <figcaption id="trial-video-caption" className="sr-only">
+        Walkthrough of the GST simulator: log in, prepare GSTR-1, then reconcile ITC and file GSTR-3B on your own
+        practice GSTIN, free for 7 days.
+      </figcaption>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-navy-950/80 to-transparent" />
       <Link
         href="/gst-simulator"
-        className="relative inline-flex w-fit items-center gap-2 rounded-sm text-sm font-semibold text-white/70 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-400"
+        className="absolute top-6 right-8 inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-white/80 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-400"
       >
         <ArrowLeft className="size-4" aria-hidden /> Back to GST Simulator
       </Link>
-      <figure className="relative flex flex-1 flex-col items-center justify-center py-6">
-        <video
-          // The walkthrough is silent and loops; with reduced motion it waits for the viewer to press play.
-          key={reducedMotion ? "still" : "moving"}
-          className="aspect-[4/5] max-h-[calc(100dvh-20rem)] w-auto max-w-full rounded-2xl shadow-2xl ring-1 ring-white/10"
-          poster="/media/gst-simulator-trial-poster.jpg"
-          autoPlay={!reducedMotion}
-          controls={reducedMotion}
-          muted
-          loop
-          playsInline
-          preload={reducedMotion ? "none" : "auto"}
-          aria-label="Walkthrough of the GST simulator: log in, prepare GSTR-1, then reconcile ITC and file GSTR-3B."
-        >
-          <source src="/media/gst-simulator-trial.webm" type="video/webm" />
-          <source src="/media/gst-simulator-trial.mp4" type="video/mp4" />
-        </video>
-        <figcaption className="mt-5 max-w-sm text-center text-sm text-white/60">
-          Log in, prepare GSTR-1, reconcile ITC and file GSTR-3B — on your own practice GSTIN, free for 7 days.
-        </figcaption>
-      </figure>
-    </>
+    </figure>
   );
 }
