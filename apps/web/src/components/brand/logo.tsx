@@ -37,7 +37,7 @@ export function Logo({
             inverted ? "text-white/55" : "text-stone-500",
           )}
         >
-          Educorp
+          Educorp LLP
         </span>
       </span>
     </Link>
