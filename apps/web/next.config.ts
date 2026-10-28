@@ -5,17 +5,17 @@ const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000
 /**
  * Content Security Policy for production. Next's inline bootstrap scripts need
  * 'unsafe-inline' without per-request nonces; everything else is pinned: the API, Razorpay
- * Checkout (script, iframe, API calls), hls.js workers and video blobs, and images.
+ * Checkout (script, iframe, API calls), Google Analytics (only loaded when an admin turns it on), hls.js workers and video blobs, and images.
  * Development leaves it off (React Refresh needs eval).
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com",
+  "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  `img-src 'self' data: blob: ${apiUrl.origin} https://images.unsplash.com https://*.razorpay.com`,
+  `img-src 'self' data: blob: ${apiUrl.origin} https://images.unsplash.com https://*.razorpay.com https://*.google-analytics.com https://*.googletagmanager.com`,
   `media-src 'self' blob: ${apiUrl.origin}`,
-  `connect-src 'self' ${apiUrl.origin} https://*.razorpay.com https://lumberjack.razorpay.com`,
+  `connect-src 'self' ${apiUrl.origin} https://*.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
   "frame-src https://api.razorpay.com https://checkout.razorpay.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
